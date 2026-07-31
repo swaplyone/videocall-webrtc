@@ -1,5 +1,3 @@
-const rateLimitMap = new Map();
-
 /**
  * Creates an Express middleware for rate limiting.
  * @param {object} options 
@@ -12,8 +10,10 @@ export function createRateLimiter({
   max = 100,
   message = 'Too many requests, please try again later.'
 } = {}) {
+  const rateLimitMap = new Map();
+
   // Clean up expired entries periodically to prevent memory leaks
-  setInterval(() => {
+  const intervalId = setInterval(() => {
     const now = Date.now();
     for (const [ip, data] of rateLimitMap.entries()) {
       if (now > data.resetTime) {
@@ -21,6 +21,11 @@ export function createRateLimiter({
       }
     }
   }, windowMs);
+
+  // Unref interval to prevent it from holding the Node process open in test suites
+  if (intervalId && typeof intervalId.unref === 'function') {
+    intervalId.unref();
+  }
 
   return (req, res, next) => {
     // Resolve IP address taking proxies into account
