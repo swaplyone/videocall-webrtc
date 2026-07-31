@@ -120,7 +120,9 @@ async function runDiscoveryTests() {
   console.log(`User Discovery Tests Result: ${passed ? 'PASSED' : 'FAILED'}`);
   console.log('==================================================\n');
 
-  process.exit(passed ? 0 : 1);
+  setTimeout(() => {
+    process.exit(passed ? 0 : 1);
+  }, 100);
 }
 
 runDiscoveryTests();

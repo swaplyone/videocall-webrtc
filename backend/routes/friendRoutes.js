@@ -49,6 +49,11 @@ router.get('/search', authenticateToken, async (req, res) => {
   }
 
   try {
+    let cleanQ = q.trim();
+    if (cleanQ.startsWith('@')) {
+      cleanQ = cleanQ.substring(1);
+    }
+
     // Allow searching for exact username/beta_id or partial if searchable
     const searchRes = await query(
       `SELECT name, username, beta_id, profile_image, online_status
@@ -57,7 +62,7 @@ router.get('/search', authenticateToken, async (req, res) => {
          username = $1 OR beta_id = $2 OR 
          (searchable = true AND (username ILIKE $3 OR name ILIKE $3))
        ) AND id <> $4`,
-      [q.trim().toLowerCase(), q.trim().toUpperCase(), `%${q.trim()}%`, req.user.id]
+      [cleanQ.toLowerCase(), cleanQ.toUpperCase(), `%${cleanQ}%`, req.user.id]
     );
 
     res.json({ success: true, results: searchRes.rows });
