@@ -65,6 +65,12 @@ export default function Dashboard({
   const [qrToken, setQrToken] = useState('');
   const [inviteUrl, setInviteUrl] = useState('');
   const [qrActive, setQrActive] = useState(true);
+  const [privacySettings, setPrivacySettings] = useState({
+    searchable: true,
+    allow_requests: true,
+    show_beta_id: true,
+    qr_active: true
+  });
 
   useEffect(() => {
     setCompatReport(checkBrowserCompatibility());
@@ -115,6 +121,56 @@ export default function Dashboard({
       }
     } catch (err) {
       console.error('Error fetching QR:', err);
+    }
+  };
+
+  const fetchPrivacySettings = async () => {
+    if (!authToken) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/auth/profile`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.success && data.user) {
+        setPrivacySettings({
+          searchable: data.user.searchable !== false,
+          allow_requests: data.user.allow_requests !== false,
+          show_beta_id: data.user.show_beta_id !== false,
+          qr_active: data.user.qr_active !== false
+        });
+      }
+    } catch (err) {
+      console.error('Error fetching privacy settings:', err);
+    }
+  };
+
+  const handlePrivacyToggle = async (key, checked) => {
+    const updated = { ...privacySettings, [key]: checked };
+    setPrivacySettings(updated);
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/friends/privacy`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ [key]: checked })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        showPopup('Error', 'Failed to update privacy settings', 'error');
+        setPrivacySettings(privacySettings);
+      } else {
+        showPopup('Success', 'Privacy settings updated successfully.', 'success');
+        if (key === 'qr_active') {
+          fetchOwnQr();
+        }
+      }
+    } catch (err) {
+      console.error('Error saving privacy toggle:', err);
+      showPopup('Error', 'Failed to save privacy settings', 'error');
+      setPrivacySettings(privacySettings);
     }
   };
 
@@ -213,6 +269,7 @@ export default function Dashboard({
       fetchFriends();
       fetchRequests();
       fetchOwnQr();
+      fetchPrivacySettings();
     }
   }, [currentUser, authToken, historyTypeFilter, historyQualityFilter]);
 
@@ -762,6 +819,13 @@ export default function Dashboard({
               >
                 Add Friend
               </button>
+              <button 
+                type="button"
+                className={`friends-tab-btn ${activeTab === 'privacy' ? 'active' : ''}`}
+                onClick={() => setActiveTab('privacy')}
+              >
+                Privacy
+              </button>
             </div>
 
             {/* Friends Tab */}
@@ -886,6 +950,74 @@ export default function Dashboard({
                       <p className="qr-hint">Let another beta tester scan this layout to establish request links!</p>
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+
+            {/* Privacy Settings Tab */}
+            {activeTab === 'privacy' && (
+              <div className="friends-tab-content" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <h4 style={{ margin: '0 0 0.5rem 0', fontFamily: 'var(--font-display)', textTransform: 'uppercase', fontSize: '1.1rem', fontWeight: 800 }}>
+                  Beta Privacy Controls
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', background: '#111827', padding: '1.5rem', borderRadius: '8px', border: '2px solid var(--border-color)' }}>
+                  
+                  {/* Searchable toggle */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ textAlign: 'left', paddingRight: '1rem' }}>
+                      <div style={{ fontWeight: 'bold', color: '#FFF', fontSize: '0.9rem' }}>Searchable Profile</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Allow other beta testers to search your profile by name/username</div>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      checked={privacySettings.searchable} 
+                      onChange={(e) => handlePrivacyToggle('searchable', e.target.checked)}
+                      style={{ width: '20px', height: '20px', accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+                    />
+                  </div>
+
+                  {/* Allow Requests toggle */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem' }}>
+                    <div style={{ textAlign: 'left', paddingRight: '1rem' }}>
+                      <div style={{ fontWeight: 'bold', color: '#FFF', fontSize: '0.9rem' }}>Allow Friend Requests</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Allow other testers to send connection invitations to your account</div>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      checked={privacySettings.allow_requests} 
+                      onChange={(e) => handlePrivacyToggle('allow_requests', e.target.checked)}
+                      style={{ width: '20px', height: '20px', accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+                    />
+                  </div>
+
+                  {/* Show Beta ID toggle */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem' }}>
+                    <div style={{ textAlign: 'left', paddingRight: '1rem' }}>
+                      <div style={{ fontWeight: 'bold', color: '#FFF', fontSize: '0.9rem' }}>Display Beta ID</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Show your SWP-XXXXX Beta ID on cards and friend screens</div>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      checked={privacySettings.show_beta_id} 
+                      onChange={(e) => handlePrivacyToggle('show_beta_id', e.target.checked)}
+                      style={{ width: '20px', height: '20px', accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+                    />
+                  </div>
+
+                  {/* QR Active toggle */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.25rem' }}>
+                    <div style={{ textAlign: 'left', paddingRight: '1rem' }}>
+                      <div style={{ fontWeight: 'bold', color: '#FFF', fontSize: '0.9rem' }}>Enable QR Invitation Code</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Allow invitations via personal QR link scan resolution</div>
+                    </div>
+                    <input 
+                      type="checkbox" 
+                      checked={privacySettings.qr_active} 
+                      onChange={(e) => handlePrivacyToggle('qr_active', e.target.checked)}
+                      style={{ width: '20px', height: '20px', accentColor: 'var(--color-primary)', cursor: 'pointer' }}
+                    />
+                  </div>
+
                 </div>
               </div>
             )}

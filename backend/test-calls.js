@@ -155,6 +155,12 @@ async function runTests() {
     const id2 = res2.rows[0].id;
     token2 = jwt.sign({ id: id2, username: user2 }, JWT_ACCESS_SECRET);
 
+    // Seed friendship for call history validation
+    await query(
+      `INSERT INTO friendships (user_id, friend_id) VALUES (LEAST($1::integer, $2::integer), GREATEST($1::integer, $2::integer))`,
+      [id1, id2]
+    );
+
     // Connect clients
     const socket1 = clientIo(`http://localhost:${PORT}`, { auth: { token: token1 } });
     const socket2 = clientIo(`http://localhost:${PORT}`, { auth: { token: token2 } });

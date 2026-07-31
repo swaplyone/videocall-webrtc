@@ -131,6 +131,7 @@ const activeCallReconnectionTimeouts = new Map(); // username -> { timeoutId, se
 
 app.set('socketio', io);
 app.set('onlineUsers', onlineUsers);
+app.set('activeCalls', activeCalls);
 
 // Call State Machine Mapping
 const DB_STATUS_MAP = {

@@ -36,7 +36,18 @@ const testSuites = [
   'test-recovery.js',
   'test-security-audit.js',
   'test-performance.js',
-  'test-production-readiness.js'
+  'test-production-readiness.js',
+  'test-friend-database.js',
+  'test-friend-api.js',
+  'test-user-discovery.js',
+  'test-qr.js',
+  'test-swipe-requests.js',
+  'test-friend-notifications.js',
+  'test-friend-call-security.js',
+  'test-friend-chat-security.js',
+  'test-friend-blocking.js',
+  'test-friend-safety.js',
+  'test-friend-privacy.js'
 ];
 
 async function runSuite(fileName) {

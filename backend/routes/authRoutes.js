@@ -178,7 +178,8 @@ router.post('/logout', (req, res) => {
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
     const userRes = await query(
-      `SELECT id, security_id, name, username, email, profile_image, bio, created_at, last_seen, online_status, notice_accepted 
+      `SELECT id, security_id, name, username, email, profile_image, bio, created_at, last_seen, online_status, notice_accepted,
+              beta_id, qr_token, searchable, allow_requests, show_beta_id, qr_active
        FROM users WHERE id = $1`,
       [req.user.id]
     );

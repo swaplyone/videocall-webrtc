@@ -2,7 +2,8 @@ import assert from 'assert';
 import { io as Client } from 'socket.io-client';
 import pool, { query } from './db.js';
 
-const PORT = 5000;
+process.env.PORT = '5999';
+const PORT = 5999;
 const BACKEND_URL = `http://localhost:${PORT}`;
 
 async function runPerformanceTests() {

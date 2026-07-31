@@ -3,19 +3,12 @@ import http from 'http';
 import { io as Client } from 'socket.io-client';
 import { query } from './db.js';
 
-const PORT = 5000;
+process.env.PORT = '5999';
+const PORT = 5999;
 const BACKEND_URL = `http://localhost:${PORT}`;
 
 const checkServerOnline = () => {
-  return new Promise((resolve) => {
-    const req = http.get(`${BACKEND_URL}/api/health`, (res) => {
-      resolve(res.statusCode === 200);
-    });
-    req.on('error', () => {
-      resolve(false);
-    });
-    req.end();
-  });
+  return Promise.resolve(false); // Force inline server startup
 };
 
 async function runRecoveryTests() {
@@ -41,13 +34,22 @@ async function runRecoveryTests() {
     await query('DELETE FROM users WHERE username IN ($1, $2)', [usernameA, usernameB]);
 
     // Create DB users with required security_id
-    await query(
-      `INSERT INTO users (security_id, name, username, email, password_hash) VALUES ($1, $2, $3, $4, $5)`,
+    const resA = await query(
+      `INSERT INTO users (security_id, name, username, email, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
       [`sec_a_${Date.now()}`, 'User A', usernameA, `${usernameA}@swaply.test`, 'hash']
     );
-    await query(
-      `INSERT INTO users (security_id, name, username, email, password_hash) VALUES ($1, $2, $3, $4, $5)`,
+    const idA = resA.rows[0].id;
+
+    const resB = await query(
+      `INSERT INTO users (security_id, name, username, email, password_hash) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
       [`sec_b_${Date.now()}`, 'User B', usernameB, `${usernameB}@swaply.test`, 'hash']
+    );
+    const idB = resB.rows[0].id;
+
+    // Seed friendship for recovery validation
+    await query(
+      `INSERT INTO friendships (user_id, friend_id) VALUES (LEAST($1::integer, $2::integer), GREATEST($1::integer, $2::integer))`,
+      [idA, idB]
     );
 
     console.log('--- Test Setup: Connecting Socket Clients A and B ---');

@@ -5,20 +5,13 @@ import jwt from 'jsonwebtoken';
 import { io as Client } from 'socket.io-client';
 import pool, { query } from './db.js';
 
-const PORT = 5000;
+process.env.PORT = '5999';
+const PORT = 5999;
 const BACKEND_URL = `http://localhost:${PORT}`;
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || 'swaply_jwt_access_secret_key_12345';
 
 const checkServerOnline = () => {
-  return new Promise((resolve) => {
-    const req = http.get(`${BACKEND_URL}/api/health`, (res) => {
-      resolve(res.statusCode === 200);
-    });
-    req.on('error', () => {
-      resolve(false);
-    });
-    req.end();
-  });
+  return Promise.resolve(false); // Force inline server startup
 };
 
 async function runSecurityAuditTests() {
@@ -59,6 +52,12 @@ async function runSecurityAuditTests() {
     );
     const adminUserId = resAdmin.rows[0].id;
     const adminToken = jwt.sign({ id: adminUserId, username: adminUser }, JWT_ACCESS_SECRET);
+
+    // Seed friendship for call audit validation
+    await query(
+      `INSERT INTO friendships (user_id, friend_id) VALUES (LEAST($1::integer, $2::integer), GREATEST($1::integer, $2::integer))`,
+      [regUserId, adminUserId]
+    );
 
     // --- Test Case 1: Admin Endpoint Role Restriction ---
     console.log('\n--- Test Case 1: Admin Route Privilege Escalation Guard ---');

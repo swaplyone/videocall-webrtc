@@ -152,6 +152,32 @@ router.post('/block', authenticateToken, async (req, res) => {
       [blockerId, blockedId]
     );
 
+    // Terminate active call sessions between blocker and blocked
+    const activeCalls = req.app.get('activeCalls');
+    const io = req.app.get('socketio');
+    const onlineUsers = req.app.get('onlineUsers');
+    if (activeCalls && io && onlineUsers) {
+      for (const [sessionId, call] of activeCalls.entries()) {
+        if (
+          (call.caller === username && call.receiver === req.user.username) ||
+          (call.caller === req.user.username && call.receiver === username)
+        ) {
+          const callerSocketId = onlineUsers.get(call.caller);
+          const receiverSocketId = onlineUsers.get(call.receiver);
+          if (callerSocketId) io.to(callerSocketId).emit('call_terminated', { sessionId });
+          if (receiverSocketId) io.to(receiverSocketId).emit('call_terminated', { sessionId });
+          
+          if (call.dbCallId) {
+            await query(
+              "UPDATE calls SET status = 'ended', ended_at = NOW(), duration = 0 WHERE id = $1",
+              [call.dbCallId]
+            );
+          }
+          activeCalls.delete(sessionId);
+        }
+      }
+    }
+
     await query('COMMIT');
 
     res.json({ success: true, message: `Successfully blocked ${username}` });
