@@ -22,7 +22,7 @@ export default function Dashboard({
   onUpdateModerationConfig,
   loginError
 }) {
-  const [authMode, setAuthMode] = useState('anon'); // 'anon', 'login', 'register'
+  const [authMode, setAuthMode] = useState('login'); // 'login', 'register'
   const [usernameInput, setUsernameInput] = useState('');
   const [nameInput, setNameInput] = useState('');
   const [emailInput, setEmailInput] = useState('');
@@ -165,13 +165,6 @@ export default function Dashboard({
         <div className="auth-tabs-container">
           <button 
             type="button"
-            className={`auth-tab-btn ${authMode === 'anon' ? 'active' : ''}`} 
-            onClick={() => { setAuthMode('anon'); setUsernameInput(''); }}
-          >
-            Anonymous
-          </button>
-          <button 
-            type="button"
             className={`auth-tab-btn ${authMode === 'login' ? 'active' : ''}`} 
             onClick={() => { setAuthMode('login'); setPasswordInput(''); }}
           >
@@ -185,31 +178,6 @@ export default function Dashboard({
             Register
           </button>
         </div>
-
-        {/* Anonymous Mode Form */}
-        {authMode === 'anon' && (
-          <form onSubmit={handleLoginSubmit}>
-            <div className="input-group">
-              <label htmlFor="username">Choose a Temporary Node Name</label>
-              <input
-                id="username"
-                type="text"
-                placeholder="e.g. Alice, Bob"
-                value={usernameInput}
-                onChange={(e) => setUsernameInput(e.target.value)}
-                required
-              />
-            </div>
-            {loginError && (
-              <div style={{ color: 'var(--color-danger)', fontSize: '0.85rem', marginBottom: '1rem', fontWeight: '700', fontFamily: 'var(--font-mono)' }}>
-                {loginError}
-              </div>
-            )}
-            <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-              Connect Anonymous Node
-            </button>
-          </form>
-        )}
 
         {/* Secure Login Form */}
         {authMode === 'login' && (
