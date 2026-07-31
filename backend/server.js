@@ -109,8 +109,8 @@ app.get('/api/health', async (req, res) => {
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  pingInterval: 10000,
-  pingTimeout: 5000,
+  pingInterval: 25000,
+  pingTimeout: 20000,
   cors: {
     origin: checkOrigin,
     methods: ['GET', 'POST']

@@ -915,9 +915,15 @@ export default function CallInterface({
           console.log(`Gathered ICE Candidate Type: ${candidateType} (Host: ${iceCandidateStatsRef.current.host}, Srflx: ${iceCandidateStatsRef.current.srflx}, Relay: ${iceCandidateStatsRef.current.relay})`);
         }
 
+        const minifiedCandidate = {
+          candidate: event.candidate.candidate,
+          sdpMid: event.candidate.sdpMid,
+          sdpMLineIndex: event.candidate.sdpMLineIndex
+        };
+
         socket.emit('signal', {
           sessionId,
-          candidate: event.candidate,
+          candidate: minifiedCandidate,
           type: 'candidate'
         });
       }
