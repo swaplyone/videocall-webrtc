@@ -43,13 +43,15 @@ router.post('/register', async (req, res) => {
     // Encrypt password
     const hashed = await hashPassword(password);
     const securityId = `sec_${randomUUID()}`;
+    const betaId = 'SWP-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+    const qrToken = `qr_tok_${randomUUID()}`;
 
     // Insert user
     const insertRes = await query(
-      `INSERT INTO users (security_id, name, username, email, password_hash)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, name, username, email, security_id`,
-      [securityId, name.trim(), username.trim().toLowerCase(), email.trim().toLowerCase(), hashed]
+      `INSERT INTO users (security_id, name, username, email, password_hash, beta_id, qr_token)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, name, username, email, security_id, beta_id, qr_token`,
+      [securityId, name.trim(), username.trim().toLowerCase(), email.trim().toLowerCase(), hashed, betaId, qrToken]
     );
 
     const newUser = insertRes.rows[0];
@@ -61,7 +63,9 @@ router.post('/register', async (req, res) => {
         name: newUser.name,
         username: newUser.username,
         email: newUser.email,
-        security_id: newUser.security_id
+        security_id: newUser.security_id,
+        beta_id: newUser.beta_id,
+        qr_token: newUser.qr_token
       }
     });
 

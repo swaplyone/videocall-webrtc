@@ -1790,4 +1790,227 @@ select.select-retro-dark:focus {
   box-shadow: 6px 6px 0px rgba(255, 255, 255, 0.2);
 }
 
+/* ========================================== */
+/* Friends Dashboard Tabbed Styles            */
+/* ========================================== */
+.friends-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.8rem;
+  margin-bottom: 1.2rem;
+  width: 100%;
+}
 
+.friends-tab-btn {
+  flex: 1;
+  padding: 0.6rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--bg-panel);
+  border: 2px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+  box-shadow: 2px 2px 0px var(--border-color);
+}
+
+.friends-tab-btn:hover {
+  background: #FFFDF8;
+  color: var(--text-primary);
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px var(--border-color);
+}
+
+.friends-tab-btn.active {
+  background: var(--color-primary);
+  color: #000;
+  border-color: var(--border-color);
+  box-shadow: none;
+  transform: none;
+}
+
+.friends-tab-content {
+  width: 100%;
+}
+
+/* User search layout */
+.add-friend-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.search-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-align: left;
+}
+
+.search-section label {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.search-section input {
+  padding: 0.75rem 1rem;
+  background: #111827;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  color: #FFF;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.search-results-list {
+  background: #1F2937;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+}
+
+.search-result-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1.5px solid rgba(255, 255, 255, 0.05);
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #000;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+}
+
+.search-result-name {
+  font-weight: 700;
+  color: #FFF;
+  font-size: 0.9rem;
+}
+
+.search-result-meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.search-no-results {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-danger);
+  padding: 1rem;
+  text-align: center;
+}
+
+/* QR Invite layout */
+.qr-invite-section {
+  border-top: 2px dashed var(--border-color);
+  padding-top: 1.5rem;
+  text-align: center;
+}
+
+.qr-invite-section h4 {
+  margin: 0 0 1rem 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.qr-box {
+  background: #FEFAF0;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 4px 4px 0px var(--border-color);
+}
+
+.mock-qr-code {
+  width: 130px;
+  height: 130px;
+  background: #FFF;
+  border: 4px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-pixel-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 3px;
+  width: 100%;
+  height: 100%;
+}
+
+.qr-pixel {
+  background: #EEE;
+}
+
+.qr-pixel.active {
+  background: #000;
+}
+
+.qr-invite-url {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  word-break: break-all;
+}
+
+.qr-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin: 0.4rem 0 0 0;
+  line-height: 1.4;
+}
+
+/* Status dots */
+.node-status-dot.online {
+  background-color: var(--color-success);
+  box-shadow: 0 0 8px var(--color-success);
+}
+
+.node-status-dot.offline {
+  background-color: var(--color-text-muted);
+  box-shadow: none;
+}
+
+.node-pill.online-pill {
+  color: var(--color-success) !important;
+  border-color: var(--color-success) !important;
+}
+
+.node-pill.offline-pill {
+  color: var(--color-text-muted) !important;
+  border-color: var(--color-text-muted) !important;
+}

@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import pg from 'pg';
 import dotenv from 'dotenv';
+import { randomUUID } from 'crypto';
 
 dotenv.config();
 
@@ -81,6 +82,22 @@ async function run() {
       );
     }
     console.log('✅ Default skills seeded in directory.');
+
+    // Seed existing users with beta_id and qr_token if they are null
+    const usersRes = await targetClient.query(
+      "SELECT id FROM users WHERE beta_id IS NULL OR qr_token IS NULL"
+    );
+    for (const u of usersRes.rows) {
+      const betaId = 'SWP-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+      const qrToken = `qr_tok_${randomUUID()}`;
+      await targetClient.query(
+        "UPDATE users SET beta_id = $1, qr_token = $2 WHERE id = $3",
+        [betaId, qrToken, u.id]
+      );
+    }
+    if (usersRes.rowCount > 0) {
+      console.log(`✅ Backfilled ${usersRes.rowCount} users with unique Beta IDs and QR tokens.`);
+    }
 
   } catch (err) {
     console.error('❌ Database initialization error:', err);

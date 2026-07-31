@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Phone, Users, Shield, Settings, Info, UserCheck, ShieldAlert, Activity, Clock, ChevronDown, ChevronUp, Video } from 'lucide-react';
 import SwaplyLogo from './SwaplyLogo';
 import CustomPopup from './CustomPopup';
+import SwipeRequests from './SwipeRequests';
 import { checkBrowserCompatibility } from '../utils/browserSupport';
 import { apiClient } from '../utils/apiClient';
+import { socketClient } from '../utils/socketClient';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (window.location.protocol + '//' + window.location.hostname + ':5000');
 
@@ -53,9 +55,142 @@ export default function Dashboard({
   const [historyError, setHistoryError] = useState('');
   const [compatReport, setCompatReport] = useState(null);
 
+  // Friends Dashboard states
+  const [activeTab, setActiveTab] = useState('friends'); // 'friends', 'requests', 'add-friend'
+  const [friends, setFriends] = useState([]);
+  const [incomingRequests, setIncomingRequests] = useState([]);
+  const [outgoingRequests, setOutgoingRequests] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [qrToken, setQrToken] = useState('');
+  const [inviteUrl, setInviteUrl] = useState('');
+  const [qrActive, setQrActive] = useState(true);
+
   useEffect(() => {
     setCompatReport(checkBrowserCompatibility());
   }, []);
+
+  const fetchFriends = async () => {
+    if (!authToken) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/friends`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setFriends(data.friends || []);
+      }
+    } catch (err) {
+      console.error('Error fetching friends:', err);
+    }
+  };
+
+  const fetchRequests = async () => {
+    if (!authToken) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/friends/requests`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIncomingRequests(data.incoming || []);
+        setOutgoingRequests(data.outgoing || []);
+      }
+    } catch (err) {
+      console.error('Error fetching requests:', err);
+    }
+  };
+
+  const fetchOwnQr = async () => {
+    if (!authToken) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/friends/qr`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setQrToken(data.qr_token || '');
+        setInviteUrl(data.inviteUrl || '');
+        setQrActive(data.qr_active !== false);
+      }
+    } catch (err) {
+      console.error('Error fetching QR:', err);
+    }
+  };
+
+  const handleSearch = async (queryStr) => {
+    setSearchQuery(queryStr);
+    if (!queryStr.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/friends/search?q=${encodeURIComponent(queryStr)}`, {
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSearchResults(data.results || []);
+      }
+    } catch (err) {
+      console.error('Search error:', err);
+    }
+  };
+
+  const handleSendRequest = async (targetUsername) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/friends/request`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ target: targetUsername })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showPopup('Request Sent', `Friend request sent to @${targetUsername}!`, 'success');
+        fetchRequests();
+      } else {
+        showPopup('Request Failed', data.error || 'Failed to send request', 'error');
+      }
+    } catch (err) {
+      console.error('Error sending request:', err);
+    }
+  };
+
+  const handleAcceptRequest = async (reqId) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/friends/request/${reqId}/accept`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        showPopup('Connected', 'Friend request accepted!', 'success');
+        fetchFriends();
+        fetchRequests();
+      }
+    } catch (err) {
+      console.error('Error accepting request:', err);
+    }
+  };
+
+  const handleRejectRequest = async (reqId) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/friends/request/${reqId}/reject`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${authToken}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        showPopup('Rejected', 'Friend request passed.', 'info');
+        fetchRequests();
+      }
+    } catch (err) {
+      console.error('Error rejecting request:', err);
+    }
+  };
 
   const fetchCallHistory = async () => {
     if (!currentUser || !authToken) return;
@@ -75,8 +210,37 @@ export default function Dashboard({
   useEffect(() => {
     if (currentUser && authToken) {
       fetchCallHistory();
+      fetchFriends();
+      fetchRequests();
+      fetchOwnQr();
     }
   }, [currentUser, authToken, historyTypeFilter, historyQualityFilter]);
+
+  useEffect(() => {
+    if (!authToken) return;
+    const socket = socketClient.getSocket();
+    if (!socket) return;
+
+    const handleReqRecv = () => fetchRequests();
+    const handleReqAcc = () => {
+      fetchFriends();
+      fetchRequests();
+    };
+    const handleReqRej = () => fetchRequests();
+    const handleRem = () => fetchFriends();
+
+    socket.on('friend_request_received', handleReqRecv);
+    socket.on('friend_request_accepted', handleReqAcc);
+    socket.on('friend_request_rejected', handleReqRej);
+    socket.on('friend_removed', handleRem);
+
+    return () => {
+      socket.off('friend_request_received', handleReqRecv);
+      socket.off('friend_request_accepted', handleReqAcc);
+      socket.off('friend_request_rejected', handleReqRej);
+      socket.off('friend_removed', handleRem);
+    };
+  }, [authToken]);
 
   const fetchAdminData = async () => {
     if (!authToken) return;
@@ -573,57 +737,156 @@ export default function Dashboard({
 
           {/* Active Online Node Profile Cards Grid */}
           <div className="directory-panel">
-            <div className="directory-tab">DIRECTORY.idx</div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.2rem' }}>
-              <h2 style={{ margin: 0, borderBottom: 'none', paddingBottom: 0, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <Users size={20} />
-                Active Online Nodes
-              </h2>
-              <span className="active-count-badge">
-                {usersList.filter((u) => (typeof u === 'string' ? u : u.username) !== currentUser).length} ONLINE
-              </span>
+            <div className="directory-tab">FRIENDS_NETWORK.idx</div>
+            
+            {/* Tabs Selector */}
+            <div className="friends-tabs">
+              <button 
+                type="button"
+                className={`friends-tab-btn ${activeTab === 'friends' ? 'active' : ''}`}
+                onClick={() => setActiveTab('friends')}
+              >
+                My Friends ({friends.length})
+              </button>
+              <button 
+                type="button"
+                className={`friends-tab-btn ${activeTab === 'requests' ? 'active' : ''}`}
+                onClick={() => setActiveTab('requests')}
+              >
+                Invites ({incomingRequests.length})
+              </button>
+              <button 
+                type="button"
+                className={`friends-tab-btn ${activeTab === 'add-friend' ? 'active' : ''}`}
+                onClick={() => setActiveTab('add-friend')}
+              >
+                Add Friend
+              </button>
             </div>
 
-            {usersList.filter((u) => (typeof u === 'string' ? u : u.username) !== currentUser).length === 0 ? (
-              <div className="empty-state" style={{ padding: '3rem 2rem' }}>
-                No other nodes currently online. Open a second browser tab or window to test live P2P calling!
-              </div>
-            ) : (
-              <div className="active-users-grid">
-                {usersList
-                  .filter((u) => (typeof u === 'string' ? u : u.username) !== currentUser)
-                  .map((user) => {
-                    const uname = typeof user === 'string' ? user : user.username;
-                    const displayName = typeof user === 'object' && user.name ? user.name : uname;
-                    return (
-                      <div key={uname} className="active-user-card">
-                        <div className="card-header-badge">
-                          <div className="node-avatar-circle">
-                            {uname.substring(0, 2).toUpperCase()}
-                            <span className="node-status-dot"></span>
-                          </div>
-                          <div className="card-node-info">
-                            <span className="node-display-name">{displayName}</span>
-                            <span className="node-username-tag">@{uname}</span>
-                            <div className="node-meta-pills">
-                              <span className="node-pill">#{(uname.length * 104).toString()}-S</span>
-                              <span className="node-pill" style={{ color: 'var(--color-secondary)', borderColor: 'var(--color-secondary)' }}>ONLINE</span>
+            {/* Friends Tab */}
+            {activeTab === 'friends' && (
+              <div className="friends-tab-content">
+                {friends.length === 0 ? (
+                  <div className="empty-state" style={{ padding: '3rem 2rem' }}>
+                    No friends accepted yet. Go to "Add Friend" to send a connection request!
+                  </div>
+                ) : (
+                  <div className="active-users-grid">
+                    {friends.map((friend) => {
+                      const isOnline = usersList.some(u => (typeof u === 'string' ? u : u.username) === friend.username);
+                      return (
+                        <div key={friend.username} className="active-user-card">
+                          <div className="card-header-badge">
+                            <div className="node-avatar-circle">
+                              {friend.username.substring(0, 2).toUpperCase()}
+                              <span className={`node-status-dot ${isOnline ? 'online' : 'offline'}`}></span>
+                            </div>
+                            <div className="card-node-info">
+                              <span className="node-display-name">{friend.name || friend.username}</span>
+                              <span className="node-username-tag">@{friend.username}</span>
+                              <div className="node-meta-pills">
+                                <span className="node-pill">{friend.beta_id || 'SWP-BETA'}</span>
+                                <span className={`node-pill ${isOnline ? 'online-pill' : 'offline-pill'}`}>
+                                  {isOnline ? 'ONLINE' : 'OFFLINE'}
+                                </span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <button
-                          className="btn btn-primary"
-                          style={{ width: '100%', padding: '0.65rem', fontSize: '0.85rem' }}
-                          onClick={() => onInitiateCall(uname)}
-                          disabled={compatReport?.status === 'Unsupported'}
-                        >
-                          <Phone size={16} />
-                          Call Node
-                        </button>
+                          <div style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              style={{ flex: 1, padding: '0.65rem', fontSize: '0.85rem' }}
+                              onClick={() => onInitiateCall(friend.username)}
+                              disabled={compatReport?.status === 'Unsupported' || !isOnline}
+                              title={!isOnline ? 'User is offline' : 'Call friend'}
+                            >
+                              <Phone size={16} />
+                              Call Friend
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Requests Tab */}
+            {activeTab === 'requests' && (
+              <div className="friends-tab-content">
+                <SwipeRequests 
+                  requests={incomingRequests}
+                  onAccept={handleAcceptRequest}
+                  onReject={handleRejectRequest}
+                />
+              </div>
+            )}
+
+            {/* Add Friend Tab */}
+            {activeTab === 'add-friend' && (
+              <div className="friends-tab-content add-friend-view">
+                {/* Search Box */}
+                <div className="search-section">
+                  <label htmlFor="friend-search">Search by Username or Beta ID</label>
+                  <input
+                    id="friend-search"
+                    type="text"
+                    placeholder="Enter @username or SWP-XXXXX..."
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                  />
+                  
+                  {searchResults.length > 0 && (
+                    <div className="search-results-list">
+                      {searchResults.map((user) => (
+                        <div key={user.username} className="search-result-item">
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div className="search-result-avatar">
+                              {user.username.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div style={{ textAlign: 'left' }}>
+                              <div className="search-result-name">{user.name || user.username}</div>
+                              <div className="search-result-meta">@{user.username} • {user.beta_id}</div>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem' }}
+                            onClick={() => handleSendRequest(user.username)}
+                          >
+                            Add Friend
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {searchQuery && searchResults.length === 0 && (
+                    <div className="search-no-results">No users found matching your query.</div>
+                  )}
+                </div>
+
+                {/* QR Invitation Code Section */}
+                <div className="qr-invite-section">
+                  <h4>My Invitation Code</h4>
+                  <div className="qr-box">
+                    <div className="mock-qr-code">
+                      <div className="qr-pixel-grid">
+                        {[...Array(64)].map((_, i) => (
+                          <div key={i} className={`qr-pixel ${(i % 3 === 0 || i % 7 === 0) ? 'active' : ''}`}></div>
+                        ))}
                       </div>
-                    );
-                  })}
+                    </div>
+                    <div className="qr-details">
+                      <span className="qr-invite-url">{inviteUrl || 'swaply://friend/...'}</span>
+                      <p className="qr-hint">Let another beta tester scan this layout to establish request links!</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

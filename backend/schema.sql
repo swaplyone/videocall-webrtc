@@ -124,3 +124,42 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
 CREATE INDEX IF NOT EXISTS idx_calls_started ON calls(started_at DESC);
 CREATE INDEX IF NOT EXISTS idx_reports_created ON reports(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_blocks_blocked ON blocks(blocked_user_id);
+
+-- Phase 5 Additions
+ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_id VARCHAR(50) UNIQUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS qr_token VARCHAR(255) UNIQUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS searchable BOOLEAN DEFAULT TRUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS allow_requests BOOLEAN DEFAULT TRUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS show_beta_id BOOLEAN DEFAULT TRUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS qr_active BOOLEAN DEFAULT TRUE;
+
+CREATE TABLE IF NOT EXISTS friend_requests (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'ACCEPTED', 'REJECTED', 'CANCELLED')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_sender_receiver CHECK (sender_id <> receiver_id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pending_requests 
+ON friend_requests(sender_id, receiver_id) 
+WHERE (status = 'PENDING');
+
+CREATE INDEX IF NOT EXISTS idx_friend_requests_receiver ON friend_requests(receiver_id);
+CREATE INDEX IF NOT EXISTS idx_friend_requests_sender ON friend_requests(sender_id);
+
+CREATE TABLE IF NOT EXISTS friendships (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    friend_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_friendships_self CHECK (user_id <> friend_id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_friendships 
+ON friendships (LEAST(user_id, friend_id), GREATEST(user_id, friend_id));
+
+CREATE INDEX IF NOT EXISTS idx_friendships_user ON friendships(user_id);
+CREATE INDEX IF NOT EXISTS idx_friendships_friend ON friendships(friend_id);

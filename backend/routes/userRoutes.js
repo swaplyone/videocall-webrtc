@@ -126,6 +126,9 @@ router.post('/block', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'You cannot block yourself' });
     }
 
+    // Start transaction
+    await query('BEGIN');
+
     // Insert block entry
     await query(
       `INSERT INTO blocks (blocker_id, blocked_user_id) 
@@ -133,6 +136,23 @@ router.post('/block', authenticateToken, async (req, res) => {
        ON CONFLICT (blocker_id, blocked_user_id) DO NOTHING`,
       [blockerId, blockedId]
     );
+
+    // Delete friendship
+    await query(
+      `DELETE FROM friendships 
+       WHERE (user_id = $1 AND friend_id = $2) OR (user_id = $2 AND friend_id = $1)`,
+      [blockerId, blockedId]
+    );
+
+    // Cancel friend requests
+    await query(
+      `UPDATE friend_requests 
+       SET status = 'CANCELLED' 
+       WHERE ((sender_id = $1 AND receiver_id = $2) OR (sender_id = $2 AND receiver_id = $1))`,
+      [blockerId, blockedId]
+    );
+
+    await query('COMMIT');
 
     res.json({ success: true, message: `Successfully blocked ${username}` });
   } catch (err) {

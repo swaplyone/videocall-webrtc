@@ -10,6 +10,7 @@ import userRoutes from './routes/userRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import callRoutes from './routes/callRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import friendRoutes from './routes/friendRoutes.js';
 import pool, { query } from './db.js';
 import { securityHeaders } from './middleware/securityMiddleware.js';
 import { createRateLimiter } from './middleware/rateLimitMiddleware.js';
@@ -74,6 +75,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/calls', callRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/friends', friendRoutes);
 
 // System Health Checks Telemetry Endpoint
 app.get('/api/health', async (req, res) => {
@@ -126,6 +128,9 @@ const socketToUser = new Map(); // socketId -> username
 const activeCalls = new Map(); // sessionId -> { caller, receiver, status: 'ringing'|'active' }
 const activeSessions = new Map(); // username -> Set of socketIds
 const activeCallReconnectionTimeouts = new Map(); // username -> { timeoutId, sessionId }
+
+app.set('socketio', io);
+app.set('onlineUsers', onlineUsers);
 
 // Call State Machine Mapping
 const DB_STATUS_MAP = {
@@ -436,6 +441,17 @@ io.on('connection', (socket) => {
           console.log(`Call BLOCKED: block relation exists between ${caller} and ${to}`);
           return callback({ success: false, error: 'Call blocked by user privacy settings' });
         }
+
+        const friendshipCheck = await query(
+          `SELECT 1 FROM friendships 
+           WHERE (user_id = $1 AND friend_id = $2) 
+              OR (user_id = $2 AND friend_id = $1)`,
+          [callerId, receiverId]
+        );
+        if (friendshipCheck.rowCount === 0) {
+          console.log(`Call BLOCKED: ${caller} and ${to} are not friends`);
+          return callback({ success: false, error: 'Call unauthorized. You can only call accepted friends.' });
+        }
       }
     } catch (err) {
       console.error('Error verifying privacy blocks on call setup:', err);
@@ -691,6 +707,23 @@ io.on('connection', (socket) => {
       const senderId = await getUserIdByUsername(username);
       const recipientUsername = call.caller === username ? call.receiver : call.caller;
       const recipientId = await getUserIdByUsername(recipientUsername);
+
+      if (senderId && recipientId) {
+        const friendshipCheck = await query(
+          `SELECT 1 FROM friendships 
+           WHERE (user_id = $1 AND friend_id = $2) 
+              OR (user_id = $2 AND friend_id = $1)`,
+          [senderId, recipientId]
+        );
+        if (friendshipCheck.rowCount === 0) {
+          console.log(`Message BLOCKED: ${username} and ${recipientUsername} are not friends`);
+          socket.emit('message_rejected', {
+            text,
+            error: 'You can only message accepted friends'
+          });
+          return;
+        }
+      }
 
       if (senderId && recipientId) {
         const convId = await getOrCreateConversation(senderId, recipientId);

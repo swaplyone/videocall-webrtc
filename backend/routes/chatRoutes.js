@@ -21,6 +21,17 @@ router.get('/history/:targetUsername', authenticateToken, async (req, res) => {
     }
     const targetUserId = targetUserRes.rows[0].id;
 
+    // Verify friendship
+    const friendshipCheck = await query(
+      `SELECT 1 FROM friendships 
+       WHERE (user_id = $1 AND friend_id = $2) 
+          OR (user_id = $2 AND friend_id = $1)`,
+      [currentUserId, targetUserId]
+    );
+    if (friendshipCheck.rowCount === 0) {
+      return res.status(403).json({ error: 'You can only view chat history with accepted friends' });
+    }
+
     // Check if conversation exists
     const existRes = await query(
       `SELECT cm1.conversation_id 
