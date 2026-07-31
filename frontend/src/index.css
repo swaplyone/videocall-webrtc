@@ -1860,13 +1860,22 @@ select.select-retro-dark:focus {
 
 .search-section input {
   padding: 0.75rem 1rem;
-  background: #111827;
+  background: #FFFFFF;
   border: 2px solid var(--border-color);
   border-radius: 8px;
-  color: #FFF;
-  font-family: var(--font-sans);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
   font-size: 0.9rem;
   outline: none;
+  width: 100%;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 2px 2px 0px var(--border-color);
+}
+
+.search-section input:focus {
+  background: #FFFDF5;
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px var(--border-color);
 }
 
 .search-results-list {
