@@ -1,0 +1,13 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Top Dark Navy/Charcoal Arc & Arrow -->
+  <path d="M 106 98 C 92 98 64 84 64 56 C 64 26 94 14 125 14 C 158 14 174 34 174 58 L 174 74 L 186 74 L 160 102 L 134 74 L 146 74 L 146 58 C 146 44 137 28 125 28 C 100 28 80 40 80 56 C 80 72 96 84 106 84 Z" fill="#1B252E" />
+
+  <!-- Bottom Gold/Bronze Arc & Arrow -->
+  <path d="M 94 102 C 108 102 136 116 136 144 C 136 174 106 186 75 186 C 42 186 26 166 26 142 L 26 126 L 14 126 L 40 98 L 66 126 L 54 126 L 54 142 C 54 156 63 172 75 172 C 100 172 120 160 120 144 C 120 128 104 116 94 116 Z" fill="#B28B57" />
+
+  <!-- Primary Star Sparkle -->
+  <path d="M 97 102 Q 97 112 87 112 Q 97 112 97 122 Q 97 112 107 112 Q 97 112 97 102 Z" fill="#B28B57" />
+
+  <!-- Secondary Star Sparkle -->
+  <path d="M 111 116 Q 111 123 104 123 Q 111 123 111 130 Q 111 123 118 123 Q 111 123 111 116 Z" fill="#B28B57" />
+</svg>

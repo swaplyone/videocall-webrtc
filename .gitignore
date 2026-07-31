@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Production build assets
+dist/
+**/dist/
+
+# Environment configurations and keys
+.env
+.env.*
+!.env.example
+**/ .env
+**/ .env.*
+
+# Local/Log overrides
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.eslintcache
+.stylelintcache
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Project temporary change files
+changes.txt
