@@ -185,7 +185,7 @@ export default function PreCallLobby({
                 <select
                   value={selectedVideoInput}
                   onChange={(e) => handleSwitchCamera(e.target.value)}
-                  style={{ width: '100%', fontSize: '0.8rem', background: '#1e293b', color: '#fff', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '8px', padding: '0.4rem', outline: 'none' }}
+                  className="select-retro-dark"
                 >
                   {devices.videoInputs.map((d) => (
                     <option key={d.deviceId} value={d.deviceId}>{d.label || `Camera ${d.deviceId.substring(0, 5)}`}</option>
@@ -199,7 +199,7 @@ export default function PreCallLobby({
                 <select
                   value={selectedAudioInput}
                   onChange={(e) => handleSwitchMicrophone(e.target.value)}
-                  style={{ width: '100%', fontSize: '0.8rem', background: '#1e293b', color: '#fff', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '8px', padding: '0.4rem', outline: 'none' }}
+                  className="select-retro-dark"
                 >
                   {devices.audioInputs.map((d) => (
                     <option key={d.deviceId} value={d.deviceId}>{d.label || `Mic ${d.deviceId.substring(0, 5)}`}</option>
@@ -213,7 +213,7 @@ export default function PreCallLobby({
                 <select
                   value={selectedAudioOutput}
                   onChange={(e) => handleSwitchSpeaker(e.target.value)}
-                  style={{ width: '100%', fontSize: '0.8rem', background: '#1e293b', color: '#fff', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '8px', padding: '0.4rem', outline: 'none' }}
+                  className="select-retro-dark"
                 >
                   {devices.audioOutputs.map((d) => (
                     <option key={d.deviceId} value={d.deviceId}>{d.label || `Speaker ${d.deviceId.substring(0, 5)}`}</option>

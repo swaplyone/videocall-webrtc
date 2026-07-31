@@ -26,7 +26,10 @@ function runUITests() {
     assert.ok(cssContent.includes('table-retro'), 'table-retro styles must exist for directory logs');
     assert.ok(cssContent.includes('glass-panel'), 'glass-panel rules must exist for modals');
     assert.ok(cssContent.includes('pulse-glow'), 'pulse-glow class must exist for notifications');
-    console.log('✅ UI layout elements and neobrutalist tokens are present');
+    assert.ok(cssContent.includes('select-retro-dark'), 'select-retro-dark rules must exist for device selection menus');
+    assert.ok(cssContent.includes('status-ringing'), 'status-ringing rules must exist for call status state indicators');
+    assert.ok(cssContent.includes('status-call-rejected'), 'status-call-rejected rules must exist for rejected call state indicators');
+    console.log('✅ UI layout elements, dark dropdowns, and neobrutalist status tokens are present');
 
   } catch (err) {
     console.error('❌ Exception during UI tests:', err);

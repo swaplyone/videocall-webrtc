@@ -1496,6 +1496,16 @@ select {
   animation: blink-dot 1s infinite alternate;
 }
 
+/* ringing... */
+.status-badge.status-ringing {
+  background: #FEF3C7;
+  color: #D97706;
+}
+.status-badge.status-ringing .status-dot {
+  background: #D97706;
+  animation: blink-dot 0.8s infinite alternate;
+}
+
 /* connecting... */
 .status-badge.status-connecting {
   background: #EEF2FF;
@@ -1540,6 +1550,24 @@ select {
   color: #4B5563;
 }
 .status-badge.status-call-ended .status-dot {
+  background: #4B5563;
+}
+
+/* call rejected */
+.status-badge.status-call-rejected {
+  background: #FEE2E2;
+  color: #DC2626;
+}
+.status-badge.status-call-rejected .status-dot {
+  background: #DC2626;
+}
+
+/* call timed out */
+.status-badge.status-call-timed-out {
+  background: #F3F4F6;
+  color: #4B5563;
+}
+.status-badge.status-call-timed-out .status-dot {
   background: #4B5563;
 }
 
@@ -1734,4 +1762,32 @@ select {
 .glass-panel {
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
+
+select.select-retro-dark {
+  background-color: #111827;
+  color: #FFFFFF;
+  border: 2px solid #FFFFFF;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+  box-shadow: 4px 4px 0px rgba(255, 255, 255, 0.15);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+}
+
+select.select-retro-dark:focus {
+  background-color: #1f2937;
+  transform: translate(-1px, -1px);
+  box-shadow: 6px 6px 0px rgba(255, 255, 255, 0.2);
+}
+
 
