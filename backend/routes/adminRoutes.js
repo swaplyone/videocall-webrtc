@@ -1,11 +1,11 @@
 import express from 'express';
 import { query } from '../db.js';
-import { authenticateToken } from '../middleware/authMiddleware.js';
+import { authenticateToken, requireAdmin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // 1. Fetch system statistics (Nodes, Online state, Call logs, Flagged chats)
-router.get('/stats', authenticateToken, async (req, res) => {
+router.get('/stats', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const totalUsersRes = await query('SELECT COUNT(*)::integer AS count FROM users');
     const onlineUsersRes = await query("SELECT COUNT(*)::integer AS count FROM users WHERE online_status = 'online'");
@@ -28,7 +28,7 @@ router.get('/stats', authenticateToken, async (req, res) => {
 });
 
 // 2. Fetch all abuse reports with sender and target user details
-router.get('/reports', authenticateToken, async (req, res) => {
+router.get('/reports', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const reportsRes = await query(`
       SELECT r.id, 
@@ -51,7 +51,7 @@ router.get('/reports', authenticateToken, async (req, res) => {
 });
 
 // 3. Update status of a report (PENDING, REVIEWED, ACTION_TAKEN, DISMISSED)
-router.put('/reports/:id/status', authenticateToken, async (req, res) => {
+router.put('/reports/:id/status', authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
 

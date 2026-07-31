@@ -406,6 +406,10 @@ io.on('connection', (socket) => {
 
   // 2. Initiate Call
   socket.on('initiate_call', async ({ to }, callback) => {
+    if (typeof callback !== 'function') return;
+    if (!to || typeof to !== 'string') {
+      return callback({ success: false, error: 'Invalid recipient' });
+    }
     const caller = socketToUser.get(socket.id);
     if (!caller) {
       return callback({ success: false, error: 'Unauthenticated' });
@@ -486,6 +490,10 @@ io.on('connection', (socket) => {
 
   // 3. Accept Call
   socket.on('accept_call', async ({ sessionId }, callback) => {
+    if (!sessionId || typeof sessionId !== 'string') {
+      if (typeof callback === 'function') callback({ success: false, error: 'Invalid sessionId' });
+      return;
+    }
     const username = socketToUser.get(socket.id);
     const call = activeCalls.get(sessionId);
 
@@ -531,6 +539,7 @@ io.on('connection', (socket) => {
 
   // 4. Reject Call
   socket.on('reject_call', async ({ sessionId }) => {
+    if (!sessionId || typeof sessionId !== 'string') return;
     const username = socketToUser.get(socket.id);
     const call = activeCalls.get(sessionId);
 
@@ -545,6 +554,7 @@ io.on('connection', (socket) => {
 
   // 5. Terminate Call
   socket.on('terminate_call', async ({ sessionId }) => {
+    if (!sessionId || typeof sessionId !== 'string') return;
     const username = socketToUser.get(socket.id);
     const call = activeCalls.get(sessionId);
 
@@ -562,6 +572,8 @@ io.on('connection', (socket) => {
 
   // 5.5 Update Call State (Client initiated connection/failure notifications)
   socket.on('update_call_state', async ({ sessionId, state }) => {
+    if (!sessionId || typeof sessionId !== 'string') return;
+    if (!state || typeof state !== 'string') return;
     const username = socketToUser.get(socket.id);
     const call = activeCalls.get(sessionId);
 
@@ -575,6 +587,7 @@ io.on('connection', (socket) => {
 
   // 6. WebRTC Signaling Relayer with Screen-Sharing Protections
   socket.on('signal', ({ sessionId, sdp, candidate, type }) => {
+    if (!sessionId || typeof sessionId !== 'string') return;
     const username = socketToUser.get(socket.id);
     const call = activeCalls.get(sessionId);
 
@@ -596,10 +609,20 @@ io.on('connection', (socket) => {
       return;
     }
 
+    // Safely extract raw SDP text from either raw string or nested object structure
+    let sdpText = '';
+    if (sdp) {
+      if (typeof sdp === 'string') {
+        sdpText = sdp;
+      } else if (typeof sdp === 'object' && typeof sdp.sdp === 'string') {
+        sdpText = sdp.sdp;
+      }
+    }
+
     // Security Check: Screen-Sharing Detection & Block in SDP
-    if (sdp && typeof sdp === 'string') {
+    if (sdpText) {
       // 1. Check for multiple video tracks (which implies adding screen share stream in addition to webcam)
-      const videoTracksCount = (sdp.match(/^m=video/gm) || []).length;
+      const videoTracksCount = (sdpText.match(/^m=video/gm) || []).length;
       if (videoTracksCount > 1) {
         console.warn(`Blocked signaling SDP: multiple video tracks detected (potential screen sharing) from ${username}`);
         socket.emit('security_violation', {
@@ -609,7 +632,7 @@ io.on('connection', (socket) => {
       }
 
       // 2. Reject explicit screen-share or display media headers/keywords if manually constructed
-      if (sdp.toLowerCase().includes('mozilla:screencast') || sdp.toLowerCase().includes('chrome:screen')) {
+      if (sdpText.toLowerCase().includes('mozilla:screencast') || sdpText.toLowerCase().includes('chrome:screen')) {
         console.warn(`Blocked signaling SDP: screen recording/sharing keywords detected from ${username}`);
         socket.emit('security_violation', {
           error: 'Screen sharing or browser capture signaling is rejected.'
@@ -634,6 +657,8 @@ io.on('connection', (socket) => {
 
   // 7. Messaging with Server-Side Moderation Pipeline
   socket.on('send_message', async ({ sessionId, text }) => {
+    if (!sessionId || typeof sessionId !== 'string') return;
+    if (!text || typeof text !== 'string') return;
     const username = socketToUser.get(socket.id);
     const call = activeCalls.get(sessionId);
 
@@ -701,6 +726,8 @@ io.on('connection', (socket) => {
 
   // 8. Warning Relay (e.g. screenshot deterrence / focus loss notifications)
   socket.on('focus_changed', ({ sessionId, hasFocus }) => {
+    if (!sessionId || typeof sessionId !== 'string') return;
+    if (typeof hasFocus !== 'boolean') return;
     const username = socketToUser.get(socket.id);
     const call = activeCalls.get(sessionId);
 
@@ -719,6 +746,8 @@ io.on('connection', (socket) => {
 
   // 8.5 Video State Sync (e.g. notify peer if camera is disabled/enabled)
   socket.on('video_state_changed', ({ sessionId, isVideoOff }) => {
+    if (!sessionId || typeof sessionId !== 'string') return;
+    if (typeof isVideoOff !== 'boolean') return;
     const username = socketToUser.get(socket.id);
     const call = activeCalls.get(sessionId);
 
@@ -737,6 +766,7 @@ io.on('connection', (socket) => {
 
   // 8.6 Screenshot warning relay
   socket.on('screenshot_attempted', ({ sessionId }) => {
+    if (!sessionId || typeof sessionId !== 'string') return;
     const username = socketToUser.get(socket.id);
     const call = activeCalls.get(sessionId);
 

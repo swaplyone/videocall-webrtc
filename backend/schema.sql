@@ -119,3 +119,4 @@ CREATE INDEX IF NOT EXISTS idx_call_feedback_call ON call_feedback(call_id);
 
 -- Migration updates
 ALTER TABLE users ADD COLUMN IF NOT EXISTS notice_accepted BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
