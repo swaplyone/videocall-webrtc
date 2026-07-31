@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import io from 'socket.io-client';
 import { Shield } from 'lucide-react';
 import SwaplyLogo from './components/SwaplyLogo';
 import Dashboard from './components/Dashboard';
@@ -7,10 +6,10 @@ import CallInterface from './components/CallInterface';
 import NoticeModal from './components/NoticeModal';
 import CustomPopup from './components/CustomPopup';
 import { checkBrowserCompatibility } from './utils/browserSupport';
+import { apiClient } from './utils/apiClient';
+import { socketClient } from './utils/socketClient';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (window.location.protocol + '//' + window.location.hostname + ':5000');
-const SOCKET_URL = BACKEND_URL;
-const socket = io(SOCKET_URL, { autoConnect: false });
+const socket = socketClient.initialize();
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState('');
@@ -45,9 +44,8 @@ export default function App() {
 
   // Connect socket when user logs in (Anonymous Mode)
   const handleLogin = (username) => {
-    socket.auth = {}; // No token
-    socket.connect();
-    socket.emit('register', username, (response) => {
+    socketClient.connect();
+    socketClient.register(username, (response) => {
       if (response.success) {
         setCurrentUser(username);
         setLoginError('');
@@ -59,12 +57,12 @@ export default function App() {
         }
 
         // Fetch current moderation config from server
-        socket.emit('admin_get_config', (config) => {
+        socketClient.getModerationConfig((config) => {
           setModerationConfig(config);
         });
       } else {
         setLoginError(response.error);
-        socket.disconnect();
+        socketClient.disconnect();
       }
     });
   };
@@ -72,16 +70,7 @@ export default function App() {
   // Secure Auth Login (REST + Socket connect)
   const handleSecureLogin = async ({ identifier, password }) => {
     try {
-      const backendUrl = BACKEND_URL;
-      const res = await fetch(`${backendUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, password })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
+      const data = await apiClient.login(identifier, password);
 
       setAuthToken(data.accessToken);
       setUserDetails(data.user);
@@ -98,16 +87,15 @@ export default function App() {
       }
 
       // Establish authenticated socket presence
-      socket.auth = { token: data.accessToken };
-      socket.connect();
-      socket.emit('register', data.user.username, (response) => {
+      socketClient.connect(data.accessToken);
+      socketClient.register(data.user.username, (response) => {
         if (response.success) {
-          socket.emit('admin_get_config', (config) => {
+          socketClient.getModerationConfig((config) => {
             setModerationConfig(config);
           });
         } else {
           setLoginError(response.error);
-          socket.disconnect();
+          socketClient.disconnect();
         }
       });
     } catch (err) {
@@ -118,16 +106,7 @@ export default function App() {
   // Secure Auth Register (REST + Auto Login)
   const handleSecureRegister = async ({ name, username, email, password }) => {
     try {
-      const backendUrl = BACKEND_URL;
-      const res = await fetch(`${backendUrl}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, username, email, password })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
+      await apiClient.register({ name, username, email, password });
 
       // Auto login on successful register
       await handleSecureLogin({ identifier: username, password });
@@ -208,14 +187,7 @@ export default function App() {
     // Persist notice status in database if authenticated via JWT
     if (authToken) {
       try {
-        const backendUrl = BACKEND_URL;
-        await fetch(`${backendUrl}/api/auth/accept-notice`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-          }
-        });
+        await apiClient.acceptNotice();
         setUserDetails(prev => prev ? { ...prev, notice_accepted: true } : null);
       } catch (err) {
         console.warn('Could not persist safety notice state to database:', err);

@@ -3,6 +3,7 @@ import { Phone, Users, Shield, Settings, Info, UserCheck, ShieldAlert, Activity,
 import SwaplyLogo from './SwaplyLogo';
 import CustomPopup from './CustomPopup';
 import { checkBrowserCompatibility } from '../utils/browserSupport';
+import { apiClient } from '../utils/apiClient';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (window.location.protocol + '//' + window.location.hostname + ':5000');
 
@@ -60,32 +61,12 @@ export default function Dashboard({
     if (!currentUser || !authToken) return;
     setHistoryLoading(true);
     try {
-      const backendUrl = BACKEND_URL;
-      let url = `${backendUrl}/api/calls/history`;
-      const queryParams = [];
-      if (historyTypeFilter !== 'All') {
-        queryParams.push(`type=${historyTypeFilter.toLowerCase()}`);
-      }
-      if (historyQualityFilter !== 'All') {
-        queryParams.push(`quality=${historyQualityFilter.toLowerCase()}`);
-      }
-      if (queryParams.length > 0) {
-        url += `?${queryParams.join('&')}`;
-      }
-
-      const res = await fetch(url, {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setCallHistory(data.calls || []);
-        setHistoryError('');
-      } else {
-        setHistoryError(data.error || 'Failed to load call history.');
-      }
+      const data = await apiClient.getCallHistory(historyTypeFilter, historyQualityFilter);
+      setCallHistory(data.calls || []);
+      setHistoryError('');
     } catch (err) {
       console.error('Error fetching call history:', err);
-      setHistoryError('Error fetching call history.');
+      setHistoryError(err.message || 'Error fetching call history.');
     } finally {
       setHistoryLoading(false);
     }
@@ -100,25 +81,14 @@ export default function Dashboard({
   const fetchAdminData = async () => {
     if (!authToken) return;
     try {
-      const backendUrl = BACKEND_URL;
-      
       // Fetch stats
-      const statsRes = await fetch(`${backendUrl}/api/admin/stats`, {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
-      const statsData = await statsRes.json();
-      if (statsRes.ok && statsData.success) {
-        setAdminStats(statsData.stats);
-      }
+      const statsData = await apiClient.getAdminStats();
+      setAdminStats(statsData.stats);
 
       // Fetch complaints
-      const reportsRes = await fetch(`${backendUrl}/api/admin/reports`, {
-        headers: { 'Authorization': `Bearer ${authToken}` }
-      });
-      const reportsData = await reportsRes.json();
-      if (reportsRes.ok && reportsData.success) {
-        setAdminReports(reportsData.reports);
-      }
+      const reportsData = await apiClient.getAdminReports();
+      setAdminReports(reportsData.reports);
+      
       setAdminError('');
     } catch (err) {
       console.error(err);
@@ -129,23 +99,10 @@ export default function Dashboard({
   const handleUpdateReportStatus = async (reportId, newStatus) => {
     if (!authToken) return;
     try {
-      const backendUrl = BACKEND_URL;
-      const res = await fetch(`${backendUrl}/api/admin/reports/${reportId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify({ status: newStatus })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setAdminReports(prev => 
-          prev.map(r => r.id === reportId ? { ...r, status: newStatus } : r)
-        );
-      } else {
-        showPopup('Action Failed', data.error || 'Failed to update report status', 'error');
-      }
+      const data = await apiClient.updateReportStatus(reportId, newStatus);
+      setAdminReports(prev => 
+        prev.map(r => r.id === reportId ? { ...r, status: newStatus } : r)
+      );
     } catch (err) {
       console.error(err);
       showPopup('System Error', 'Error updating safety report status', 'error');
@@ -790,7 +747,24 @@ export default function Dashboard({
                             'Critical': { bg: 'rgba(190, 77, 77, 0.15)', text: 'var(--color-danger)' },
                             'Unrated': { bg: 'rgba(107, 101, 92, 0.15)', text: 'var(--text-secondary)' }
                           };
+                          const statusColors = {
+                            'completed': { bg: 'rgba(74, 110, 83, 0.15)', text: 'var(--color-secondary)', border: 'var(--color-secondary)' },
+                            'rejected': { bg: 'rgba(190, 77, 77, 0.15)', text: 'var(--color-danger)', border: 'var(--color-danger)' },
+                            'missed': { bg: 'rgba(212, 91, 62, 0.15)', text: 'var(--color-primary)', border: 'var(--color-primary)' },
+                            'active': { bg: 'rgba(76, 119, 159, 0.15)', text: 'var(--color-info)', border: 'var(--color-info)' },
+                            'ringing': { bg: 'rgba(229, 169, 60, 0.15)', text: 'var(--color-accent)', border: 'var(--color-accent)' }
+                          };
+
                           const badge = qualityColors[call.quality_tag] || qualityColors['Unrated'];
+                          const statusStyle = statusColors[(call.status || '').toLowerCase()] || { bg: 'rgba(107, 101, 92, 0.15)', text: 'var(--text-secondary)', border: 'var(--text-secondary)' };
+
+                          const formatDuration = (secs) => {
+                            if (!secs) return '0s';
+                            if (secs < 60) return `${secs}s`;
+                            const mins = Math.floor(secs / 60);
+                            const remainingSecs = secs % 60;
+                            return remainingSecs > 0 ? `${mins}m ${remainingSecs}s` : `${mins}m`;
+                          };
 
                           return (
                             <tr key={call.id}>
@@ -810,11 +784,22 @@ export default function Dashboard({
                                   {call.is_caller ? 'OUTGOING' : 'INCOMING'}
                                 </span>
                               </td>
-                              <td style={{ textTransform: 'capitalize', fontWeight: '600' }}>
-                                {call.status}
-                              </td>
                               <td>
-                                {call.duration}
+                                <span style={{
+                                  fontSize: '0.7rem',
+                                  padding: '0.15rem 0.4rem',
+                                  borderRadius: '4px',
+                                  border: `1px solid ${statusStyle.border}`,
+                                  background: statusStyle.bg,
+                                  color: statusStyle.text,
+                                  fontWeight: 'bold',
+                                  textTransform: 'uppercase'
+                                }}>
+                                  {call.status}
+                                </span>
+                              </td>
+                              <td style={{ fontWeight: '500' }}>
+                                {formatDuration(call.duration)}
                               </td>
                               <td style={{ color: 'var(--text-secondary)' }}>
                                 {new Date(call.started_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}

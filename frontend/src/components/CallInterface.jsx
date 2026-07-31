@@ -5,6 +5,7 @@ import PreCallLobby from './PreCallLobby';
 import CallControls from './CallControls';
 import CallFeedbackModal from './CallFeedbackModal';
 import CustomPopup from './CustomPopup';
+import { apiClient } from '../utils/apiClient';
 import { calculateQualityLevel, parseIceCandidateType, getBandwidthConstraints } from '../utils/webrtcHelpers';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (window.location.protocol + '//' + window.location.hostname + ':5000');
@@ -585,13 +586,9 @@ export default function CallInterface({
         { urls: 'stun:stun1.l.google.com:19302' }
       ];
       try {
-        const backendUrl = BACKEND_URL;
-        const res = await fetch(`${backendUrl}/api/calls/ice-servers`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.iceServers) {
-            configIceServers = data.iceServers;
-          }
+        const data = await apiClient.getIceServers();
+        if (data.success && data.iceServers) {
+          configIceServers = data.iceServers;
         }
       } catch (err) {
         console.warn('Could not fetch dynamic ICE servers, falling back to defaults:', err);
@@ -1248,30 +1245,12 @@ export default function CallInterface({
 
   const handleSubmitFeedback = async () => {
     try {
-      const backendUrl = BACKEND_URL;
-      const body = {
-        callId: dbCallIdState,
-        rating: feedbackRating,
-        issues: feedbackIssues,
-        comments: feedbackComments
-      };
-
-      const headers = { 'Content-Type': 'application/json' };
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`;
-      }
-
-      const res = await fetch(`${backendUrl}/api/calls/feedback`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(body)
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Failed to submit feedback');
-      }
-
+      await apiClient.submitFeedback(
+        dbCallIdState,
+        feedbackRating,
+        feedbackIssues,
+        feedbackComments
+      );
       console.log('[Feedback] Feedback submitted successfully.');
     } catch (err) {
       console.warn('Feedback submission failed:', err.message);
