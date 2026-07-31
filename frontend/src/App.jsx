@@ -50,6 +50,7 @@ export default function App() {
       if (response.success) {
         setCurrentUser(username);
         setLoginError('');
+        localStorage.setItem('swaply_current_user', username); // Persist
         
         // Show safety warning notice if not accepted in local storage
         const isAccepted = localStorage.getItem('swaply_notice_accepted');
@@ -77,6 +78,11 @@ export default function App() {
       setUserDetails(data.user);
       setCurrentUser(data.user.username);
       setLoginError('');
+
+      // Persist secure auth details
+      localStorage.setItem('swaply_auth_token', data.accessToken);
+      localStorage.setItem('swaply_user_details', JSON.stringify(data.user));
+      localStorage.setItem('swaply_current_user', data.user.username);
 
       // Synchronize safety notice dialog acceptance
       if (data.user.notice_accepted) {
@@ -170,6 +176,62 @@ export default function App() {
       socket.off('moderation_config_changed');
     };
   }, [callState, incomingCall]);
+
+  // Restore session from localStorage on mount
+  useEffect(() => {
+    const savedToken = localStorage.getItem('swaply_auth_token');
+    const savedUser = localStorage.getItem('swaply_current_user');
+    const savedDetailsStr = localStorage.getItem('swaply_user_details');
+
+    if (savedUser) {
+      if (savedToken) {
+        // Restore Secure Login Session
+        setAuthToken(savedToken);
+        if (savedDetailsStr) {
+          try {
+            setUserDetails(JSON.parse(savedDetailsStr));
+          } catch (e) {
+            console.error('Error parsing saved user details:', e);
+          }
+        }
+        setCurrentUser(savedUser);
+
+        socketClient.connect(savedToken);
+        socketClient.register(savedUser, (response) => {
+          if (response.success) {
+            socketClient.getModerationConfig((config) => {
+              setModerationConfig(config);
+            });
+          } else {
+            console.warn('Failed to restore secure socket session, clearing data:', response.error);
+            localStorage.removeItem('swaply_auth_token');
+            localStorage.removeItem('swaply_user_details');
+            localStorage.removeItem('swaply_current_user');
+            setAuthToken(null);
+            setUserDetails(null);
+            setCurrentUser('');
+            socketClient.disconnect();
+          }
+        });
+      } else {
+        // Restore Anonymous Login Session
+        socketClient.connect();
+        socketClient.register(savedUser, (response) => {
+          if (response.success) {
+            setCurrentUser(savedUser);
+            socketClient.getModerationConfig((config) => {
+              setModerationConfig(config);
+            });
+          } else {
+            console.warn('Failed to restore anonymous socket session, clearing data:', response.error);
+            localStorage.removeItem('swaply_current_user');
+            setCurrentUser('');
+            socketClient.disconnect();
+          }
+        });
+      }
+    }
+  }, []);
 
   const resetCallState = () => {
     setCallState('idle');
