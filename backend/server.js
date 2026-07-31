@@ -23,13 +23,22 @@ const allowedOrigins = [
   'http://127.0.0.1:5173'
 ];
 
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
+
 const localNetworkRegex = /^http:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+):5173$/;
 
 const checkOrigin = (origin, callback) => {
-  if (!origin || allowedOrigins.includes(origin) || localNetworkRegex.test(origin)) {
+  if (
+    !origin || 
+    allowedOrigins.includes(origin) || 
+    localNetworkRegex.test(origin) ||
+    (process.env.NODE_ENV === 'production' && origin.endsWith('.netlify.app'))
+  ) {
     callback(null, true);
   } else {
-    callback(new Error('Blocked by Swaply LAN Development CORS'));
+    callback(new Error('Blocked by Swaply CORS Policy'));
   }
 };
 
