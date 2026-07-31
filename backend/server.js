@@ -125,6 +125,7 @@ const onlineUsers = new Map(); // username -> socketId
 const socketToUser = new Map(); // socketId -> username
 const activeCalls = new Map(); // sessionId -> { caller, receiver, status: 'ringing'|'active' }
 const activeSessions = new Map(); // username -> Set of socketIds
+const activeCallReconnectionTimeouts = new Map(); // username -> { timeoutId, sessionId }
 
 // Call State Machine Mapping
 const DB_STATUS_MAP = {
@@ -370,6 +371,29 @@ io.on('connection', (socket) => {
     socketToUser.set(socket.id, cleanUsername);
     console.log(`User registered: ${cleanUsername} (${socket.id}) ${socket.user ? '[JWT Auth]' : '[Anon]'}`);
 
+    // Reconnection Recovery: Cancel call termination timeout if the user reconnected during the grace period
+    if (activeCallReconnectionTimeouts.has(cleanUsername)) {
+      const { timeoutId, sessionId } = activeCallReconnectionTimeouts.get(cleanUsername);
+      clearTimeout(timeoutId);
+      activeCallReconnectionTimeouts.delete(cleanUsername);
+      console.log(`[Reconnection] Cancelled call termination timeout. User ${cleanUsername} reconnected during grace period.`);
+      
+      const call = activeCalls.get(sessionId);
+      if (call) {
+        const peer = call.caller === cleanUsername ? call.receiver : call.caller;
+        const peerSocketId = onlineUsers.get(peer);
+        if (peerSocketId) {
+          io.to(peerSocketId).emit('peer_reconnected', { username: cleanUsername });
+        }
+        socket.emit('call_restored', {
+          sessionId,
+          remoteUser: peer,
+          isCaller: call.caller === cleanUsername,
+          status: call.status
+        });
+      }
+    }
+
     // Update database status to 'online' on first tab connection
     if (activeSessions.get(cleanUsername).size === 1) {
       await updateUserPresence(cleanUsername, 'online');
@@ -466,18 +490,21 @@ io.on('connection', (socket) => {
     const call = activeCalls.get(sessionId);
 
     if (!call) {
-      return callback({ success: false, error: 'Call session not found' });
+      if (typeof callback === 'function') callback({ success: false, error: 'Call session not found' });
+      return;
     }
 
     // Authorization check: Only the intended recipient can accept
     if (call.receiver !== username) {
-      return callback({ success: false, error: 'Unauthorized to accept this call' });
+      if (typeof callback === 'function') callback({ success: false, error: 'Unauthorized to accept this call' });
+      return;
     }
 
     // State Machine Transition: RINGING -> ACCEPTING
     const transitionRes1 = await transitionCall(sessionId, CallStates.ACCEPTING);
     if (!transitionRes1.success) {
-      return callback({ success: false, error: transitionRes1.error });
+      if (typeof callback === 'function') callback({ success: false, error: transitionRes1.error });
+      return;
     }
 
     const callerSocketId = onlineUsers.get(call.caller);
@@ -492,13 +519,14 @@ io.on('connection', (socket) => {
     // State Machine Transition: ACCEPTING -> CONNECTING
     const transitionRes2 = await transitionCall(sessionId, CallStates.CONNECTING);
     if (!transitionRes2.success) {
-      return callback({ success: false, error: transitionRes2.error });
+      if (typeof callback === 'function') callback({ success: false, error: transitionRes2.error });
+      return;
     }
 
     // Notify caller that call was accepted
     io.to(callerSocketId).emit('call_accepted', { sessionId });
     
-    callback({ success: true });
+    if (typeof callback === 'function') callback({ success: true });
   });
 
   // 4. Reject Call
@@ -742,50 +770,49 @@ io.on('connection', (socket) => {
     if (username) {
       console.log(`User disconnected: ${username}`);
       
-      // Terminate any active call this user was in
-      for (const [sessionId, call] of activeCalls.entries()) {
-        if (call.caller === username || call.receiver === username) {
-          const targetState = [CallStates.CONNECTED, 'active', CallStates.RECONNECTING, CallStates.CONNECTING].includes(call.status)
-            ? CallStates.ENDED
-            : CallStates.FAILED;
-          
-          // Notify peer
-          const peer = call.caller === username ? call.receiver : call.caller;
-          const peerSocketId = onlineUsers.get(peer);
-          if (peerSocketId) {
-            io.to(peerSocketId).emit('call_terminated', { sessionId });
-          }
-          await transitionCall(sessionId, targetState);
-        }
-      }
-
       // Remove socket ID from user's active sessions Set
       const sessions = activeSessions.get(username);
       if (sessions) {
         sessions.delete(socket.id);
         
-        // If no active connections remain for this username, set offline in DB
+        // If no active connections remain for this username, start grace period
         if (sessions.size === 0) {
           activeSessions.delete(username);
           onlineUsers.delete(username);
           
-          await updateUserPresence(username, 'offline');
-
-          // Terminate any remaining active calls for this user
+          let hasActiveCall = false;
           for (const [sessionId, call] of activeCalls.entries()) {
             if (call.caller === username || call.receiver === username) {
-              const targetState = [CallStates.CONNECTED, 'active', CallStates.RECONNECTING, CallStates.CONNECTING].includes(call.status)
-                ? CallStates.ENDED
-                : CallStates.FAILED;
+              hasActiveCall = true;
+              console.log(`[Reconnection] Starting 8s grace period for call session ${sessionId} after ${username} disconnected.`);
               
-              // Notify peer
-              const peer = call.caller === username ? call.receiver : call.caller;
-              const peerSocketId = onlineUsers.get(peer);
-              if (peerSocketId) {
-                io.to(peerSocketId).emit('call_terminated', { sessionId });
-              }
-              await transitionCall(sessionId, targetState);
+              const timeoutId = setTimeout(async () => {
+                console.log(`[Reconnection] Grace period expired for ${username}. Terminating call session ${sessionId}.`);
+                activeCallReconnectionTimeouts.delete(username);
+                
+                await updateUserPresence(username, 'offline');
+                
+                const targetState = [CallStates.CONNECTED, 'active', CallStates.RECONNECTING, CallStates.CONNECTING].includes(call.status)
+                  ? CallStates.ENDED
+                  : CallStates.FAILED;
+                
+                // Notify peer
+                const peer = call.caller === username ? call.receiver : call.caller;
+                const peerSocketId = onlineUsers.get(peer);
+                if (peerSocketId) {
+                  io.to(peerSocketId).emit('call_terminated', { sessionId });
+                }
+                await transitionCall(sessionId, targetState);
+                broadcastUserList();
+              }, 8000);
+              
+              activeCallReconnectionTimeouts.set(username, { timeoutId, sessionId });
             }
+          }
+          
+          if (!hasActiveCall) {
+            await updateUserPresence(username, 'offline');
+            broadcastUserList();
           }
         } else {
           // If other tabs are still open, update onlineUsers to point to the last active tab

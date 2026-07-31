@@ -17,7 +17,8 @@ export default function CallInterface({
   remoteUser,
   isCaller,
   onHangUp,
-  authToken
+  authToken,
+  isRestored = false
 }) {
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
@@ -84,7 +85,7 @@ export default function CallInterface({
   );
 
   // Lobby states
-  const [inLobby, setInLobby] = useState(true);
+  const [inLobby, setInLobby] = useState(!isRestored);
   const [micVolume, setMicVolume] = useState(0);
   const [networkLatency, setNetworkLatency] = useState('Checking...');
   const [networkStatus, setNetworkStatus] = useState('Checking...');
@@ -1073,12 +1074,24 @@ export default function CallInterface({
       }
     });
 
+    // Bind peer reconnected event
+    socket.on('peer_reconnected', ({ username }) => {
+      if (username === remoteUser) {
+        console.log(`[Reconnection] Peer ${username} reconnected. Restarting ICE...`);
+        showPopup('Peer Reconnected', `${username} is back online. Re-establishing secure link...`, 'info');
+        if (handleReconnectionRef.current) {
+          handleReconnectionRef.current();
+        }
+      }
+    });
+
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('offline', handleOffline);
       window.removeEventListener('online', handleOnline);
       socket.off('peer_video_changed');
       socket.off('peer_screenshot_warning');
+      socket.off('peer_reconnected');
       socket.off('signal');
       socket.off('call_accepted');
       socket.off('security_violation');

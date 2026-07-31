@@ -32,7 +32,8 @@ const testSuites = [
   'test-refactoring.js',
   'test-documentation.js',
   'test-sdk.js',
-  'test-ui.js'
+  'test-ui.js',
+  'test-recovery.js'
 ];
 
 async function runSuite(fileName) {

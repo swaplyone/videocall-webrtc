@@ -24,6 +24,7 @@ export default function App() {
   const [remoteUser, setRemoteUser] = useState(null);
   const [isCaller, setIsCaller] = useState(false);
   const [incomingCall, setIncomingCall] = useState(null);
+  const [isRestoredCall, setIsRestoredCall] = useState(false);
 
   // Moderation state
   const [moderationConfig, setModerationConfig] = useState({
@@ -146,6 +147,15 @@ export default function App() {
       console.log('[App] Call terminated by peer.');
     });
 
+    socket.on('call_restored', ({ sessionId, remoteUser, isCaller }) => {
+      console.log(`[App] Call session restored: ${sessionId}`);
+      setActiveSessionId(sessionId);
+      setRemoteUser(remoteUser);
+      setIsCaller(isCaller);
+      setIsRestoredCall(true);
+      setCallState('active');
+    });
+
     socket.on('moderation_config_changed', (newConfig) => {
       setModerationConfig(newConfig);
     });
@@ -156,6 +166,7 @@ export default function App() {
       socket.off('call_accepted');
       socket.off('call_rejected');
       socket.off('call_terminated');
+      socket.off('call_restored');
       socket.off('moderation_config_changed');
     };
   }, [callState, incomingCall]);
@@ -166,6 +177,7 @@ export default function App() {
     setRemoteUser(null);
     setIsCaller(false);
     setIncomingCall(null);
+    setIsRestoredCall(false);
   };
 
   // Check if safety warning needs acknowledgment
@@ -284,6 +296,7 @@ export default function App() {
           isCaller={isCaller}
           onHangUp={handleHangUp}
           authToken={authToken}
+          isRestored={isRestoredCall}
         />
       ) : (
         <>
