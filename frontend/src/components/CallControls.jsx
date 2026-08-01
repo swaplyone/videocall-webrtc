@@ -10,7 +10,8 @@ import {
   Maximize2, 
   Tv, 
   MessageSquare, 
-  RefreshCw 
+  RefreshCw,
+  Shield 
 } from 'lucide-react';
 
 /**
@@ -51,7 +52,8 @@ export default function CallControls({
   onToggleFullscreen,
   onToggleMinimize,
   onSwitchCamera,
-  onHangUp
+  onHangUp,
+  onOpenSafety
 }) {
   return (
     <div style={{
@@ -71,6 +73,29 @@ export default function CallControls({
       boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.4)',
       zIndex: 100
     }}>
+      {/* Safety response button (Shield icon) */}
+      {onOpenSafety && (
+        <button
+          className="control-btn"
+          onClick={onOpenSafety}
+          style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '50%',
+            border: 'none',
+            background: 'rgba(239, 68, 68, 0.2)',
+            color: '#f87171',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
+          title="Safety Center Tools"
+        >
+          <Shield size={20} />
+        </button>
+      )}
       {/* Dev Stats Toggle */}
       <button
         className={`control-btn ${showDevStats ? 'active-off' : ''}`}

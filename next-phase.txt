@@ -1,0 +1,1126 @@
+# Task List – Phase 8 Development
+
+## OTP Verification, Email System, Account Verification, Beta Dashboard & PiP Privacy Protection
+
+### Goal
+
+Build the account-verification, beta-operations, and advanced privacy layer for the standalone Swaply Video Calling Platform.
+
+This phase will provide:
+
+* First-time login verification
+* Email OTP verification
+* Automated Node.js email sending
+* Email verification
+* Login security
+* Account recovery
+* Admin dashboard
+* User management
+* Email activity monitoring
+* OTP abuse protection
+* Beta-user management
+* Picture-in-Picture privacy protection
+* PiP activity monitoring
+* PiP capture-risk handling
+* Advanced privacy dashboard integration
+
+Reuse the existing Phase 7 privacy event, reporting, blocking, and admin infrastructure wherever possible.
+
+---
+
+# Module 1: Email Service Foundation
+
+Create:
+
+```text
+backend/services/emailService.js
+```
+
+Implement reusable email functions:
+
+```text
+sendVerificationOTP()
+sendWelcomeEmail()
+sendFriendRequestEmail()
+sendFriendAcceptedEmail()
+sendSecurityAlert()
+sendPasswordResetOTP()
+sendBetaInvitation()
+```
+
+Configure email credentials through `.env`.
+
+Never hard-code email credentials.
+
+---
+
+# Module 2: Email Provider Integration
+
+Configure a transactional email provider.
+
+Environment variables:
+
+```text
+EMAIL_HOST=
+EMAIL_PORT=
+EMAIL_USER=
+EMAIL_PASSWORD=
+EMAIL_FROM=
+```
+
+Implement:
+
+* SMTP connection
+* TLS configuration
+* Connection validation
+* Delivery error handling
+* Timeout handling
+
+Create:
+
+```text
+backend/test-email-service.js
+```
+
+---
+
+# Module 3: OTP Generation
+
+Create secure OTP generation.
+
+Requirements:
+
+* Cryptographically secure random generation
+* 6-digit OTP
+* Short expiration
+* One-time use
+* Server-side validation
+
+Example:
+
+```text
+482913
+```
+
+Never store OTPs as plain text.
+
+Store a secure hash instead.
+
+---
+
+# Module 4: OTP Database
+
+Create:
+
+```text
+email_verification_codes
+```
+
+Fields:
+
+```text
+id
+user_id
+email
+code_hash
+purpose
+expires_at
+attempt_count
+used
+created_at
+```
+
+Supported purposes:
+
+```text
+FIRST_LOGIN
+EMAIL_VERIFICATION
+PASSWORD_RESET
+EMAIL_CHANGE
+```
+
+Add indexes for:
+
+* user_id
+* email
+* expiration
+* purpose
+
+---
+
+# Module 5: First-Time Login Verification
+
+Implement:
+
+```text
+Login
+  ↓
+Credentials valid?
+  ↓
+First login?
+  ├── YES
+  │     ↓
+  │  Send OTP
+  │     ↓
+  │  OTP Verification Screen
+  │     ↓
+  │  Verify OTP
+  │     ↓
+  │  Login completed
+  │
+  └── NO
+        ↓
+     Normal login
+```
+
+The first-login verification should be tied to the authenticated login attempt.
+
+Do not consider the account fully verified until the OTP succeeds.
+
+---
+
+# Module 6: OTP Verification API
+
+Create endpoints:
+
+```text
+POST /api/auth/send-otp
+POST /api/auth/verify-otp
+POST /api/auth/resend-otp
+```
+
+Validate:
+
+* Authentication state
+* User identity
+* OTP purpose
+* Expiration
+* Attempt count
+* Previous OTP usage
+
+Never accept user-supplied user IDs without verifying them against the authenticated session.
+
+---
+
+# Module 7: OTP Security
+
+Implement:
+
+### Expiration
+
+```text
+OTP lifetime = 5 minutes
+```
+
+### Attempts
+
+```text
+Maximum attempts = 5
+```
+
+### Resend protection
+
+```text
+Maximum resend frequency = 1 per 60 seconds
+```
+
+### Abuse protection
+
+Rate-limit:
+
+```text
+OTP generation
+OTP verification
+OTP resend
+```
+
+Prevent OTP brute force.
+
+---
+
+# Module 8: OTP Verification UI
+
+Create:
+
+```text
+frontend/src/components/OTPVerification.jsx
+```
+
+Design it using the existing Swaply visual language.
+
+Example:
+
+```text
+┌────────────────────────────────┐
+│        Verify Your Email       │
+│                                │
+│ We sent a verification code    │
+│ to your registered email.      │
+│                                │
+│       _ _ _ _ _ _              │
+│                                │
+│ Expires in 04:32               │
+│                                │
+│ [ Verify ]                     │
+│                                │
+│ Didn't receive it?             │
+│ [ Resend Code ]                │
+└────────────────────────────────┘
+```
+
+---
+
+# Module 9: OTP Failure Handling
+
+Display appropriate errors:
+
+```text
+Invalid code
+Code expired
+Too many attempts
+Please wait before requesting another code
+Verification already completed
+```
+
+Do not reveal unnecessary information.
+
+---
+
+# Module 10: Email Verification State
+
+Add fields such as:
+
+```text
+email_verified
+email_verified_at
+```
+
+to the user system.
+
+User state:
+
+```text
+UNVERIFIED
+     ↓
+OTP SENT
+     ↓
+VERIFIED
+```
+
+Prevent repeated verification workflows after successful verification unless the user changes their email.
+
+---
+
+# Module 11: Welcome Email
+
+After successful first verification:
+
+```text
+OTP verified
+     ↓
+Account activated
+     ↓
+Welcome email
+```
+
+Welcome email should contain:
+
+* Welcome message
+* Beta ID
+* Basic safety information
+* Link to the platform
+* Privacy reminder
+
+Do not include sensitive authentication information.
+
+---
+
+# Module 12: Password Reset OTP
+
+Implement:
+
+```text
+POST /api/auth/request-password-reset
+POST /api/auth/verify-password-reset
+POST /api/auth/reset-password
+```
+
+Flow:
+
+```text
+Forgot Password
+      ↓
+Email
+      ↓
+OTP
+      ↓
+Verify
+      ↓
+New Password
+      ↓
+Invalidate old sessions
+```
+
+Apply the same OTP security controls.
+
+---
+
+# Module 13: Email Change Verification
+
+If users can change their email:
+
+```text
+Current Account
+      ↓
+New Email
+      ↓
+OTP
+      ↓
+Verify
+      ↓
+Update Email
+```
+
+Do not immediately replace the existing verified email.
+
+---
+
+# Module 14: Email Notification Preferences
+
+Create:
+
+```text
+Email Preferences
+```
+
+Users can control non-critical notifications:
+
+```text
+☑ Friend Requests
+☑ Friend Request Accepted
+☑ Beta Updates
+☑ Product Announcements
+```
+
+Security-related emails remain mandatory where appropriate.
+
+---
+
+# Module 15: Email Activity Logging
+
+Create:
+
+```text
+email_logs
+```
+
+Track:
+
+```text
+id
+user_id
+recipient
+email_type
+status
+created_at
+sent_at
+provider_id
+```
+
+Possible statuses:
+
+```text
+QUEUED
+SENT
+FAILED
+BOUNCED
+```
+
+Do not store email passwords or OTP values.
+
+---
+
+# Module 16: Admin Email Dashboard
+
+Add an Email section to the Admin Dashboard.
+
+Display:
+
+```text
+EMAIL ACTIVITY
+
+Sent Today        184
+Failed              3
+Verification OTP   72
+Welcome Emails     41
+Security Alerts     8
+```
+
+Filters:
+
+```text
+All
+OTP
+Welcome
+Friend Requests
+Security
+Failed
+```
+
+---
+
+# Module 17: OTP Monitoring Dashboard
+
+Admin dashboard:
+
+```text
+OTP SECURITY
+
+OTP Requests       238
+Successful         201
+Failed              29
+Expired              8
+Rate Limited         4
+```
+
+Display suspicious patterns such as:
+
+```text
+⚠ Excessive OTP Requests
+
+User: SWP-92K4A
+Requests: 17
+Period: 10 minutes
+Status: RATE LIMITED
+```
+
+Do not display the actual OTP.
+
+---
+
+# Module 18: Beta User Dashboard
+
+Create:
+
+```text
+Admin → Beta Users
+```
+
+Display:
+
+* Username
+* Beta ID
+* Email verification status
+* Registration date
+* Last active
+* Friend count
+* Calls completed
+* Reports
+* Privacy events
+* Beta status
+
+Statuses:
+
+```text
+ACTIVE
+INVITED
+UNVERIFIED
+SUSPENDED
+DISABLED
+```
+
+---
+
+# Module 19: Admin User Actions
+
+Authorized admins can:
+
+```text
+View User
+Suspend User
+Restore User
+Disable Beta Access
+Restore Beta Access
+Review Reports
+Review Privacy Events
+```
+
+All administrative actions must be written to:
+
+```text
+admin_audit_logs
+```
+
+---
+
+# Module 20: Dashboard Overview
+
+Create the main admin dashboard:
+
+```text
+┌─────────────────────────────────────────────┐
+│             SWAPLY BETA ADMIN               │
+├────────────┬────────────┬───────────────────┤
+│ Users      │ Calls      │ Active            │
+│ 1,284      │ 4,821      │ 42                │
+├────────────┼────────────┼───────────────────┤
+│ Verified   │ Reports    │ Privacy Events    │
+│ 1,173      │ 18         │ 27                │
+├────────────┴────────────┴───────────────────┤
+│                                             │
+│             SYSTEM HEALTH                   │
+│                                             │
+│ API             🟢 Healthy                  │
+│ Database        🟢 Healthy                  │
+│ Socket.io       🟢 Healthy                  │
+│ Email           🟢 Healthy                  │
+│ WebRTC          🟢 Operational              │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+---
+
+# Module 21: Real-Time Dashboard Updates
+
+Use Socket.io for operational updates.
+
+Events:
+
+```text
+admin_user_registered
+admin_user_verified
+admin_call_started
+admin_call_ended
+admin_privacy_event
+admin_report_created
+admin_user_blocked
+admin_email_failed
+```
+
+Do not expose admin events to normal users.
+
+---
+
+# Module 22: Account Security Notifications
+
+Send email when important security events occur.
+
+Examples:
+
+```text
+New login
+Password changed
+Email changed
+Password reset
+Account security event
+Account suspended
+```
+
+Avoid sending sensitive tokens through email.
+
+---
+
+# Module 23: Session Security
+
+After:
+
+* Password reset
+* Email change
+* Account suspension
+
+invalidate relevant sessions/tokens.
+
+Require fresh authentication where appropriate.
+
+---
+
+# Module 24: Admin Security
+
+Protect the dashboard using:
+
+* JWT authentication
+* `requireAdmin`
+* Rate limiting
+* Secure HTTP headers
+* CSRF protections where applicable
+* Input validation
+* Audit logging
+* Session expiration
+
+Never expose admin endpoints to ordinary users.
+
+---
+
+# Module 25: OTP & Email Testing
+
+Create:
+
+```text
+backend/test-otp.js
+backend/test-otp-security.js
+backend/test-email-verification.js
+backend/test-password-reset.js
+backend/test-email-preferences.js
+backend/test-email-logs.js
+backend/test-admin-email.js
+backend/test-admin-users.js
+```
+
+Test:
+
+* Valid OTP
+* Invalid OTP
+* Expired OTP
+* Reused OTP
+* Brute-force attempts
+* Resend rate limit
+* Email delivery failure
+* First-login verification
+* Password reset
+* Email change
+* Admin authorization
+* Unauthorized dashboard access
+
+---
+
+# Module 26: Complete Regression Testing
+
+Update:
+
+```text
+backend/run-all-tests.js
+```
+
+Run:
+
+```text
+Phase 1
+Phase 2
+Phase 3
+Phase 4
+Phase 5
+Phase 6
+Phase 7
+Phase 8
+```
+
+All existing functionality must continue working.
+
+---
+
+# Module 27: Picture-in-Picture Detection
+
+Create:
+
+```text
+frontend/src/privacy/pipProtection.js
+```
+
+Implement:
+
+* Detect PiP activation
+* Detect PiP exit
+* Track current PiP state
+* Track PiP start timestamp
+* Track PiP end timestamp
+* Associate PiP activity with the authenticated user and active call
+
+Maintain:
+
+```text
+pipActive
+pipStartedAt
+pipEndedAt
+```
+
+Important:
+
+* PiP activation itself is NOT a security violation.
+* Do not treat leaving the browser tab as proof of a screenshot.
+* Browser screenshot detection may be unavailable while PiP is active.
+
+---
+
+# Module 28: PiP Privacy Warning
+
+Before enabling PiP, display:
+
+```text
+⚠ PiP Privacy Notice
+
+Picture-in-Picture keeps the call visible
+while you use other websites or applications.
+
+Do not capture, record, or distribute
+another participant's private content.
+
+[ Continue ]
+[ Cancel ]
+```
+
+Record the user's acknowledgment for the current call/session.
+
+---
+
+# Module 29: PiP Privacy Events
+
+Extend the existing Phase 7:
+
+```text
+privacy_events
+```
+
+system.
+
+Add supported event types:
+
+```text
+pip_started
+pip_ended
+pip_capture_risk
+```
+
+Record:
+
+```text
+user_id
+call_id
+timestamp
+platform
+browser
+event_type
+severity
+metadata
+```
+
+Do NOT create a separate PiP database system.
+
+Continue using the existing:
+
+```text
+POST /api/privacy/events
+```
+
+endpoint.
+
+---
+
+# Module 30: PiP Capture-Risk Handling
+
+When PiP is active:
+
+* Continue supported screenshot/capture signal monitoring
+* Continue privacy event logging
+* Continue participant warnings
+* Continue reporting
+* Continue blocking
+* Continue call security
+* Continue serious-abuse call termination
+
+If the browser cannot determine whether a screenshot occurred, display:
+
+```text
+Screenshot Detection:
+Unavailable
+```
+
+Never falsely display:
+
+```text
+User took a screenshot
+```
+
+Instead use:
+
+```text
+Possible Capture Activity
+```
+
+or:
+
+```text
+Capture Detection Unavailable
+```
+
+---
+
+# Module 31: PiP Admin Dashboard
+
+Add PiP information to the Admin Security Dashboard.
+
+Example:
+
+```text
+PRIVACY INCIDENT
+
+User:
+@username
+
+Beta ID:
+SWP-XXXXX
+
+Call:
+CALL-XXXX
+
+PiP:
+ACTIVE
+
+PiP Started:
+02:14:02
+
+Capture Signal:
+Unavailable
+
+Status:
+WARNING
+```
+
+Possible states:
+
+```text
+PiP Active
+PiP Ended
+Capture Signal Detected
+Capture Detection Unavailable
+```
+
+Allow admins to filter:
+
+```text
+All
+PiP Activity
+Capture Risk
+Privacy Events
+Reports
+Escalated
+```
+
+---
+
+# Module 32: PiP Abuse Escalation
+
+When supported capture-risk signals occur during PiP:
+
+```text
+Possible Capture Activity
+        ↓
+Warning
+        ↓
+Repeated Activity
+        ↓
+Report / Block
+        ↓
+Serious Abuse
+        ↓
+Terminate Call
+        ↓
+Security Incident
+        ↓
+Admin Review
+```
+
+Do not automatically punish or terminate a user based only on weak browser signals such as:
+
+```text
+blur
+visibilitychange
+tab switching
+PiP activation
+```
+
+These signals are not proof of screenshot activity.
+
+---
+
+# Module 33: PiP Safety Center
+
+Update:
+
+```text
+frontend/src/components/SafetyCenter.jsx
+```
+
+Add:
+
+### Picture-in-Picture Safety
+
+```text
+Picture-in-Picture allows your call to remain
+visible while you use other websites.
+
+Browser-level screenshot detection may not be
+available while PiP is active.
+
+Do not capture, record, or distribute another
+participant's private content.
+
+If you believe your content was captured or
+misused, immediately block and report the user.
+```
+
+Also display:
+
+* PiP privacy explanation
+* Screenshot limitations
+* Screen-recording limitations
+* Reporting instructions
+* Blocking instructions
+
+---
+
+# Module 34: PiP Testing
+
+Create:
+
+```text
+backend/test-pip-privacy.js
+backend/test-pip-events.js
+backend/test-pip-security.js
+```
+
+Test:
+
+* PiP activation
+* PiP exit
+* PiP state tracking
+* PiP acknowledgment
+* PiP event creation
+* PiP event authentication
+* PiP capture-risk handling
+* Unsupported screenshot detection
+* Admin PiP visibility
+* Unauthorized PiP events
+* Report/block workflow while PiP is active
+
+---
+
+# Module 35: Complete Phase 8 Regression Testing
+
+Update:
+
+```text
+backend/run-all-tests.js
+```
+
+Run all previous Phase 1–7 tests plus all Phase 8 tests.
+
+Verify:
+
+```text
+Phase 1 ✓
+Phase 2 ✓
+Phase 3 ✓
+Phase 4 ✓
+Phase 5 ✓
+Phase 6 ✓
+Phase 7 ✓
+Phase 8 ✓
+```
+
+Final verification must confirm:
+
+* OTP works
+* Email service works
+* First-login verification works
+* Password reset works
+* Email change verification works
+* Beta dashboard works
+* Admin authorization works
+* Email activity logging works
+* OTP monitoring works
+* Privacy events still work
+* PiP tracking works
+* PiP privacy warning works
+* PiP events reach the backend
+* PiP events appear in Admin Dashboard
+* Reporting still works
+* Blocking still works
+* Serious abuse can terminate calls
+* Admin audit logging works
+* No existing functionality regresses
+
+---
+
+# Phase 8 Final User Flow
+
+```text
+                 NEW USER
+                     │
+                     ▼
+                 REGISTER
+                     │
+                     ▼
+              EMAIL PROVIDED
+                     │
+                     ▼
+              ACCOUNT CREATED
+                     │
+                     ▼
+               FIRST LOGIN
+                     │
+                     ▼
+                SEND OTP
+                     │
+                     ▼
+              VERIFY OTP
+                │         │
+              FAIL       SUCCESS
+                │         │
+                ▼         ▼
+             Retry     VERIFIED
+                          │
+                          ▼
+                    WELCOME EMAIL
+                          │
+                          ▼
+                     DASHBOARD
+                          │
+             ┌────────────┼────────────┐
+             ▼            ▼            ▼
+          Friends        Chat       Video Call
+             │            │            │
+             └────────────┴────────────┘
+                          │
+                    Privacy Layer
+                          │
+                    Optional PiP
+                          │
+                    PiP Privacy Mode
+                          │
+                    Admin Dashboard
+```
+
+# Phase 8 Final Success Criteria
+
+The standalone Swaply Video Calling Platform beta must provide:
+
+✓ First-login email OTP
+✓ Secure OTP generation
+✓ OTP expiration
+✓ OTP brute-force protection
+✓ OTP resend rate limiting
+✓ Email verification
+✓ Password reset
+✓ Email-change verification
+✓ Automated Node.js email service
+✓ Email delivery logging
+✓ Email notification preferences
+✓ Admin dashboard
+✓ Beta-user management
+✓ OTP monitoring
+✓ Email monitoring
+✓ Security notifications
+✓ Admin audit logs
+✓ Real-time dashboard updates
+✓ Picture-in-Picture detection
+✓ PiP privacy warning
+✓ PiP state tracking
+✓ PiP privacy events
+✓ PiP capture-risk handling
+✓ PiP Admin Dashboard visibility
+✓ PiP Safety Center information
+✓ Browser limitation disclosure
+✓ Reporting and blocking integration
+✓ Complete automated testing
+✓ Full regression testing

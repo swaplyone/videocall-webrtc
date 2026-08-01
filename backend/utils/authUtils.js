@@ -37,7 +37,7 @@ export async function comparePassword(password, hash) {
  */
 export function generateAccessToken(user) {
   return jwt.sign(
-    { id: user.id, username: user.username },
+    { id: user.id, username: user.username, securityId: user.security_id },
     JWT_ACCESS_SECRET,
     { expiresIn: '15m' }
   );
@@ -51,7 +51,7 @@ export function generateAccessToken(user) {
  */
 export function generateRefreshToken(user) {
   return jwt.sign(
-    { id: user.id, username: user.username },
+    { id: user.id, username: user.username, securityId: user.security_id },
     JWT_REFRESH_SECRET,
     { expiresIn: '7d' }
   );

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Phone, Users, Shield, Settings, Info, UserCheck, ShieldAlert, Activity, Clock, ChevronDown, ChevronUp, Video } from 'lucide-react';
+import { Phone, Users, ShieldAlert, Activity, Clock, ChevronDown, ChevronUp, Video } from 'lucide-react';
 import SwaplyLogo from './SwaplyLogo';
 import CustomPopup from './CustomPopup';
 import SwipeRequests from './SwipeRequests';
 import { checkBrowserCompatibility } from '../utils/browserSupport';
+import SafetyCenter from './SafetyCenter';
 import { apiClient } from '../utils/apiClient';
 import { socketClient } from '../utils/socketClient';
 
@@ -41,11 +42,7 @@ export default function Dashboard({
     setPopupState({ isOpen: true, title, message, type });
   };
 
-  // Admin moderation states
-  const [isAdminPortalOpen, setIsAdminPortalOpen] = useState(false);
-  const [adminStats, setAdminStats] = useState({ totalUsers: 0, onlineUsers: 0, totalCalls: 0, flaggedMessages: 0 });
-  const [adminReports, setAdminReports] = useState([]);
-  const [adminError, setAdminError] = useState('');
+
 
   // Call History states
   const [callHistory, setCallHistory] = useState([]);
@@ -299,43 +296,7 @@ export default function Dashboard({
     };
   }, [authToken]);
 
-  const fetchAdminData = async () => {
-    if (!authToken) return;
-    try {
-      // Fetch stats
-      const statsData = await apiClient.getAdminStats();
-      setAdminStats(statsData.stats);
 
-      // Fetch complaints
-      const reportsData = await apiClient.getAdminReports();
-      setAdminReports(reportsData.reports);
-      
-      setAdminError('');
-    } catch (err) {
-      console.error(err);
-      setAdminError('Failed to load admin metrics data.');
-    }
-  };
-
-  const handleUpdateReportStatus = async (reportId, newStatus) => {
-    if (!authToken) return;
-    try {
-      const data = await apiClient.updateReportStatus(reportId, newStatus);
-      setAdminReports(prev => 
-        prev.map(r => r.id === reportId ? { ...r, status: newStatus } : r)
-      );
-    } catch (err) {
-      console.error(err);
-      showPopup('System Error', 'Error updating safety report status', 'error');
-    }
-  };
-
-  // Re-fetch admin metrics when portal is opened
-  useEffect(() => {
-    if (isAdminPortalOpen) {
-      fetchAdminData();
-    }
-  }, [isAdminPortalOpen]);
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
@@ -524,128 +485,8 @@ export default function Dashboard({
             >
               Reject Link
             </button>
-          </div>
-        </div>
-      )}
-
-      {/* Admin Moderation Portal View */}
-      {!incomingCall && isAdminPortalOpen && (
-        <div className="glass-panel admin-portal-view" style={{ marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-            <h2 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <ShieldAlert size={22} style={{ color: 'var(--color-primary)' }} />
-              Admin Moderation Portal
-            </h2>
-            <button className="btn btn-secondary" style={{ padding: '0.35rem 0.8rem', fontSize: '0.85rem' }} onClick={() => setIsAdminPortalOpen(false)}>
-              Close Portal
-            </button>
-          </div>
-
-          {adminError && (
-            <div style={{ color: 'var(--color-danger)', marginBottom: '1rem', fontFamily: 'var(--font-mono)' }}>
-              {adminError}
-            </div>
-          )}
-
-          {/* Stats Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-            <div className="stat-card-retro">
-              <span className="stat-card-label">TOTAL NODES</span>
-              <span className="stat-card-value" style={{ color: 'var(--color-primary)' }}>{adminStats.totalUsers}</span>
-            </div>
-            <div className="stat-card-retro">
-              <span className="stat-card-label">ONLINE NODES</span>
-              <span className="stat-card-value" style={{ color: 'var(--color-secondary)' }}>{adminStats.onlineUsers}</span>
-            </div>
-            <div className="stat-card-retro">
-              <span className="stat-card-label">CALLS LOGGED</span>
-              <span className="stat-card-value" style={{ color: 'var(--color-accent)' }}>{adminStats.totalCalls}</span>
-            </div>
-            <div className="stat-card-retro">
-              <span className="stat-card-label">FLAGGED CHATS</span>
-              <span className="stat-card-value" style={{ color: 'var(--color-danger)' }}>{adminStats.flaggedMessages}</span>
-            </div>
-          </div>
-
-          {/* Reports Section */}
-          <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-            <Activity size={18} />
-            Safety Complaints Log
-          </h3>
-          {adminReports.length === 0 ? (
-            <div className="empty-state" style={{ padding: '2rem' }}>No safety complaints logged.</div>
-          ) : (
-            <div style={{ overflowX: 'auto' }}>
-              <table className="table-retro">
-                <thead>
-                  <tr>
-                    <th>REPORTER</th>
-                    <th>REPORTED</th>
-                    <th>REASON</th>
-                    <th>DETAILS</th>
-                    <th>STATUS</th>
-                    <th style={{ textAlign: 'right' }}>ACTIONS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {adminReports.map((report) => (
-                    <tr key={report.id}>
-                      <td style={{ fontWeight: '700' }}>{report.reporter_username}</td>
-                      <td style={{ color: 'var(--color-danger)', fontWeight: '700' }}>{report.reported_username}</td>
-                      <td>
-                        <span style={{ fontSize: '0.7rem', padding: '0.15rem 0.4rem', borderRadius: '4px', background: 'rgba(190, 77, 77, 0.15)', color: 'var(--color-danger)', fontWeight: 'bold', border: '1px solid var(--color-danger)' }}>
-                          {report.reason}
-                        </span>
-                      </td>
-                      <td style={{ color: 'var(--text-secondary)', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={report.description}>
-                        {report.description || 'No description'}
-                      </td>
-                      <td>
-                        <span style={{ 
-                          fontSize: '0.7rem', 
-                          padding: '0.2rem 0.5rem', 
-                          borderRadius: '4px',
-                          fontWeight: 'bold',
-                          border: '1px solid currentColor',
-                          background: report.status === 'PENDING' ? 'rgba(229, 169, 60, 0.15)' : report.status === 'REVIEWED' ? 'rgba(76, 119, 159, 0.15)' : 'rgba(74, 110, 83, 0.15)',
-                          color: report.status === 'PENDING' ? 'var(--color-accent)' : report.status === 'REVIEWED' ? 'var(--color-info)' : 'var(--color-secondary)'
-                        }}>
-                          {report.status}
-                        </span>
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
-                        {report.status === 'PENDING' ? (
-                          <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
-                            <button 
-                              className="btn btn-secondary" 
-                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }}
-                              onClick={() => handleUpdateReportStatus(report.id, 'REVIEWED')}
-                            >
-                              Review
-                            </button>
-                            <button 
-                              className="btn btn-primary" 
-                              style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }}
-                              onClick={() => handleUpdateReportStatus(report.id, 'ACTION_TAKEN')}
-                            >
-                              Resolve
-                            </button>
-                          </div>
-                        ) : (
-                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Resolved</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Main Dashboard Stage */}
-      {!incomingCall && !isAdminPortalOpen && (
+      {!incomingCall && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
           {/* Header Console & Quick Dial Bar */}
@@ -667,18 +508,6 @@ export default function Dashboard({
                   </div>
                 </div>
               </div>
-
-              <button 
-                type="button" 
-                className="btn btn-secondary" 
-                style={{ padding: '0.45rem 1rem', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-                onClick={() => setIsAdminPortalOpen(!isAdminPortalOpen)}
-                disabled={!authToken}
-                title={!authToken ? 'Authenticate secure profile to access admin portal' : ''}
-              >
-                <Shield size={14} />
-                {!authToken ? 'Admin (Auth Required)' : 'Admin Controls'}
-              </button>
             </div>
 
             {/* Quick Dial Input Bar */}
@@ -825,6 +654,13 @@ export default function Dashboard({
                 onClick={() => setActiveTab('privacy')}
               >
                 Privacy
+              </button>
+              <button 
+                type="button"
+                className={`friends-tab-btn ${activeTab === 'safety-center' ? 'active' : ''}`}
+                onClick={() => setActiveTab('safety-center')}
+              >
+                Safety Center
               </button>
             </div>
 
@@ -1019,6 +855,12 @@ export default function Dashboard({
                   </div>
 
                 </div>
+              </div>
+            )}
+            {/* Safety Center Tab */}
+            {activeTab === 'safety-center' && (
+              <div className="friends-tab-content" style={{ padding: 0 }}>
+                <SafetyCenter authToken={authToken} />
               </div>
             )}
           </div>

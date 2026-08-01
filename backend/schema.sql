@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS calls (
     caller_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     receiver_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     status VARCHAR(50) NOT NULL, -- ringing, active, completed, rejected, missed
+    session_id VARCHAR(100),
     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     ended_at TIMESTAMP,
     duration INTEGER -- in seconds
@@ -163,3 +164,79 @@ ON friendships (LEAST(user_id, friend_id), GREATEST(user_id, friend_id));
 
 CREATE INDEX IF NOT EXISTS idx_friendships_user ON friendships(user_id);
 CREATE INDEX IF NOT EXISTS idx_friendships_friend ON friendships(friend_id);
+
+-- ==========================================
+-- Phase 7: Web Privacy additions
+-- ==========================================
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS call_id INTEGER REFERENCES calls(id) ON DELETE SET NULL;
+ALTER TABLE reports ADD COLUMN IF NOT EXISTS privacy_event_id INTEGER;
+
+CREATE TABLE IF NOT EXISTS privacy_events (
+    id SERIAL PRIMARY KEY,
+    event_type VARCHAR(100) NOT NULL,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    call_id INTEGER REFERENCES calls(id) ON DELETE CASCADE,
+    target_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    beta_id_snapshot VARCHAR(50),
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    platform VARCHAR(50) DEFAULT 'web',
+    browser VARCHAR(100),
+    severity VARCHAR(50) DEFAULT 'warning',
+    status VARCHAR(50) DEFAULT 'NEW' CHECK (status IN ('NEW', 'REVIEWED', 'RESOLVED', 'ESCALATED')),
+    metadata JSONB
+);
+
+CREATE INDEX IF NOT EXISTS idx_privacy_events_user ON privacy_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_privacy_events_call ON privacy_events(call_id);
+CREATE INDEX IF NOT EXISTS idx_privacy_events_timestamp ON privacy_events(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_privacy_events_type ON privacy_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_privacy_events_severity ON privacy_events(severity);
+
+CREATE TABLE IF NOT EXISTS admin_audit_logs (
+    id SERIAL PRIMARY KEY,
+    admin_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    action VARCHAR(255) NOT NULL,
+    target_id INTEGER,
+    details TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Ensure calls table has session_id column
+ALTER TABLE calls ADD COLUMN IF NOT EXISTS session_id VARCHAR(100);
+
+-- Phase 8 User additions
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_notifications JSONB DEFAULT '{"friendRequests": true, "friendAccepted": true, "betaUpdates": true, "productAnnouncements": true}';
+
+-- Phase 8: email_verification_codes table (Module 4)
+CREATE TABLE IF NOT EXISTS email_verification_codes (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    email VARCHAR(255) NOT NULL,
+    code_hash VARCHAR(255) NOT NULL,
+    purpose VARCHAR(50) NOT NULL, -- FIRST_LOGIN, EMAIL_VERIFICATION, PASSWORD_RESET, EMAIL_CHANGE
+    expires_at TIMESTAMP NOT NULL,
+    attempt_count INTEGER DEFAULT 0,
+    used BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_evc_user_id ON email_verification_codes(user_id);
+CREATE INDEX IF NOT EXISTS idx_evc_email ON email_verification_codes(email);
+CREATE INDEX IF NOT EXISTS idx_evc_expires ON email_verification_codes(expires_at);
+CREATE INDEX IF NOT EXISTS idx_evc_purpose ON email_verification_codes(purpose);
+
+-- Phase 8: email_logs table (Module 15)
+CREATE TABLE IF NOT EXISTS email_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    recipient VARCHAR(255) NOT NULL,
+    email_type VARCHAR(100) NOT NULL,
+    status VARCHAR(50) NOT NULL, -- QUEUED, SENT, FAILED, BOUNCED
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    sent_at TIMESTAMP,
+    provider_id VARCHAR(255)
+);
+
+CREATE INDEX IF NOT EXISTS idx_el_user_id ON email_logs(user_id);

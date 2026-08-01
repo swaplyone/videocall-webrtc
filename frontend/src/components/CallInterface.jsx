@@ -7,6 +7,8 @@ import CallFeedbackModal from './CallFeedbackModal';
 import CustomPopup from './CustomPopup';
 import { apiClient } from '../utils/apiClient';
 import { calculateQualityLevel, parseIceCandidateType, getBandwidthConstraints } from '../utils/webrtcHelpers';
+import { startCaptureProtection } from '../privacy/captureProtection';
+import { LocalPrivacyWarning, RemotePrivacyAlert, BlackmailSafetyModal } from '../privacy/privacyWarnings';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (window.location.protocol + '//' + window.location.hostname + ':5000');
 
@@ -34,6 +36,13 @@ export default function CallInterface({
   const [localScreenshotViolation, setLocalScreenshotViolation] = useState(false);
   const [peerScreenshotViolation, setPeerScreenshotViolation] = useState(false);
   const [peerScreenshotAlert, setPeerScreenshotAlert] = useState('');
+
+  // Phase 7 Security / Privacy States
+  const [localPrivacyWarningOpen, setLocalPrivacyWarningOpen] = useState(false);
+  const [remotePrivacyAlertOpen, setRemotePrivacyAlertOpen] = useState(false);
+  const [blackmailSafetyModalOpen, setBlackmailSafetyModalOpen] = useState(false);
+  const [privacyModeActive, setPrivacyModeActive] = useState(false);
+  const [privacySource, setPrivacySource] = useState('');
   
   // Message log
   const [messages, setMessages] = useState([]);
@@ -121,6 +130,7 @@ export default function CallInterface({
   // Call feedback states
   const [dbCallIdState, setDbCallIdState] = useState(null);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [showPipAckModal, setShowPipAckModal] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState(5);
   const [feedbackIssues, setFeedbackIssues] = useState([]);
   const [feedbackComments, setFeedbackComments] = useState('');
@@ -1080,6 +1090,19 @@ export default function CallInterface({
       }
     });
 
+    // Bind Phase 7 capture warning
+    socket.on('privacy_capture_warning', ({ user, source }) => {
+      if (user === remoteUser) {
+        setPrivacySource(source);
+        setRemotePrivacyAlertOpen(true);
+        // Level 2/3 -> Blur video
+        setPrivacyModeActive(true);
+        setTimeout(() => {
+          setPrivacyModeActive(false);
+        }, 6000);
+      }
+    });
+
     // Bind peer reconnected event
     socket.on('peer_reconnected', ({ username }) => {
       if (username === remoteUser) {
@@ -1097,6 +1120,7 @@ export default function CallInterface({
       window.removeEventListener('online', handleOnline);
       socket.off('peer_video_changed');
       socket.off('peer_screenshot_warning');
+      socket.off('privacy_capture_warning');
       socket.off('peer_reconnected');
       socket.off('signal');
       socket.off('call_accepted');
@@ -1127,6 +1151,35 @@ export default function CallInterface({
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [socket, sessionId]);
+
+  // Phase 7 Capture Protection Initializer
+  useEffect(() => {
+    if (!sessionId || !authToken) return;
+
+    const stop = startCaptureProtection({
+      sessionId,
+      authToken,
+      onLocalWarning: (source) => {
+        setPrivacySource(source);
+        setLocalPrivacyWarningOpen(true);
+      },
+      onRemoteWarning: (source) => {
+        // Relayed via Socket.io
+      },
+      onBlurRemoteVideo: (isBlur) => {
+        setPrivacyModeActive(isBlur);
+      },
+      onEscalate: () => {
+        // Repeated Suspicious Activity Level 3 -> Active Privacy Blurring + Report & Block triggers
+        setPrivacyModeActive(true);
+        setBlackmailSafetyModalOpen(true);
+      }
+    });
+
+    return () => {
+      stop();
+    };
+  }, [sessionId, authToken]);
 
   // 4. Message Log Handlers
   useEffect(() => {
@@ -1224,6 +1277,52 @@ export default function CallInterface({
     }
   };
 
+  const handleBlockUser = async () => {
+    try {
+      await fetch(`${BACKEND_URL}/api/users/block`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({ username: remoteUser })
+      });
+      showPopup('User Blocked', `You have blocked @${remoteUser}. friendship removed and call ended.`, 'warning');
+      
+      // End call locally and notify peer
+      handleDisconnect();
+      onHangUp();
+    } catch (err) {
+      console.error('Error blocking user:', err);
+    }
+  };
+
+  const handleReportUser = async (reason, description = '') => {
+    try {
+      await fetch(`${BACKEND_URL}/api/users/report`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify({
+          username: remoteUser,
+          reason,
+          description,
+          callSessionId: sessionId
+        })
+      });
+      showPopup('Report Submitted', `Report successfully filed against @${remoteUser}.`, 'info');
+
+      // If it's blackmail/image misuse, automatically block the user and end the call!
+      if (reason === 'Blackmail / Image Misuse' || reason === 'Harassment') {
+        await handleBlockUser();
+      }
+    } catch (err) {
+      console.error('Error submitting report:', err);
+    }
+  };
+
   const formatDuration = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -1247,11 +1346,53 @@ export default function CallInterface({
     try {
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
+        // Log PiP Deactivation (Module 29)
+        try {
+          await apiClient.request('/api/privacy/events', {
+            method: 'POST',
+            body: JSON.stringify({
+              eventType: 'capture_risk',
+              callId: sessionId,
+              metadata: { subType: 'pip_deactivated' }
+            })
+          });
+        } catch (e) {
+          console.warn('Failed to log PiP deactivation event:', e);
+        }
       } else {
-        await remoteVideoRef.current.requestPictureInPicture();
+        // Intercept with PiP Acknowledgment Dialog (Module 27)
+        const hasAck = sessionStorage.getItem('swaply_pip_acknowledged');
+        if (hasAck === 'true') {
+          await enterPiPMode();
+        } else {
+          setShowPipAckModal(true);
+        }
       }
     } catch (err) {
       console.warn('Picture-in-Picture failed:', err);
+    }
+  };
+
+  const enterPiPMode = async () => {
+    if (!remoteVideoRef.current) return;
+    try {
+      await remoteVideoRef.current.requestPictureInPicture();
+      
+      // Log PiP Activation via existing privacy_events infrastructure (Module 27, 29)
+      try {
+        await apiClient.request('/api/privacy/events', {
+          method: 'POST',
+          body: JSON.stringify({
+            eventType: 'capture_risk',
+            callId: sessionId,
+            metadata: { subType: 'pip_activated' }
+          })
+        });
+      } catch (e) {
+        console.warn('Failed to log PiP activation event:', e);
+      }
+    } catch (err) {
+      console.warn('Failed to request PiP:', err);
     }
   };
 
@@ -1433,12 +1574,49 @@ export default function CallInterface({
         boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
       }}>
         {/* Remote Video - Full Backdrop */}
-        <div className={`video-wrapper remote-video ${(!remoteFocused || localScreenshotViolation || peerScreenshotViolation) ? 'blurred' : ''}`} style={{
+        <div className={`video-wrapper remote-video ${(!remoteFocused || localScreenshotViolation || peerScreenshotViolation || privacyModeActive) ? 'blurred' : ''}`} style={{
           width: '100%',
           height: '100%',
           position: 'relative',
           overflow: 'hidden'
         }}>
+          {privacyModeActive ? (
+            <div className="privacy-active-overlay" style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(9, 9, 11, 0.75)',
+              zIndex: 10,
+              padding: '2rem',
+              textAlign: 'center'
+            }}>
+              <div style={{
+                background: 'var(--color-danger)',
+                color: '#FFF',
+                border: '2px solid #111827',
+                borderRadius: '50%',
+                padding: '1rem',
+                marginBottom: '1rem',
+                boxShadow: '4px 4px 0px #111827',
+                fontSize: '1.5rem',
+                lineHeight: '1'
+              }}>
+                🔒
+              </div>
+              <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: '900', textTransform: 'uppercase', color: '#FFF', fontSize: '1rem' }}>
+                Privacy Protection Active
+              </h4>
+              <p style={{ margin: 0, fontSize: '0.85rem', color: '#E5E7EB', maxWidth: '300px' }}>
+                Possible capture activity detected. Remote feed has been blurred for your security.
+              </p>
+            </div>
+          ) : null}
           {remoteVideoOff ? (
             <div className="camera-muted-placeholder" style={{
               position: 'absolute',
@@ -1697,6 +1875,7 @@ export default function CallInterface({
           onToggleMinimize={() => setIsMinimized(!isMinimized)}
           onSwitchCamera={toggleCameraFacing}
           onHangUp={handleDisconnect}
+          onOpenSafety={() => setBlackmailSafetyModalOpen(true)}
         />
 
         {/* 4. Sliding Chat Drawer Overlay Container */}
@@ -1749,6 +1928,42 @@ export default function CallInterface({
         </div>
       </div>
 
+      {/* Phase 7 Privacy Warnings & Alerts */}
+      <LocalPrivacyWarning
+        isOpen={localPrivacyWarningOpen}
+        onContinue={() => setLocalPrivacyWarningOpen(false)}
+        source={privacySource}
+      />
+
+      <RemotePrivacyAlert
+        isOpen={remotePrivacyAlertOpen}
+        onDismiss={() => setRemotePrivacyAlertOpen(false)}
+        onReport={() => {
+          setRemotePrivacyAlertOpen(false);
+          setBlackmailSafetyModalOpen(true);
+        }}
+        source={privacySource}
+      />
+
+      <BlackmailSafetyModal
+        isOpen={blackmailSafetyModalOpen}
+        onDismiss={() => setBlackmailSafetyModalOpen(false)}
+        onEndCall={() => {
+          setBlackmailSafetyModalOpen(false);
+          handleDisconnect();
+          onHangUp();
+        }}
+        onBlock={() => {
+          setBlackmailSafetyModalOpen(false);
+          handleBlockUser();
+        }}
+        onReport={async () => {
+          setBlackmailSafetyModalOpen(false);
+          const desc = prompt("Please briefly describe the incident (e.g. they threatened me or took my screenshot):") || "";
+          await handleReportUser("Blackmail / Image Misuse", desc);
+        }}
+      />
+
       {/* Feedback Modal Overlay */}
       <CallFeedbackModal
         isOpen={showFeedbackModal}
@@ -1774,6 +1989,54 @@ export default function CallInterface({
           }
         }}
       />
+
+      {/* PiP Acknowledgment Modal (Module 27, 28) */}
+      {showPipAckModal && (
+        <div className="modal-overlay" style={{ background: 'rgba(17, 24, 39, 0.9)', zIndex: 99999 }}>
+          <div className="modal-content" style={{ maxWidth: '440px', border: '4px solid #111827', boxShadow: '8px 8px 0px #111827' }}>
+            <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+              <div style={{ background: '#FEF3C7', display: 'inline-flex', padding: '0.6rem', borderRadius: '6px', border: '2px solid #111827', boxShadow: '2px 2px 0 #111827', marginBottom: '0.75rem' }}>
+                <AlertTriangle size={28} style={{ color: '#111827' }} />
+              </div>
+              <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', textTransform: 'uppercase', fontSize: '1.25rem', fontWeight: 900 }}>Picture-in-Picture Security Notice</h3>
+            </div>
+            
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '1.25rem' }}>
+              <strong>Browser Limitation Warning:</strong> While in Picture-in-Picture mode, Swaply's automated screenshot attempt and capture risk detection (visibility and window focus tracking) are limited.
+            </p>
+            
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-primary)', background: '#FFFDF9', border: '2px solid #111827', padding: '0.5rem', borderRadius: '4px', fontStyle: 'italic', marginBottom: '1.5rem' }}>
+              "I understand that the privacy shield has limitations in PiP mode and wish to continue."
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button 
+                type="button" 
+                className="btn btn-secondary" 
+                style={{ flex: 1 }}
+                onClick={() => {
+                  setShowPipAckModal(false);
+                  showPopup('PiP Canceled', 'Picture-in-Picture activation declined: Risk acknowledgment is required.', 'warning');
+                }}
+              >
+                Decline
+              </button>
+              <button 
+                type="button" 
+                className="btn btn-primary" 
+                style={{ flex: 2, fontWeight: 'bold' }}
+                onClick={async () => {
+                  sessionStorage.setItem('swaply_pip_acknowledged', 'true');
+                  setShowPipAckModal(false);
+                  await enterPiPMode();
+                }}
+              >
+                Acknowledge & Enable
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -152,6 +152,15 @@ router.post('/block', authenticateToken, async (req, res) => {
       [blockerId, blockedId]
     );
 
+    // Terminate any active calls in the database directly (Module 12 fallback)
+    await query(
+      `UPDATE calls 
+       SET status = 'completed', ended_at = NOW(), duration = 0 
+       WHERE (status = 'active' OR status = 'ringing')
+       AND ((caller_id = $1 AND receiver_id = $2) OR (caller_id = $2 AND receiver_id = $1))`,
+      [blockerId, blockedId]
+    );
+
     // Terminate active call sessions between blocker and blocked
     const activeCalls = req.app.get('activeCalls');
     const io = req.app.get('socketio');
@@ -228,7 +237,7 @@ router.post('/unblock', authenticateToken, async (req, res) => {
  */
 router.post('/report', authenticateToken, async (req, res) => {
   const reporterId = req.user.id;
-  const { username, reason, description } = req.body;
+  const { username, reason, description, callSessionId, privacyEventId } = req.body;
 
   if (!username || !reason) {
     return res.status(400).json({ error: 'Username and reason are required' });
@@ -246,17 +255,80 @@ router.post('/report', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'You cannot report yourself' });
     }
 
+    // Resolve call ID if session ID was provided
+    let dbCallId = null;
+    if (callSessionId) {
+      const callRes = await query('SELECT id FROM calls WHERE session_id = $1', [callSessionId]);
+      if (callRes.rowCount > 0) {
+        dbCallId = callRes.rows[0].id;
+      }
+    }
+
+    // Auto-escalation for blackmail/harassment
+    const status = (reason.trim() === 'Blackmail / Image Misuse' || reason.trim() === 'Harassment') ? 'ESCALATED' : 'PENDING';
+
     // Insert report entry
     await query(
-      `INSERT INTO reports (reporter_id, reported_user_id, reason, description, status)
-       VALUES ($1, $2, $3, $4, 'PENDING')`,
-      [reporterId, reportedId, reason.trim(), description ? description.trim() : null]
+      `INSERT INTO reports (reporter_id, reported_user_id, reason, description, status, call_id, privacy_event_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        reporterId,
+        reportedId,
+        reason.trim(),
+        description ? description.trim() : null,
+        status,
+        dbCallId,
+        privacyEventId ? parseInt(privacyEventId, 10) : null
+      ]
     );
 
     res.json({ success: true, message: `Report successfully filed against ${username}` });
   } catch (err) {
     console.error('Error reporting user:', err);
     res.status(500).json({ error: 'Server error reporting user' });
+  }
+});
+
+/**
+ * GET /api/users/reports/my
+ * 
+ * Fetches all abuse reports filed by the authenticated user.
+ */
+router.get('/reports/my', authenticateToken, async (req, res) => {
+  try {
+    const reportsRes = await query(
+      `SELECT r.id, u.username AS reported_username, r.reason, r.description, r.status, r.created_at
+       FROM reports r
+       JOIN users u ON r.reported_user_id = u.id
+       WHERE r.reporter_id = $1
+       ORDER BY r.created_at DESC`,
+      [req.user.id]
+    );
+    res.json({ success: true, reports: reportsRes.rows });
+  } catch (err) {
+    console.error('Error fetching my reports:', err);
+    res.status(500).json({ error: 'Server error fetching reports' });
+  }
+});
+
+/**
+ * GET /api/users/blocked
+ * 
+ * Fetches all users blocked by the authenticated user.
+ */
+router.get('/blocked', authenticateToken, async (req, res) => {
+  try {
+    const resBlocked = await query(
+      `SELECT u.id, u.username, u.name, u.beta_id 
+       FROM users u
+       JOIN blocks b ON u.id = b.blocked_user_id
+       WHERE b.blocker_id = $1`,
+      [req.user.id]
+    );
+    res.json({ success: true, blocked: resBlocked.rows });
+  } catch (err) {
+    console.error('Error fetching blocked users:', err);
+    res.status(500).json({ error: 'Failed to fetch blocked users' });
   }
 });
 

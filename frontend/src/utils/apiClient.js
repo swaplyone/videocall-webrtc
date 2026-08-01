@@ -41,6 +41,7 @@ const request = async (path, options = {}) => {
 
 export const apiClient = {
   setAuthToken,
+  request,
 
   // Auth Operations
   async register({ name, username, email, password }) {
@@ -127,6 +128,63 @@ export const apiClient = {
     return request(`/api/admin/reports/${reportId}/status`, {
       method: 'PUT',
       body: JSON.stringify({ status })
+    });
+  },
+
+  // Phase 8 OTP & Verification Operations
+  async sendOtp(purpose) {
+    return request('/api/auth/send-otp', {
+      method: 'POST',
+      body: JSON.stringify({ purpose })
+    });
+  },
+
+  async verifyOtp(code, purpose) {
+    return request('/api/auth/verify-otp', {
+      method: 'POST',
+      body: JSON.stringify({ code, purpose })
+    });
+  },
+
+  async resendOtp(purpose) {
+    return request('/api/auth/resend-otp', {
+      method: 'POST',
+      body: JSON.stringify({ purpose })
+    });
+  },
+
+  async requestPasswordReset(email) {
+    return request('/api/auth/request-password-reset', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    });
+  },
+
+  async resetPassword(email, code, newPassword) {
+    return request('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, newPassword })
+    });
+  },
+
+  async requestEmailChange(newEmail) {
+    return request('/api/auth/request-email-change', {
+      method: 'POST',
+      body: JSON.stringify({ newEmail })
+    });
+  },
+
+  async verifyEmailChange(newEmail, code) {
+    return request('/api/auth/verify-email-change', {
+      method: 'POST',
+      body: JSON.stringify({ newEmail, code })
+    });
+  },
+
+  async updateEmailPreferences(preferences) {
+    return request('/api/auth/email-preferences', {
+      method: 'PUT',
+      body: JSON.stringify(preferences)
     });
   }
 };

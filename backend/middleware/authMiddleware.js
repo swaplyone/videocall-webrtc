@@ -17,13 +17,42 @@ export function authenticateToken(req, res, next) {
     return res.status(401).json({ error: 'Access token required' });
   }
 
-  jwt.verify(token, JWT_ACCESS_SECRET, (err, decoded) => {
+  jwt.verify(token, JWT_ACCESS_SECRET, async (err, decoded) => {
     if (err) {
       return res.status(403).json({ error: 'Invalid or expired access token' });
     }
     
-    req.user = decoded;
-    next();
+    try {
+      const userRes = await query('SELECT security_id, online_status, email_verified FROM users WHERE id = $1', [decoded.id]);
+      if (userRes.rowCount === 0) {
+        return res.status(403).json({ error: 'User not found' });
+      }
+      
+      const dbUser = userRes.rows[0];
+
+      // Session security invalidation check (Module 23)
+      if (decoded.securityId && dbUser.security_id !== decoded.securityId) {
+        return res.status(403).json({ error: 'Session invalidated' });
+      }
+
+      // Suspended user check (Module 23)
+      if (dbUser.online_status === 'suspended') {
+        return res.status(403).json({ error: 'Account suspended' });
+      }
+
+      // Block normal requests if user is unverified, EXCEPT for verification requests (Module 5)
+      const path = req.path || '';
+      const isOtpEndpoint = path.includes('verify-otp') || path.includes('resend-otp') || path.includes('send-otp');
+      if (!dbUser.email_verified && !isOtpEndpoint) {
+        return res.status(403).json({ error: 'Email verification required', verificationRequired: true });
+      }
+
+      req.user = { ...decoded, email_verified: dbUser.email_verified };
+      next();
+    } catch (dbErr) {
+      console.error('Middleware auth check error:', dbErr);
+      return res.status(500).json({ error: 'Internal validation error during auth' });
+    }
   });
 }
 

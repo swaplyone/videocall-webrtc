@@ -11,6 +11,7 @@ import chatRoutes from './routes/chatRoutes.js';
 import callRoutes from './routes/callRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import friendRoutes from './routes/friendRoutes.js';
+import privacyRoutes from './routes/privacyRoutes.js';
 import pool, { query } from './db.js';
 import { securityHeaders } from './middleware/securityMiddleware.js';
 import { createRateLimiter } from './middleware/rateLimitMiddleware.js';
@@ -76,6 +77,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/calls', callRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/friends', friendRoutes);
+app.use('/api/privacy', privacyRoutes);
 
 // System Health Checks Telemetry Endpoint
 app.get('/api/health', async (req, res) => {
@@ -219,6 +221,22 @@ async function transitionCall(sessionId, toState, extraData = {}) {
     io.to(receiverSocketId).emit('call_state_changed', { sessionId, state: toState, dbCallId: updatedCall.dbCallId });
   }
 
+  // Emit operational alerts to admins room (Module 21)
+  if (toState === CallStates.CONNECTED) {
+    io.to('admins').emit('admin_call_started', {
+      sessionId,
+      caller: updatedCall.caller,
+      receiver: updatedCall.receiver
+    });
+  } else if ([CallStates.ENDED, CallStates.REJECTED, CallStates.FAILED, CallStates.TIMEOUT].includes(toState)) {
+    io.to('admins').emit('admin_call_ended', {
+      sessionId,
+      caller: updatedCall.caller,
+      receiver: updatedCall.receiver,
+      duration: updatedCall.startTime ? Math.round((Date.now() - updatedCall.startTime) / 1000) : 0
+    });
+  }
+
   // Clean up if terminal state
   const isTerminal = [CallStates.ENDED, CallStates.FAILED, CallStates.REJECTED, CallStates.TIMEOUT].includes(toState);
   if (isTerminal) {
@@ -321,6 +339,18 @@ io.use((socket, next) => {
 
 io.on('connection', (socket) => {
   console.log(`Socket connected: ${socket.id}`);
+
+  // Register admin sockets in 'admins' room securely
+  if (socket.user) {
+    query('SELECT is_admin FROM users WHERE id = $1', [socket.user.id])
+      .then(res => {
+        if (res.rowCount > 0 && res.rows[0].is_admin) {
+          socket.join('admins');
+          console.log(`Socket ${socket.id} joined admins room.`);
+        }
+      })
+      .catch(err => console.error('Socket admin check error:', err));
+  }
 
   // Socket-level event rate limiting guard (30 events/sec limit)
   const rateLimitState = { count: 0, startTime: Date.now() };
@@ -468,10 +498,10 @@ io.on('connection', (socket) => {
     try {
       if (callerId && receiverId) {
         const insRes = await query(
-          `INSERT INTO calls (caller_id, receiver_id, status, started_at)
-           VALUES ($1, $2, 'ringing', NOW())
+          `INSERT INTO calls (caller_id, receiver_id, status, session_id, started_at)
+           VALUES ($1, $2, 'ringing', $3, NOW())
            RETURNING id`,
-          [callerId, receiverId]
+          [callerId, receiverId, sessionId]
         );
         dbCallId = insRes.rows[0].id;
       }
@@ -811,6 +841,25 @@ io.on('connection', (socket) => {
       if (recipientSocketId) {
         io.to(recipientSocketId).emit('peer_screenshot_warning', {
           user: username
+        });
+      }
+    }
+  });
+
+  // 8.7 Privacy capture warning relay
+  socket.on('privacy_capture_warning', ({ sessionId, source }) => {
+    if (!sessionId || typeof sessionId !== 'string') return;
+    const username = socketToUser.get(socket.id);
+    const call = activeCalls.get(sessionId);
+
+    if (call && (call.caller === username || call.receiver === username)) {
+      const recipient = call.caller === username ? call.receiver : call.caller;
+      const recipientSocketId = onlineUsers.get(recipient);
+      
+      if (recipientSocketId) {
+        io.to(recipientSocketId).emit('privacy_capture_warning', {
+          user: username,
+          source
         });
       }
     }

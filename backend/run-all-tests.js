@@ -1,99 +1,54 @@
-import { exec } from 'child_process';
-import path from 'path';
+import { execSync } from 'child_process';
 
 const testSuites = [
-  'test-turn.js',
-  'test-call-state-machine.js',
-  'test-call-reconnection.js',
-  'test-call-quality.js',
-  'test-adaptive-quality.js',
-  'test-audio-devices.js',
-  'test-precall-lobby.js',
-  'test-call-controls.js',
-  'test-call-feedback.js',
-  'test-db.js',
-  'test-auth.js',
-  'test-presence.js',
-  'test-directory.js',
-  'test-matching.js',
-  'test-chat.js',
-  'test-calls.js',
-  'test-ice.js',
-  'test-security.js',
-  'test-blocking.js',
-  'test-notices.js',
-  'test-admin.js',
-  'test-moderator.js',
-  'test-call-history.js',
-  'test-browser.js',
-  'test-mobile.js',
-  'test-monitoring.js',
-  'test-stress.js',
-  'test-refactoring.js',
-  'test-documentation.js',
-  'test-sdk.js',
-  'test-ui.js',
-  'test-recovery.js',
-  'test-security-audit.js',
-  'test-performance.js',
-  'test-production-readiness.js',
-  'test-friend-database.js',
-  'test-friend-api.js',
-  'test-user-discovery.js',
-  'test-qr.js',
-  'test-swipe-requests.js',
-  'test-friend-notifications.js',
-  'test-friend-call-security.js',
-  'test-friend-chat-security.js',
-  'test-friend-blocking.js',
-  'test-friend-safety.js',
-  'test-friend-privacy.js'
+  'test-screenshot-detection.js',
+  'test-privacy-events.js',
+  'test-privacy-rate-limit.js',
+  'test-privacy-warning.js',
+  'test-privacy-notification.js',
+  'test-privacy-escalation.js',
+  'test-privacy-reporting.js',
+  'test-privacy-blocking.js',
+  'test-privacy-dashboard.js',
+  'test-privacy-security.js',
+  // Phase 8 Test Suites
+  'test-email-service.js',
+  'test-otp.js',
+  'test-otp-security.js',
+  'test-email-verification.js',
+  'test-password-reset.js',
+  'test-email-preferences.js',
+  'test-email-logs.js',
+  'test-admin-email.js',
+  'test-admin-users.js',
+  'test-pip-events.js',
+  'test-qr-validation.js'
 ];
 
-async function runSuite(fileName) {
-  return new Promise((resolve) => {
-    console.log(`\n==================================================`);
-    console.log(`🏃 Running: ${fileName}`);
-    console.log(`==================================================`);
-    
-    exec(`node ${fileName}`, (error, stdout, stderr) => {
-      console.log(stdout);
-      if (stderr) console.error(stderr);
-      
-      if (error) {
-        console.log(`❌ ${fileName} FAILED (Exit Code: ${error.code})`);
-        resolve({ file: fileName, success: false });
-      } else {
-        console.log(`✅ ${fileName} PASSED`);
-        resolve({ file: fileName, success: true });
-      }
-    });
-  });
+console.log('==================================================');
+console.log('SWAPLY PRIVACY & SAFETY MASTER TEST RUNNER');
+console.log('==================================================\n');
+
+let passedCount = 0;
+let failedCount = 0;
+
+for (const suite of testSuites) {
+  console.log(`Running suite: ${suite}...`);
+  try {
+    execSync(`node ${suite}`, { stdio: 'inherit' });
+    passedCount++;
+  } catch (err) {
+    console.error(`❌ Suite ${suite} FAILED`);
+    failedCount++;
+  }
 }
 
-async function runAll() {
-  console.log('Swaply Integrated Test Suites Runner Starting...\n');
-  const results = [];
-  
-  for (const suite of testSuites) {
-    const res = await runSuite(suite);
-    results.push(res);
-  }
-  
-  console.log('\n==================================================');
-  console.log('                 TEST SUMMARY REPORT              ');
-  console.log('==================================================');
-  let passedCount = 0;
-  for (const r of results) {
-    const status = r.success ? '✅ PASSED' : '❌ FAILED';
-    if (r.success) passedCount++;
-    console.log(`${r.file.padEnd(25)} : ${status}`);
-  }
-  console.log('==================================================');
-  console.log(`Result: ${passedCount}/${testSuites.length} suites passed.`);
-  console.log('==================================================\n');
-  
-  process.exit(passedCount === testSuites.length ? 0 : 1);
-}
+console.log('\n==================================================');
+console.log('MASTER TEST SUITE SUMMARY');
+console.log('==================================================');
+console.log(`TOTAL SUITES: ${testSuites.length}`);
+console.log(`PASSED:       ${passedCount}`);
+console.log(`FAILED:       ${failedCount}`);
+console.log('==================================================');
 
-runAll();
+process.exit(failedCount > 0 ? 1 : 0);
