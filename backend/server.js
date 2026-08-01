@@ -1,3 +1,5 @@
+import bcryptjs from 'bcryptjs';
+import { randomUUID } from 'crypto';
 import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -19,29 +21,9 @@ import { validateCallTransition, CallStates } from './utils/callStateMachine.js'
 
 const app = express();
 
-// Secure Local Network CORS Resolver for Development
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://127.0.0.1:5173'
-];
-
-if (process.env.CLIENT_URL) {
-  allowedOrigins.push(process.env.CLIENT_URL);
-}
-
-const localNetworkRegex = /^http:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+):5173$/;
-
 const checkOrigin = (origin, callback) => {
-  if (
-    !origin || 
-    allowedOrigins.includes(origin) || 
-    localNetworkRegex.test(origin) ||
-    (process.env.NODE_ENV === 'production' && origin.endsWith('.netlify.app'))
-  ) {
-    callback(null, true);
-  } else {
-    callback(new Error('Blocked by Swaply CORS Policy'));
-  }
+  // Allow all origins (standard CORS for web app deployment)
+  callback(null, true);
 };
 
 app.use(cors({
@@ -1009,10 +991,47 @@ async function broadcastUserList() {
   }
 }
 
+async function ensureAdminAccount() {
+  try {
+    const adminEmail = 'founder@swaplyone.in';
+    const adminUsername = 'founder';
+    const adminPassword = 'lichisw@26';
+
+    const checkRes = await query('SELECT id FROM users WHERE email = $1 OR username = $2', [adminEmail, adminUsername]);
+    if (checkRes.rows.length === 0) {
+      console.log('Seeding administrator account on server startup...');
+      const salt = await bcryptjs.genSalt(10);
+      const passwordHash = await bcryptjs.hash(adminPassword, salt);
+      const betaId = 'SWP-FOUNDER';
+      const qrToken = `qr_tok_${randomUUID()}`;
+      const securityId = `sec_${randomUUID()}`;
+
+      await query(
+        `INSERT INTO users (security_id, name, username, email, password_hash, beta_id, qr_token, qr_active, is_admin, email_verified, allow_requests, searchable) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, TRUE, TRUE, TRUE, TRUE, TRUE)`,
+        [securityId, 'Founder', adminUsername, adminEmail, passwordHash, betaId, qrToken]
+      );
+      console.log('✅ Administrator account seeded successfully!');
+    } else {
+      // Ensure password hash and is_admin flag are up to date
+      const salt = await bcryptjs.genSalt(10);
+      const passwordHash = await bcryptjs.hash(adminPassword, salt);
+      await query(
+        'UPDATE users SET password_hash = $1, is_admin = TRUE, email_verified = TRUE WHERE email = $2 OR username = $3',
+        [passwordHash, adminEmail, adminUsername]
+      );
+      console.log('✅ Administrator credentials verified and synchronized!');
+    }
+  } catch (err) {
+    console.warn('Could not seed admin account on startup:', err.message);
+  }
+}
+
 httpServer.listen(PORT, '0.0.0.0', async () => {
   try {
     // Reset any stale presence records from past crashes/restarts
     await query("UPDATE users SET online_status = 'offline'");
+    await ensureAdminAccount();
   } catch (err) {
     console.warn('Could not reset DB user presence on startup:', err.message);
   }
