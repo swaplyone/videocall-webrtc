@@ -991,8 +991,30 @@ async function broadcastUserList() {
   }
 }
 
+async function runSchemaMigrations() {
+  try {
+    await query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_id VARCHAR(255);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS qr_token VARCHAR(255);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS qr_active BOOLEAN DEFAULT TRUE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS allow_requests BOOLEAN DEFAULT TRUE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS searchable BOOLEAN DEFAULT TRUE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS show_beta_id BOOLEAN DEFAULT TRUE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS email_notifications JSONB DEFAULT '{"friendRequests": true, "friendAccepted": true, "betaUpdates": true, "productAnnouncements": true}';
+    `);
+    console.log('✅ Database schema migrations applied successfully!');
+  } catch (err) {
+    console.warn('Schema migration notice:', err.message);
+  }
+}
+
 async function ensureAdminAccount() {
   try {
+    await runSchemaMigrations();
+
     const adminEmail = 'founder@swaplyone.in';
     const adminUsername = 'founder';
     const adminPassword = 'lichisw@26';
