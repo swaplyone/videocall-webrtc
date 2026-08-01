@@ -994,6 +994,22 @@ async function broadcastUserList() {
 async function runSchemaMigrations() {
   try {
     await query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        security_id VARCHAR(255) UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        username VARCHAR(100) UNIQUE NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        profile_image TEXT,
+        bio TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        online_status VARCHAR(50) DEFAULT 'offline',
+        notice_accepted BOOLEAN DEFAULT FALSE
+      );
+
       ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_id VARCHAR(255);
       ALTER TABLE users ADD COLUMN IF NOT EXISTS qr_token VARCHAR(255);
       ALTER TABLE users ADD COLUMN IF NOT EXISTS qr_active BOOLEAN DEFAULT TRUE;
@@ -1004,8 +1020,75 @@ async function runSchemaMigrations() {
       ALTER TABLE users ADD COLUMN IF NOT EXISTS searchable BOOLEAN DEFAULT TRUE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS show_beta_id BOOLEAN DEFAULT TRUE;
       ALTER TABLE users ADD COLUMN IF NOT EXISTS email_notifications JSONB DEFAULT '{"friendRequests": true, "friendAccepted": true, "betaUpdates": true, "productAnnouncements": true}';
+
+      CREATE TABLE IF NOT EXISTS calls (
+        id SERIAL PRIMARY KEY,
+        caller_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        receiver_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        status VARCHAR(50) DEFAULT 'initiated',
+        session_id VARCHAR(100),
+        started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        ended_at TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS reports (
+        id SERIAL PRIMARY KEY,
+        reporter_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        reported_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        reason VARCHAR(255) NOT NULL,
+        description TEXT,
+        status VARCHAR(50) DEFAULT 'PENDING',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS privacy_events (
+        id SERIAL PRIMARY KEY,
+        event_type VARCHAR(100) NOT NULL,
+        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        call_id INTEGER REFERENCES calls(id) ON DELETE SET NULL,
+        target_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        beta_id_snapshot VARCHAR(255),
+        platform VARCHAR(100) DEFAULT 'web',
+        browser VARCHAR(100) DEFAULT 'unknown',
+        severity VARCHAR(50) DEFAULT 'warning',
+        status VARCHAR(50) DEFAULT 'NEW',
+        metadata JSONB,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS admin_audit_logs (
+        id SERIAL PRIMARY KEY,
+        admin_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        action VARCHAR(255) NOT NULL,
+        target_id INTEGER,
+        details TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS email_verification_codes (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        email VARCHAR(255) NOT NULL,
+        code_hash VARCHAR(255) NOT NULL,
+        purpose VARCHAR(50) NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        attempt_count INTEGER DEFAULT 0,
+        used BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS email_logs (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        recipient VARCHAR(255) NOT NULL,
+        email_type VARCHAR(100) NOT NULL,
+        status VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        sent_at TIMESTAMP,
+        provider_id VARCHAR(255)
+      );
     `);
-    console.log('✅ Database schema migrations applied successfully!');
+    console.log('✅ All database tables and schema migrations created successfully!');
   } catch (err) {
     console.warn('Schema migration notice:', err.message);
   }
