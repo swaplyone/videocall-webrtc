@@ -29,7 +29,7 @@ export const setAuthToken = (token) => {
 /**
  * Common request dispatcher wrapper.
  */
-const request = async (path, options = {}) => {
+const request = async (path, options = {}, isRetry = false) => {
   const url = `${BACKEND_URL}${path}`;
   const headers = {
     'Content-Type': 'application/json',
@@ -43,9 +43,27 @@ const request = async (path, options = {}) => {
   const res = await fetch(url, {
     ...options,
     headers,
+    credentials: 'include'
   });
 
   const data = await res.json().catch(() => ({}));
+
+  if ((res.status === 401 || res.status === 403) && !isRetry && !path.startsWith('/api/auth/login') && !path.startsWith('/api/auth/refresh')) {
+    try {
+      const refreshRes = await fetch(`${BACKEND_URL}/api/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      const refreshData = await refreshRes.json().catch(() => ({}));
+      if (refreshRes.ok && refreshData.accessToken) {
+        setAuthToken(refreshData.accessToken);
+        return request(path, options, true);
+      }
+    } catch (e) {
+      // Silent refresh fallback
+    }
+  }
+
   if (!res.ok) {
     throw new Error(data.error || `HTTP error! status: ${res.status}`);
   }
