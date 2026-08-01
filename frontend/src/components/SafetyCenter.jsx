@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, UserX, AlertCircle, FileText, HelpCircle, ChevronRight } from 'lucide-react';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || (window.location.protocol + '//' + window.location.hostname + ':5000');
+const getBackendUrl = () => {
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_BACKEND_URL) {
+    return import.meta.env.VITE_BACKEND_URL;
+  }
+  if (typeof window !== 'undefined' && window.location) {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return `${window.location.protocol}//${hostname}:5000`;
+    }
+  }
+  return 'https://videocall-webrtc-uiwb.onrender.com';
+};
+
+const BACKEND_URL = getBackendUrl();
 
 export default function SafetyCenter({ authToken }) {
   const [blockedUsers, setBlockedUsers] = useState([]);
