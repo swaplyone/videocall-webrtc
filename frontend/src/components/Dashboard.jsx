@@ -498,6 +498,10 @@ export default function Dashboard({
             >
               Reject Link
             </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Dashboard Stage */}
       {!incomingCall && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
