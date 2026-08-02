@@ -14,7 +14,7 @@ import Profile from './pages/Profile';
 import Friends from './pages/Friends';
 import FriendRequests from './pages/FriendRequests';
 import CallHistory from './pages/CallHistory';
-import Notifications from './pages/Notifications';
+import VerifyPhone from './pages/VerifyPhone';
 import PrivacyCenter from './pages/PrivacyCenter';
 import Settings from './pages/Settings';
 import AdminDashboard from './pages/AdminDashboard';
@@ -422,6 +422,7 @@ export default function App() {
           currentUser ? <Navigate to="/dashboard" replace /> :
           <Register onSecureRegister={handleSecureRegister} loginError={loginError} />
         } />
+        <Route path="/verify-phone" element={<VerifyPhone />} />
 
         {/* Protected Dashboard Routes */}
         <Route path="/*" element={
