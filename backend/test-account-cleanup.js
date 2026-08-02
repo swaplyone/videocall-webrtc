@@ -28,11 +28,12 @@ async function runCleanupTests() {
     // 1. Create dummy user and dependencies
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash('Password123!', salt);
+    const secId = `sec_cleanup_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
     const insertRes = await query(`
       INSERT INTO users (username, email, password_hash, beta_id, name, security_id, deletion_status)
-      VALUES ($1, $2, $3, $4, 'Cleanup Test User', 'sec_cleanup_123', 'PENDING_DELETION')
+      VALUES ($1, $2, $3, $4, 'Cleanup Test User', $5, 'PENDING_DELETION')
       RETURNING id
-    `, [testUsername, testEmail, hash, `SWP-CLEANUP`]);
+    `, [testUsername, testEmail, hash, `SWP-CLEANUP`, secId]);
     const userId = insertRes.rows[0].id;
 
     await query(`
