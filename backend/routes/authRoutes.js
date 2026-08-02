@@ -154,6 +154,13 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    // Ensure user has a beta_id assigned
+    if (!user.beta_id) {
+      const generatedBetaId = `SWP-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+      await query('UPDATE users SET beta_id = $1 WHERE id = $2', [generatedBetaId, user.id]);
+      user.beta_id = generatedBetaId;
+    }
+
     // Generate tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
@@ -177,17 +184,51 @@ router.post('/login', async (req, res) => {
         name: user.name,
         username: user.username,
         email: user.email,
+        beta_id: user.beta_id,
         security_id: user.security_id,
         profile_image: user.profile_image,
         bio: user.bio,
         notice_accepted: user.notice_accepted,
-        is_admin: user.is_admin
+        is_admin: user.is_admin,
+        email_verified: user.email_verified,
+        deletion_status: user.deletion_status
       }
     });
 
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ error: 'Server error during login' });
+  }
+});
+
+/**
+ * GET /api/auth/me
+ * Retrieves current authenticated user details including beta_id
+ */
+router.get('/me', authenticateToken, async (req, res) => {
+  try {
+    const userRes = await query(
+      `SELECT id, name, username, email, beta_id, security_id, profile_image, bio, is_admin, email_verified, deletion_status, scheduled_deletion_at, notice_accepted, created_at, last_seen
+       FROM users WHERE id = $1`,
+      [req.user.id]
+    );
+
+    if (userRes.rowCount === 0) {
+      return res.status(404).json({ error: 'User profile not found' });
+    }
+
+    const user = userRes.rows[0];
+
+    if (!user.beta_id) {
+      const generatedBetaId = `SWP-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+      await query('UPDATE users SET beta_id = $1 WHERE id = $2', [generatedBetaId, user.id]);
+      user.beta_id = generatedBetaId;
+    }
+
+    res.json({ success: true, user });
+  } catch (err) {
+    console.error('Error fetching current user profile:', err);
+    res.status(500).json({ error: 'Server error fetching user profile' });
   }
 });
 

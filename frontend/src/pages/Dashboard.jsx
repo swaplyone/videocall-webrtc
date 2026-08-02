@@ -27,8 +27,8 @@ export default function Dashboard({ currentUser, userDetails, onInitiateCall }) 
           Welcome back, <strong style={{ color: 'var(--text-primary)' }}>@{currentUser}</strong>! Logged in and secure.
         </p>
         {userDetails && (
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: '#FEF3C7', padding: '0.3rem 0.6rem', border: '1.5px solid #111827', borderRadius: '4px', marginTop: '0.5rem', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>
-            <Award size={14} /> Beta ID: {userDetails.beta_id}
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', background: '#FEF3C7', padding: '0.3rem 0.6rem', border: '1.5px solid #111827', borderRadius: '4px', marginTop: '0.5rem', fontSize: '0.8rem', fontFamily: 'var(--font-mono)', fontWeight: 'bold' }}>
+            <Award size={14} style={{ color: '#D97706' }} /> Beta ID: {userDetails.beta_id || 'SWP-ACTIVE'}
           </div>
         )}
       </div>

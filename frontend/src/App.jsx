@@ -271,6 +271,14 @@ export default function App() {
         }
         setCurrentUser(savedUser);
 
+        // Fetch fresh profile details (including beta_id)
+        apiClient.getMe().then((res) => {
+          if (res && res.user) {
+            setUserDetails(res.user);
+            localStorage.setItem('swaply_user_details', JSON.stringify(res.user));
+          }
+        }).catch(() => {});
+
         socketClient.connect(savedToken);
         socketClient.register(savedUser, (response) => {
           if (response.success) {
