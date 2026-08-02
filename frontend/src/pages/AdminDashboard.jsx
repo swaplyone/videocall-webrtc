@@ -26,6 +26,7 @@ export default function AdminDashboard({ userDetails }) {
   const [lifecycleFilter, setLifecycleFilter] = useState('ALL');
   const [selectedTemplateKey, setSelectedTemplateKey] = useState('1_email_verification_otp');
   const [templateHtml, setTemplateHtml] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Phase 11: Beta Rollout State
   const [betaMetrics, setBetaMetrics] = useState({
@@ -85,9 +86,6 @@ export default function AdminDashboard({ userDetails }) {
       fetchBetaRolloutData();
     }
   }, [activeTab, betaFilterStatus, searchQuery]);
-
-  // Search filter
-  const [searchQuery, setSearchQuery] = useState('');
 
   const loadAllAdminData = async () => {
     setLoading(true);
