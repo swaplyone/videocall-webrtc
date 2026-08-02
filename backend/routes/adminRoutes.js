@@ -267,6 +267,8 @@ const handleDeleteUserAccount = async (req, res) => {
 
 router.delete('/users/:id', authenticateToken, requireAdmin, handleDeleteUserAccount);
 router.post('/users/:id/delete', authenticateToken, requireAdmin, handleDeleteUserAccount);
+router.delete('/delete-user/:id', authenticateToken, requireAdmin, handleDeleteUserAccount);
+router.post('/delete-user/:id', authenticateToken, requireAdmin, handleDeleteUserAccount);
 
 /**
  * POST /api/admin/users/:id/beta-access

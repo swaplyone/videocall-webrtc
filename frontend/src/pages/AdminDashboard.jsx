@@ -139,23 +139,30 @@ export default function AdminDashboard({ userDetails }) {
     const previousUsers = [...betaUsers];
     setBetaUsers(prev => prev.filter(u => u.id !== userId));
 
-    try {
-      let res;
-      try {
-        res = await apiClient.request(`/api/admin/users/${userId}`, { method: 'DELETE' });
-      } catch (err) {
-        res = await apiClient.request(`/api/admin/users/${userId}/delete`, { method: 'POST' });
-      }
+    const endpoints = [
+      { path: `/api/admin/users/${userId}`, method: 'DELETE' },
+      { path: `/api/admin/users/${userId}/delete`, method: 'POST' },
+      { path: `/api/admin/delete-user/${userId}`, method: 'DELETE' },
+      { path: `/api/admin/delete-user/${userId}`, method: 'POST' }
+    ];
 
-      if (res && res.success) {
-        setSuccess(`Account @${username} permanently deleted.`);
-      } else {
-        setBetaUsers(previousUsers);
-        setError(res?.error || 'Failed to delete user account.');
+    let lastError = null;
+    let res = null;
+
+    for (const ep of endpoints) {
+      try {
+        res = await apiClient.request(ep.path, { method: ep.method });
+        if (res && res.success) break;
+      } catch (err) {
+        lastError = err;
       }
-    } catch (err) {
+    }
+
+    if (res && res.success) {
+      setSuccess(`Account @${username} permanently deleted.`);
+    } else {
       setBetaUsers(previousUsers);
-      setError(err.message || 'Failed to delete user account.');
+      setError(lastError?.message || 'Failed to delete user account. Server updating...');
     }
   };
 
