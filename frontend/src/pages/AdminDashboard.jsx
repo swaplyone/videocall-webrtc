@@ -22,6 +22,8 @@ export default function AdminDashboard({ userDetails }) {
   const [suspiciousAttempts, setSuspiciousAttempts] = useState([]);
   const [betaUsers, setBetaUsers] = useState([]);
   const [incidents, setIncidents] = useState([]);
+  const [deletionRequests, setDeletionRequests] = useState([]);
+  const [lifecycleFilter, setLifecycleFilter] = useState('ALL');
 
   // Search filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -30,14 +32,15 @@ export default function AdminDashboard({ userDetails }) {
     setLoading(true);
     setError(null);
     try {
-      const [statsRes, reportsRes, emailStatsRes, emailLogsRes, otpStatsRes, betaUsersRes, incidentsRes] = await Promise.allSettled([
+      const [statsRes, reportsRes, emailStatsRes, emailLogsRes, otpStatsRes, betaUsersRes, incidentsRes, delReqRes] = await Promise.allSettled([
         apiClient.request('/api/admin/stats'),
         apiClient.request('/api/admin/reports'),
         apiClient.request('/api/admin/email-stats'),
         apiClient.request('/api/admin/email-logs'),
         apiClient.request('/api/admin/otp-stats'),
         apiClient.request('/api/admin/beta-users'),
-        apiClient.request('/api/privacy/admin/incidents')
+        apiClient.request('/api/privacy/admin/incidents'),
+        apiClient.request('/api/admin/deletion-requests')
       ]);
 
       if (statsRes.status === 'fulfilled' && statsRes.value.success) setStats(statsRes.value.stats);
@@ -50,6 +53,7 @@ export default function AdminDashboard({ userDetails }) {
       }
       if (betaUsersRes.status === 'fulfilled' && betaUsersRes.value.success) setBetaUsers(betaUsersRes.value.users || []);
       if (incidentsRes.status === 'fulfilled' && incidentsRes.value.success) setIncidents(incidentsRes.value.incidents || []);
+      if (delReqRes.status === 'fulfilled' && delReqRes.value.success) setDeletionRequests(delReqRes.value.requests || []);
     } catch (err) {
       console.error('Error fetching admin dashboard data:', err);
       setError('Failed to fetch some administration metrics.');
@@ -255,6 +259,13 @@ export default function AdminDashboard({ userDetails }) {
           onClick={() => setActiveTab('email')}
         >
           Mail & Logs
+        </button>
+        <button 
+          className={`btn ${activeTab === 'lifecycle' ? 'btn-primary' : 'btn-secondary'}`} 
+          style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+          onClick={() => setActiveTab('lifecycle')}
+        >
+          Account Lifecycle ({deletionRequests.length})
         </button>
       </div>
 
@@ -507,6 +518,78 @@ export default function AdminDashboard({ userDetails }) {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* TAB 5: ACCOUNT LIFECYCLE */}
+          {activeTab === 'lifecycle' && (
+            <div className="glass-panel" style={{ padding: '1.25rem', border: '3px solid #111827', boxShadow: '4px 4px 0 #111827' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <ShieldAlert size={18} style={{ color: '#E11D48' }} /> Account Lifecycle & Deletion Requests
+                </h3>
+
+                {/* Filters */}
+                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                  {['ALL', 'PENDING_DELETION', 'RECOVERED', 'PERMANENTLY_DELETED'].map(st => (
+                    <button
+                      key={st}
+                      className={`btn ${lifecycleFilter === st ? 'btn-primary' : 'btn-secondary'}`}
+                      style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }}
+                      onClick={() => setLifecycleFilter(st)}
+                    >
+                      {st === 'PENDING_DELETION' ? 'PENDING' : st.replace('_', ' ')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {deletionRequests.filter(r => lifecycleFilter === 'ALL' || r.deletion_status === lifecycleFilter).length === 0 ? (
+                <div className="empty-state">No deletion requests matching filter.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  {deletionRequests
+                    .filter(r => lifecycleFilter === 'ALL' || r.deletion_status === lifecycleFilter)
+                    .map((req) => (
+                      <div 
+                        key={req.id}
+                        style={{ 
+                          border: '2px solid #111827', 
+                          borderRadius: '6px', 
+                          padding: '0.75rem', 
+                          background: '#FFF', 
+                          boxShadow: '2px 2px 0 #111827',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.4rem'
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div>
+                            <strong style={{ fontSize: '0.9rem' }}>@{req.username || 'Deleted User'}</strong>
+                            <span style={{ fontSize: '0.75rem', color: '#6B7280', display: 'block' }}>{req.email || 'No Email'} • Beta ID: {req.beta_id || 'N/A'}</span>
+                          </div>
+                          <span className="badge" style={{
+                            background: req.deletion_status === 'PENDING_DELETION' ? '#EF4444' : req.deletion_status === 'RECOVERED' ? '#10B981' : '#6B7280',
+                            color: '#FFF'
+                          }}>
+                            {req.deletion_status}
+                          </span>
+                        </div>
+
+                        <div style={{ fontSize: '0.8rem', color: '#374151', background: '#F9FAFB', padding: '0.4rem 0.6rem', borderRadius: '4px', border: '1px solid #E5E7EB' }}>
+                          <strong>Reason:</strong> {req.deletion_reason || 'N/A'}
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.75rem', color: '#6B7280', fontFamily: 'var(--font-mono)' }}>
+                          <span>Requested: {new Date(req.deletion_requested_at).toLocaleString()}</span>
+                          <span>Scheduled: {new Date(req.scheduled_deletion_at).toLocaleString()}</span>
+                          {req.recovered_at && <span style={{ color: '#10B981' }}>Recovered: {new Date(req.recovered_at).toLocaleString()}</span>}
+                        </div>
+                      </div>
+                    ))}
                 </div>
               )}
             </div>

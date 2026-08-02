@@ -16,6 +16,7 @@ import FriendRequests from './pages/FriendRequests';
 import CallHistory from './pages/CallHistory';
 import Notifications from './pages/Notifications';
 import VerifyPhone from './pages/VerifyPhone';
+import RecoveryBanner from './components/RecoveryBanner';
 import PrivacyCenter from './pages/PrivacyCenter';
 import Settings from './pages/Settings';
 import AdminDashboard from './pages/AdminDashboard';
@@ -409,6 +410,17 @@ export default function App() {
           onHangUp={handleHangUp}
           authToken={authToken}
           isRestored={isRestoredCall}
+        />
+      )}
+
+      {/* Scheduled Deletion Recovery Banner */}
+      {currentUser && userDetails?.deletion_status === 'PENDING_DELETION' && (
+        <RecoveryBanner 
+          scheduledTime={userDetails.scheduled_deletion_at}
+          onRestored={async () => {
+            const data = await apiClient.getMe();
+            if (data && data.user) setUserDetails(data.user);
+          }}
         />
       )}
 

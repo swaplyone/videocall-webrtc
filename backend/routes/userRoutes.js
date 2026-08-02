@@ -48,6 +48,7 @@ router.get('/directory', authenticateToken, async (req, res) => {
       LEFT JOIN user_skills us ON u.id = us.user_id
       LEFT JOIN skills s ON us.skill_id = s.id
       WHERE u.id != $1
+        AND (u.deletion_status IS NULL OR u.deletion_status != 'PENDING_DELETION')
         AND u.id NOT IN (SELECT blocked_user_id FROM blocks WHERE blocker_id = $1)
         AND u.id NOT IN (SELECT blocker_id FROM blocks WHERE blocked_user_id = $1)
       GROUP BY u.id

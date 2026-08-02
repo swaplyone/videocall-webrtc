@@ -22,7 +22,13 @@ const testSuites = [
   'test-admin-email.js',
   'test-admin-users.js',
   'test-pip-events.js',
-  'test-qr-validation.js'
+  'test-qr-validation.js',
+  // Phase 10 Test Suites
+  'test-account-deletion-db.js',
+  'test-account-deletion-api.js',
+  'test-account-deletion-scheduler.js',
+  'test-account-recovery.js',
+  'test-account-cleanup.js'
 ];
 
 console.log('==================================================');
@@ -35,7 +41,7 @@ let failedCount = 0;
 for (const suite of testSuites) {
   console.log(`Running suite: ${suite}...`);
   try {
-    execSync(`node ${suite}`, { stdio: 'inherit' });
+    execSync(`node backend/${suite}`, { stdio: 'inherit' });
     passedCount++;
   } catch (err) {
     console.error(`❌ Suite ${suite} FAILED`);

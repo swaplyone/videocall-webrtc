@@ -298,6 +298,23 @@ router.post('/users/:id/beta-access', authenticateToken, requireAdmin, async (re
   } catch (err) {
     console.error('Error modifying beta access options:', err);
     res.status(500).json({ error: 'Server error updating beta access options' });
+/**
+ * GET /api/admin/deletion-requests
+ * Retrieves account lifecycle deletion & recovery audit requests
+ */
+router.get('/deletion-requests', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const requestsRes = await query(`
+      SELECT adr.*, u.username, u.email, u.beta_id
+      FROM account_deletion_requests adr
+      LEFT JOIN users u ON adr.user_id = u.id
+      ORDER BY adr.deletion_requested_at DESC
+      LIMIT 100
+    `);
+    res.json({ success: true, requests: requestsRes.rows });
+  } catch (err) {
+    console.error('Error fetching deletion requests:', err);
+    res.json({ success: true, requests: [] });
   }
 });
 

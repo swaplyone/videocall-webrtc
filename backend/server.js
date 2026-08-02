@@ -14,6 +14,8 @@ import callRoutes from './routes/callRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import friendRoutes from './routes/friendRoutes.js';
 import privacyRoutes from './routes/privacyRoutes.js';
+import accountDeletionRoutes from './routes/accountDeletionRoutes.js';
+import { initAccountDeletionScheduler } from './services/accountDeletionService.js';
 import pool, { query } from './db.js';
 import { securityHeaders } from './middleware/securityMiddleware.js';
 import { createRateLimiter } from './middleware/rateLimitMiddleware.js';
@@ -60,6 +62,7 @@ app.use('/api/calls', callRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/friends', friendRoutes);
 app.use('/api/privacy', privacyRoutes);
+app.use('/api/account/delete', accountDeletionRoutes);
 
 // System Health Checks Telemetry Endpoint
 app.get('/api/health', async (req, res) => {
@@ -1161,8 +1164,9 @@ httpServer.listen(PORT, '0.0.0.0', async () => {
     // Reset any stale presence records from past crashes/restarts
     await query("UPDATE users SET online_status = 'offline'");
     await ensureAdminAccount();
+    await initAccountDeletionScheduler();
   } catch (err) {
-    console.warn('Could not reset DB user presence on startup:', err.message);
+    console.warn('Could not initialize DB user presence or deletion scheduler on startup:', err.message);
   }
   console.log(`Swaply Signaling Server running on port ${PORT} (listening on all interfaces, 0.0.0.0)`);
 });

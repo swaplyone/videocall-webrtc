@@ -243,3 +243,50 @@ export async function sendBetaInvitation(userId, email, inviteLink) {
   `;
   return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Security' });
 }
+
+export async function sendAccountDeletionRequestedEmail(userId, email, username, scheduledTime) {
+  const subject = 'Swaply: Account Deletion Requested (5-Hour Grace Period)';
+  const formattedTime = new Date(scheduledTime).toLocaleString();
+  const text = `Account deletion requested for @${username}. Permanent deletion scheduled for ${formattedTime}. Log in within 5 hours to cancel.`;
+  const html = `
+    <div style="font-family: sans-serif; padding: 20px; border: 3px solid #111827; background: #FFFDF9; border-radius: 8px; box-shadow: 4px 4px 0px #111827; max-width: 480px;">
+      <h2 style="margin-top: 0; color: #E11D48;">⚠ Account Deletion Requested</h2>
+      <p>Hello <strong>@${username}</strong>,</p>
+      <p>A request to permanently delete your Swaply account has been received.</p>
+      <div style="background: #FEE2E2; border: 2px solid #111827; padding: 12px; border-radius: 6px; font-size: 0.9rem; margin: 15px 0;">
+        <strong>Scheduled Permanent Deletion:</strong> ${formattedTime}<br/>
+        <strong>Recovery Grace Window:</strong> 5 Hours
+      </div>
+      <p>Your account is temporarily suspended and hidden from search. If you did NOT request this, log into Swaply immediately to recover your account.</p>
+    </div>
+  `;
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Security' });
+}
+
+export async function sendAccountRestoredEmail(userId, email, username) {
+  const subject = 'Swaply: Account Successfully Restored!';
+  const text = `Great news @${username}! Your Swaply account deletion request has been cancelled and full access is restored.`;
+  const html = `
+    <div style="font-family: sans-serif; padding: 20px; border: 3px solid #111827; background: #FFFDF9; border-radius: 8px; box-shadow: 4px 4px 0px #111827; max-width: 480px;">
+      <h2 style="margin-top: 0; color: #10B981;">✅ Account Deletion Cancelled & Restored</h2>
+      <p>Hello <strong>@${username}</strong>,</p>
+      <p>Your scheduled account deletion has been successfully cancelled.</p>
+      <p>Your profile, friend connections, call history, and search visibility have been fully restored.</p>
+    </div>
+  `;
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Security' });
+}
+
+export async function sendPermanentDeletionConfirmedEmail(email, username) {
+  const subject = 'Swaply: Account Permanently Deleted';
+  const text = `Your Swaply account (@${username}) has been permanently deleted as requested.`;
+  const html = `
+    <div style="font-family: sans-serif; padding: 20px; border: 3px solid #111827; background: #FFFDF9; border-radius: 8px; box-shadow: 4px 4px 0px #111827; max-width: 480px;">
+      <h2 style="margin-top: 0; color: #6B7280;">Account Permanently Deleted</h2>
+      <p>Hello <strong>@${username}</strong>,</p>
+      <p>Your Swaply account and all associated data have been permanently purged following the 5-hour grace period.</p>
+      <p>Thank you for using Swaply.</p>
+    </div>
+  `;
+  return dispatchEmail({ userId: null, to: email, subject, html, text, emailType: 'Security' });
+}

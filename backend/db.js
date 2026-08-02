@@ -5,17 +5,16 @@ dotenv.config();
 
 const { Pool } = pg;
 
-// Instantiate the database connection pool
 const pool = process.env.DATABASE_URL
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      ssl: (process.env.DATABASE_URL.includes('render.com') || process.env.NODE_ENV === 'production') ? { rejectUnauthorized: false } : false
     })
   : new Pool({
-      user: process.env.PGUSER,
-      host: process.env.PGHOST,
-      database: process.env.PGDATABASE,
-      password: process.env.PGPASSWORD,
+      user: process.env.PGUSER || 'postgres',
+      host: process.env.PGHOST || 'localhost',
+      database: process.env.PGDATABASE || 'swaply',
+      password: String(process.env.PGPASSWORD || 'postgres'),
       port: parseInt(process.env.PGPORT || '5432', 10)
     });
 

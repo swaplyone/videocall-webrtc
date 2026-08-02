@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, Shield, Mail, Lock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Settings, Shield, Mail, Lock, CheckCircle, AlertCircle, ShieldAlert } from 'lucide-react';
 import { apiClient } from '../utils/apiClient';
+import DeleteAccountModal from '../components/DeleteAccountModal';
 
 export default function SettingsPage({ userDetails, onUpdateUserDetails }) {
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   // 1. Email Preferences States
   const [prefFriendRequests, setPrefFriendRequests] = useState(true);
   const [prefSecurityAlerts, setPrefSecurityAlerts] = useState(true);
@@ -274,6 +276,36 @@ export default function SettingsPage({ userDetails, onUpdateUserDetails }) {
           </button>
         </form>
       </div>
+
+      {/* 4. Danger Zone: Scheduled Account Deletion */}
+      <div className="glass-panel" style={{ padding: '1.5rem', border: '3px solid #111827', background: '#FFF5F5', boxShadow: '5px 5px 0 #111827' }}>
+        <h3 style={{ margin: '0 0 0.5rem 0', fontWeight: 900, textTransform: 'uppercase', fontSize: '1.1rem', color: '#991B1B', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <ShieldAlert size={20} style={{ color: '#E11D48' }} /> Danger Zone: Account Lifecycle
+        </h3>
+        <p style={{ fontSize: '0.85rem', color: '#4B5563', marginBottom: '1rem' }}>
+          Schedule your account for permanent deletion. You will have a 5-hour grace period to log back in and recover your account before all data is permanently purged.
+        </p>
+
+        <button 
+          type="button"
+          className="btn btn-primary"
+          onClick={() => setIsDeleteModalOpen(true)}
+          style={{ background: '#E11D48', borderColor: '#111827', color: '#FFF', fontWeight: 900, padding: '0.5rem 1rem' }}
+        >
+          Schedule Account Deletion
+        </button>
+      </div>
+
+      <DeleteAccountModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onSuccess={(data) => {
+          setSuccess('Account deletion scheduled. Logging out...');
+          setTimeout(() => {
+            window.location.href = '/login';
+          }, 1500);
+        }}
+      />
 
     </div>
   );

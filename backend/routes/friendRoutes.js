@@ -61,7 +61,9 @@ router.get('/search', authenticateToken, async (req, res) => {
        WHERE (
          username = $1 OR beta_id = $2 OR 
          (searchable = true AND (username ILIKE $3 OR name ILIKE $3))
-       ) AND id <> $4`,
+       ) 
+       AND (deletion_status IS NULL OR deletion_status != 'PENDING_DELETION')
+       AND id <> $4`,
       [cleanQ.toLowerCase(), cleanQ.toUpperCase(), `%${cleanQ}%`, req.user.id]
     );
 
@@ -81,7 +83,7 @@ router.post('/request', authenticateToken, async (req, res) => {
 
   try {
     const targetUser = await getUserByIdentifier(target);
-    if (!targetUser) {
+    if (!targetUser || targetUser.deletion_status === 'PENDING_DELETION') {
       return res.status(404).json({ error: 'User not found' });
     }
 
