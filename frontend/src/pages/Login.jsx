@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Shield, Key, User, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import SwaplyLogo from '../components/SwaplyLogo';
 import BrandThreadsIcon from '../components/BrandThreadsIcon';
+import AnimatedInput from '../components/AnimatedInput';
 
 export default function Login({ onLogin, onSecureLogin, loginError }) {
   const [loginMode, setLoginMode] = useState('secure'); // 'secure' or 'anonymous'
@@ -68,13 +69,14 @@ export default function Login({ onLogin, onSecureLogin, loginError }) {
         {loginMode === 'secure' ? (
           <form onSubmit={handleSecureSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div className="input-group">
-              <label htmlFor="login-username" style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <label htmlFor="login-username" style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
                 <BrandThreadsIcon size={18} color="var(--color-primary)" />
                 <span>Username or Email</span>
               </label>
-              <input
+              <AnimatedInput
                 id="login-username"
                 type="text"
+                placeholderExamples={["e.g. alice", "e.g. founder@swaplyone.in", "e.g. bob@swaply.app"]}
                 placeholder="e.g. alice or alice@swaply.app"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
@@ -83,37 +85,35 @@ export default function Login({ onLogin, onSecureLogin, loginError }) {
             </div>
             
             <div className="input-group">
-              <label htmlFor="login-pass" style={{ fontWeight: 'bold' }}>Secure Password</label>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <input
-                  id="login-pass"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={{ width: '100%', paddingRight: '2.5rem' }}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(prev => !prev)}
-                  style={{
-                    position: 'absolute',
-                    right: '0.6rem',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: 'var(--text-secondary)',
-                    padding: '0.2rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                  title={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
+              <label htmlFor="login-pass" style={{ fontWeight: 'bold', marginBottom: '0.4rem' }}>Secure Password</label>
+              <AnimatedInput
+                id="login-pass"
+                type={showPassword ? 'text' : 'password'}
+                placeholderExamples={["••••••••", "enter secure password...", "lichisw@26"]}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                rightElement={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(prev => !prev)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'var(--text-secondary)',
+                      padding: '0.2rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                }
+              />
             </div>
 
             <button type="submit" className="btn btn-primary" style={{ padding: '0.65rem', fontWeight: 'bold', marginTop: '0.5rem' }}>
@@ -127,10 +127,11 @@ export default function Login({ onLogin, onSecureLogin, loginError }) {
         ) : (
           <form onSubmit={handleAnonSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div className="input-group">
-              <label htmlFor="anon-user" style={{ fontWeight: 'bold' }}>Guest Screen Name</label>
-              <input
+              <label htmlFor="anon-user" style={{ fontWeight: 'bold', marginBottom: '0.4rem' }}>Guest Screen Name</label>
+              <AnimatedInput
                 id="anon-user"
                 type="text"
+                placeholderExamples={["e.g. Guest-Tester", "e.g. DialNode-42", "e.g. SwaplyUser"]}
                 placeholder="Enter screen name..."
                 value={anonName}
                 onChange={(e) => setAnonName(e.target.value)}

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Shield, Key, User, Mail, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import SwaplyLogo from '../components/SwaplyLogo';
 import BrandThreadsIcon from '../components/BrandThreadsIcon';
+import AnimatedInput from '../components/AnimatedInput';
 
 export default function Register({ onSecureRegister, loginError }) {
   const [name, setName] = useState('');
@@ -42,10 +43,11 @@ export default function Register({ onSecureRegister, loginError }) {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="input-group">
-            <label htmlFor="reg-name" style={{ fontWeight: 'bold' }}>Full Name</label>
-            <input
+            <label htmlFor="reg-name" style={{ fontWeight: 'bold', marginBottom: '0.4rem' }}>Full Name</label>
+            <AnimatedInput
               id="reg-name"
               type="text"
+              placeholderExamples={["e.g. Alice Smith", "e.g. Bob Johnson", "e.g. Charlie Brown"]}
               placeholder="e.g. Alice Smith"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -54,13 +56,14 @@ export default function Register({ onSecureRegister, loginError }) {
           </div>
 
           <div className="input-group">
-            <label htmlFor="reg-username" style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <label htmlFor="reg-username" style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
               <BrandThreadsIcon size={18} color="var(--color-primary)" />
               <span>Username</span>
             </label>
-            <input
+            <AnimatedInput
               id="reg-username"
               type="text"
+              placeholderExamples={["e.g. alice", "e.g. tester_bob", "e.g. swaply_node"]}
               placeholder="e.g. alice"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -69,13 +72,14 @@ export default function Register({ onSecureRegister, loginError }) {
           </div>
 
           <div className="input-group">
-            <label htmlFor="reg-email" style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <label htmlFor="reg-email" style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.4rem' }}>
               <BrandThreadsIcon size={18} color="var(--color-primary)" />
               <span>Email Address</span>
             </label>
-            <input
+            <AnimatedInput
               id="reg-email"
               type="email"
+              placeholderExamples={["e.g. alice@swaply.app", "e.g. user@gmail.com", "e.g. tester@swaply.app"]}
               placeholder="e.g. alice@swaply.app"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -84,37 +88,35 @@ export default function Register({ onSecureRegister, loginError }) {
           </div>
           
           <div className="input-group">
-            <label htmlFor="reg-pass" style={{ fontWeight: 'bold' }}>Secure Password</label>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <input
-                id="reg-pass"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ width: '100%', paddingRight: '2.5rem' }}
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(prev => !prev)}
-                style={{
-                  position: 'absolute',
-                  right: '0.6rem',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: 'var(--text-secondary)',
-                  padding: '0.2rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-                title={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
+            <label htmlFor="reg-pass" style={{ fontWeight: 'bold', marginBottom: '0.4rem' }}>Secure Password</label>
+            <AnimatedInput
+              id="reg-pass"
+              type={showPassword ? 'text' : 'password'}
+              placeholderExamples={["••••••••", "choose strong password..."]}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(prev => !prev)}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--text-secondary)',
+                    padding: '0.2rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              }
+            />
           </div>
 
           <button type="submit" className="btn btn-primary" style={{ padding: '0.65rem', fontWeight: 'bold', marginTop: '0.5rem' }}>
