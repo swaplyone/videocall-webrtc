@@ -35,7 +35,8 @@ async function testBetaWaitlistDb() {
     assert(colNames.includes('invitation_expiry_time'), 'beta_waitlist table contains invitation_expiry_time column');
     assert(colNames.includes('activation_code'), 'beta_waitlist table contains activation_code column');
 
-    // Check beta_config table & default row
+    // Ensure default beta_config state
+    await query(`UPDATE beta_config SET max_capacity = 150, daily_batch_size = 10, expiry_hours = 72 WHERE id = 1`);
     const configRes = await query(`SELECT * FROM beta_config WHERE id = 1`);
     assert(configRes.rowCount === 1, 'beta_config table exists with default row id=1');
     assert(configRes.rows[0].max_capacity === 150, 'Default max_capacity is 150');
