@@ -17,6 +17,7 @@ import CallHistory from './pages/CallHistory';
 import Notifications from './pages/Notifications';
 import VerifyPhone from './pages/VerifyPhone';
 import RecoveryBanner from './components/RecoveryBanner';
+import PendingDeletionModal from './components/PendingDeletionModal';
 import PrivacyCenter from './pages/PrivacyCenter';
 import Settings from './pages/Settings';
 import AdminDashboard from './pages/AdminDashboard';
@@ -56,6 +57,8 @@ export default function App() {
 
   // Custom Popup state
   const [popupState, setPopupState] = useState({ isOpen: false, title: '', message: '', type: 'info' });
+  const [pendingDeletionData, setPendingDeletionData] = useState(null);
+
   const showPopup = (title, message, type = 'info') => {
     setPopupState({ isOpen: true, title, message, type });
   };
@@ -90,6 +93,16 @@ export default function App() {
   const handleSecureLogin = async ({ identifier, password }) => {
     try {
       const data = await apiClient.login(identifier, password);
+
+      // Check if user account is scheduled for deletion
+      if (data.pending_deletion) {
+        setPendingDeletionData({
+          user: data.user,
+          tempToken: data.tempToken,
+          scheduled_deletion_at: data.scheduled_deletion_at
+        });
+        return;
+      }
 
       // Check if user needs verification
       if (data.email_verified === false) {
@@ -135,6 +148,32 @@ export default function App() {
     } catch (err) {
       setLoginError(err.message);
     }
+  };
+
+  const handleRestoreAccount = (restoredUser, token) => {
+    setPendingDeletionData(null);
+    const updatedUser = { ...restoredUser, deletion_status: 'ACTIVE' };
+    setAuthToken(token);
+    setUserDetails(updatedUser);
+    setCurrentUser(updatedUser.username);
+    setLoginError('');
+
+    apiClient.setAuthToken(token);
+
+    localStorage.setItem('swaply_auth_token', token);
+    localStorage.setItem('swaply_user_details', JSON.stringify(updatedUser));
+    localStorage.setItem('swaply_current_user', updatedUser.username);
+
+    socketClient.connect(token);
+    socketClient.register(updatedUser.username, (response) => {
+      if (response.success) {
+        socketClient.getModerationConfig((config) => {
+          setModerationConfig(config);
+        });
+      }
+    });
+
+    navigate('/dashboard');
   };
 
   const handleSecureRegister = async ({ name, username, email, password }) => {
@@ -425,6 +464,14 @@ export default function App() {
           }}
         />
       )}
+
+      {/* Pending Deletion Modal Prompt during Login */}
+      <PendingDeletionModal
+        isOpen={Boolean(pendingDeletionData)}
+        data={pendingDeletionData}
+        onRestored={handleRestoreAccount}
+        onKeepScheduled={() => setPendingDeletionData(null)}
+      />
 
       {/* Main Routing Stage */}
       <Routes>

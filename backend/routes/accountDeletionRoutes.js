@@ -113,10 +113,12 @@ router.post('/cancel', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Account is not currently scheduled for deletion' });
     }
 
-    // Verify password
-    const passwordValid = await bcrypt.compare(password, user.password_hash);
-    if (!passwordValid) {
-      return res.status(401).json({ error: 'Invalid password confirmation' });
+    // Verify password if provided
+    if (password) {
+      const passwordValid = await bcrypt.compare(password, user.password_hash);
+      if (!passwordValid) {
+        return res.status(401).json({ error: 'Invalid password confirmation' });
+      }
     }
 
     const now = new Date();

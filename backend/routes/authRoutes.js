@@ -110,6 +110,27 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid username/email or password' });
     }
 
+    // Check if account is scheduled for deletion
+    if (user.deletion_status === 'PENDING_DELETION') {
+      const tempToken = generateAccessToken(user);
+      return res.json({
+        success: true,
+        pending_deletion: true,
+        tempToken,
+        scheduled_deletion_at: user.scheduled_deletion_at,
+        email: user.email,
+        user: {
+          id: user.id,
+          name: user.name,
+          username: user.username,
+          email: user.email,
+          beta_id: user.beta_id,
+          deletion_status: user.deletion_status,
+          scheduled_deletion_at: user.scheduled_deletion_at
+        }
+      });
+    }
+
     // Check email verification status (Module 5)
     if (!user.email_verified) {
       // Create and send OTP for first login
