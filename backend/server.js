@@ -15,7 +15,9 @@ import adminRoutes from './routes/adminRoutes.js';
 import friendRoutes from './routes/friendRoutes.js';
 import privacyRoutes from './routes/privacyRoutes.js';
 import accountDeletionRoutes from './routes/accountDeletionRoutes.js';
+import betaRoutes from './routes/betaRoutes.js';
 import { initAccountDeletionScheduler } from './services/accountDeletionService.js';
+import * as betaRolloutService from './services/betaRolloutService.js';
 import pool, { query } from './db.js';
 import { securityHeaders } from './middleware/securityMiddleware.js';
 import { createRateLimiter } from './middleware/rateLimitMiddleware.js';
@@ -64,6 +66,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/friends', friendRoutes);
 app.use('/api/privacy', privacyRoutes);
 app.use('/api/account/delete', accountDeletionRoutes);
+app.use('/api/beta', betaRoutes);
 
 // System Health Checks Telemetry Endpoint
 app.get('/api/health', async (req, res) => {
@@ -1162,6 +1165,14 @@ httpServer.listen(PORT, '0.0.0.0', async () => {
     await query("UPDATE users SET online_status = 'offline'");
     await ensureAdminAccount();
     await initAccountDeletionScheduler();
+    await betaRolloutService.recalculateWaitlistQueue();
+
+    // Background worker for processing expired invitations every 10 minutes
+    setInterval(() => {
+      betaRolloutService.processExpiredInvitations().catch(err => {
+        console.error('Error processing expired beta invitations:', err);
+      });
+    }, 10 * 60 * 1000);
   } catch (err) {
     console.warn('Could not initialize DB user presence or deletion scheduler on startup:', err.message);
   }

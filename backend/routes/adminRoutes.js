@@ -2,6 +2,7 @@ import express from 'express';
 import { query } from '../db.js';
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware.js';
 import * as Templates from '../services/emailTemplates.js';
+import * as betaRolloutService from '../services/betaRolloutService.js';
 
 const router = express.Router();
 
@@ -358,6 +359,173 @@ router.get('/email-templates/:key', authenticateToken, requireAdmin, (req, res) 
   const html = map[key] || map['1_email_verification_otp'];
   res.setHeader('Content-Type', 'text/html');
   res.send(html);
+});
+
+/**
+ * GET /api/admin/beta/metrics
+ * Retrieves comprehensive live beta rollout statistics
+ */
+router.get('/beta/metrics', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const config = await betaRolloutService.getBetaConfig();
+    const statsRes = await query(`
+      SELECT 
+        COUNT(*)::integer as total_registered,
+        COUNT(*) FILTER (WHERE rollout_status = 'ACCEPTED')::integer as accepted_users,
+        COUNT(*) FILTER (WHERE rollout_status = 'INVITED')::integer as invited_users,
+        COUNT(*) FILTER (WHERE rollout_status = 'READY_FOR_ROLLOUT')::integer as ready_users,
+        COUNT(*) FILTER (WHERE rollout_status = 'WAITING_QUEUE')::integer as waiting_queue,
+        COUNT(*) FILTER (WHERE rollout_status = 'EXPIRED')::integer as expired_users,
+        COUNT(*) FILTER (WHERE rollout_status = 'REJECTED')::integer as rejected_users,
+        COUNT(*) FILTER (WHERE rollout_status = 'ACCEPTED' AND date(registration_timestamp) = CURRENT_DATE)::integer as accepted_today
+      FROM beta_waitlist
+    `);
+
+    const s = statsRes.rows[0];
+    const availableSlots = Math.max(0, config.max_capacity - s.accepted_users);
+    const rolloutProgress = config.max_capacity > 0 ? Math.round((s.accepted_users / config.max_capacity) * 100) : 0;
+
+    res.json({
+      success: true,
+      config,
+      metrics: {
+        totalRegistered: s.total_registered,
+        acceptedUsers: s.accepted_users,
+        invitedUsers: s.invited_users,
+        readyUsers: s.ready_users,
+        waitingQueue: s.waiting_queue,
+        expiredUsers: s.expired_users,
+        rejectedUsers: s.rejected_users,
+        acceptedToday: s.accepted_today,
+        availableSlots,
+        rolloutProgress
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching admin beta metrics:', err);
+    res.status(500).json({ error: 'Server error fetching beta metrics' });
+  }
+});
+
+/**
+ * GET /api/admin/beta/users
+ * Retrieves filtered list of waitlist users
+ */
+router.get('/beta/users', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { status = 'ALL', search = '' } = req.query;
+    let querySql = `SELECT * FROM beta_waitlist WHERE 1=1`;
+    const params = [];
+
+    if (status !== 'ALL') {
+      params.push(status);
+      querySql += ` AND rollout_status = $${params.length}`;
+    }
+
+    if (search) {
+      params.push(`%${search}%`);
+      querySql += ` AND (username ILIKE $${params.length} OR email ILIKE $${params.length} OR beta_id ILIKE $${params.length})`;
+    }
+
+    querySql += ` ORDER BY waitlist_position ASC, registration_timestamp ASC LIMIT 200`;
+    const listRes = await query(querySql, params);
+
+    res.json({ success: true, users: listRes.rows });
+  } catch (err) {
+    console.error('Error fetching admin beta users:', err);
+    res.status(500).json({ error: 'Server error fetching beta user list' });
+  }
+});
+
+/**
+ * POST /api/admin/beta/controls
+ * One-click control actions for admin rollout management
+ */
+router.post('/beta/controls', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { action, ids, batchNumber, config, waitlistId, reason } = req.body;
+
+    if (action === 'approve_batch') {
+      const result = await betaRolloutService.approveRolloutBatch(batchNumber);
+      return res.json({ success: true, message: `Approved ${result.approved} user(s) in batch ${batchNumber || 'all'}`, result });
+    }
+
+    if (action === 'approve_selected' && Array.isArray(ids)) {
+      let approvedCount = 0;
+      for (const id of ids) {
+        await betaRolloutService.sendBetaInvitationToUser(id, 'Admin manually approved user');
+        approvedCount++;
+      }
+      return res.json({ success: true, message: `Approved ${approvedCount} selected user(s)` });
+    }
+
+    if (action === 'pause_rollout') {
+      await betaRolloutService.updateBetaConfig({ rollout_active: false });
+      return res.json({ success: true, message: 'Beta rollout paused' });
+    }
+
+    if (action === 'resume_rollout') {
+      await betaRolloutService.updateBetaConfig({ rollout_active: true });
+      return res.json({ success: true, message: 'Beta rollout resumed' });
+    }
+
+    if (action === 'update_config' && config) {
+      const updated = await betaRolloutService.updateBetaConfig(config);
+      return res.json({ success: true, message: 'Beta rollout configuration updated', config: updated });
+    }
+
+    if (action === 'reject_user' && waitlistId) {
+      const rejected = await betaRolloutService.rejectWaitlistUser(waitlistId, reason);
+      return res.json({ success: true, message: 'User waitlist registration rejected', rejected });
+    }
+
+    if (action === 'extend_invitation' && waitlistId) {
+      const extHours = 48;
+      await query(
+        `UPDATE beta_waitlist 
+         SET invitation_expiry_time = invitation_expiry_time + INTERVAL '48 hours' 
+         WHERE id = $1`,
+        [waitlistId]
+      );
+      return res.json({ success: true, message: 'Invitation extended by 48 hours' });
+    }
+
+    if (action === 'cancel_invitation' && waitlistId) {
+      await query("UPDATE beta_waitlist SET rollout_status = 'CANCELLED' WHERE id = $1", [waitlistId]);
+      await betaRolloutService.recalculateWaitlistQueue();
+      return res.json({ success: true, message: 'Invitation cancelled and slot reallocated' });
+    }
+
+    res.status(400).json({ error: 'Unknown admin rollout control action' });
+  } catch (err) {
+    console.error('Error executing beta control action:', err);
+    res.status(500).json({ error: err.message || 'Server error processing control action' });
+  }
+});
+
+/**
+ * GET /api/admin/beta/report
+ * Generates downloadable CSV report of beta waitlist and rollout metrics
+ */
+router.get('/beta/report', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const listRes = await query(`
+      SELECT id, user_id, username, email, beta_id, waitlist_position, rollout_batch, rollout_status, invite_sent_time, invitation_expiry_time, registration_timestamp
+      FROM beta_waitlist ORDER BY id ASC
+    `);
+
+    let csv = 'ID,User_ID,Username,Email,Beta_ID,Position,Batch,Status,Invite_Sent,Expiry_Time,Registered_At\n';
+    for (const r of listRes.rows) {
+      csv += `${r.id},${r.user_id},"${r.username}","${r.email}",${r.beta_id},${r.waitlist_position || ''},${r.rollout_batch || ''},${r.rollout_status},"${r.invite_sent_time || ''}","${r.invitation_expiry_time || ''}","${r.registration_timestamp}"\n`;
+    }
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="swaply_beta_rollout_report.csv"');
+    res.send(csv);
+  } catch (err) {
+    console.error('Error generating beta report:', err);
+    res.status(500).json({ error: 'Server error generating report' });
+  }
 });
 
 export default router;

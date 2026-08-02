@@ -27,6 +27,26 @@ export default function AdminDashboard({ userDetails }) {
   const [selectedTemplateKey, setSelectedTemplateKey] = useState('1_email_verification_otp');
   const [templateHtml, setTemplateHtml] = useState('');
 
+  // Phase 11: Beta Rollout State
+  const [betaMetrics, setBetaMetrics] = useState({
+    totalRegistered: 0,
+    acceptedUsers: 0,
+    invitedUsers: 0,
+    readyUsers: 0,
+    waitingQueue: 0,
+    expiredUsers: 0,
+    rejectedUsers: 0,
+    acceptedToday: 0,
+    availableSlots: 0,
+    rolloutProgress: 0
+  });
+  const [betaConfig, setBetaConfig] = useState({ max_capacity: 150, daily_batch_size: 10, rollout_active: true, expiry_hours: 72 });
+  const [betaWaitlistUsers, setBetaWaitlistUsers] = useState([]);
+  const [betaFilterStatus, setBetaFilterStatus] = useState('ALL');
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [capInput, setCapInput] = useState(150);
+  const [batchInput, setBatchInput] = useState(10);
+
   useEffect(() => {
     if (activeTab === 'templates' && selectedTemplateKey) {
       apiClient.request(`/api/admin/email-templates/${selectedTemplateKey}`)
@@ -38,6 +58,33 @@ export default function AdminDashboard({ userDetails }) {
         .catch((err) => console.error('Error fetching email template preview:', err));
     }
   }, [activeTab, selectedTemplateKey]);
+
+  const fetchBetaRolloutData = async () => {
+    try {
+      const [metricsRes, usersRes] = await Promise.allSettled([
+        apiClient.request('/api/admin/beta/metrics'),
+        apiClient.request(`/api/admin/beta/users?status=${betaFilterStatus}&search=${encodeURIComponent(searchQuery)}`)
+      ]);
+
+      if (metricsRes.status === 'fulfilled' && metricsRes.value.success) {
+        setBetaMetrics(metricsRes.value.metrics || {});
+        setBetaConfig(metricsRes.value.config || {});
+        setCapInput(metricsRes.value.config?.max_capacity || 150);
+        setBatchInput(metricsRes.value.config?.daily_batch_size || 10);
+      }
+      if (usersRes.status === 'fulfilled' && usersRes.value.success) {
+        setBetaWaitlistUsers(usersRes.value.users || []);
+      }
+    } catch (e) {
+      console.error('Error fetching beta rollout data:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'beta_rollout') {
+      fetchBetaRolloutData();
+    }
+  }, [activeTab, betaFilterStatus, searchQuery]);
 
   // Search filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,11 +115,32 @@ export default function AdminDashboard({ userDetails }) {
       if (betaUsersRes.status === 'fulfilled' && betaUsersRes.value.success) setBetaUsers(betaUsersRes.value.users || []);
       if (incidentsRes.status === 'fulfilled' && incidentsRes.value.success) setIncidents(incidentsRes.value.incidents || []);
       if (delReqRes.status === 'fulfilled' && delReqRes.value.success) setDeletionRequests(delReqRes.value.requests || []);
+
+      await fetchBetaRolloutData();
     } catch (err) {
       console.error('Error fetching admin dashboard data:', err);
       setError('Failed to fetch some administration metrics.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExecBetaControl = async (action, payload = {}) => {
+    setError(null);
+    setSuccess(null);
+    try {
+      const res = await apiClient.request('/api/admin/beta/controls', {
+        method: 'POST',
+        body: JSON.stringify({ action, ...payload })
+      });
+      if (res && res.success) {
+        setSuccess(res.message || 'Action executed successfully');
+        await fetchBetaRolloutData();
+      } else {
+        setError(res.error || 'Failed to execute control action');
+      }
+    } catch (err) {
+      setError(err.message || 'Server error executing control action');
     }
   };
 
@@ -259,6 +327,13 @@ export default function AdminDashboard({ userDetails }) {
           onClick={() => setActiveTab('users')}
         >
           Beta Directory ({betaUsers.length})
+        </button>
+        <button 
+          className={`btn ${activeTab === 'beta_rollout' ? 'btn-primary' : 'btn-secondary'}`} 
+          style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+          onClick={() => setActiveTab('beta_rollout')}
+        >
+          ⚡ Smart Beta Rollout ({betaMetrics.waitingQueue || 0})
         </button>
         <button 
           className={`btn ${activeTab === 'safety' ? 'btn-primary' : 'btn-secondary'}`} 
@@ -699,6 +774,303 @@ export default function AdminDashboard({ userDetails }) {
                   }}
                 />
               </div>
+            </div>
+          )}
+
+          {/* TAB 7: SMART BETA ROLLOUT MANAGEMENT */}
+          {activeTab === 'beta_rollout' && (
+            <div className="glass-panel" style={{ padding: '1.5rem', border: '3px solid #111827', boxShadow: '6px 6px 0 #111827', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              
+              {/* Header & Controls Toolbar */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderBottom: '2px solid #E5E7EB', paddingBottom: '1rem' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Users size={22} style={{ color: 'var(--color-primary)' }} /> Smart Beta Waitlist & Batch Rollout System
+                  </h3>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                    Automated Slot Allocator &bull; Capacity: <strong>{betaConfig.max_capacity} Users</strong> &bull; Batch Rate: <strong>{betaConfig.daily_batch_size}/Day</strong> &bull; Expiry: <strong>{betaConfig.expiry_hours}h</strong>
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                  <button
+                    className="btn btn-primary"
+                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', fontWeight: 'bold' }}
+                    onClick={() => handleExecBetaControl('approve_batch')}
+                  >
+                    ⚡ Approve Today's Batch ({betaMetrics.readyUsers})
+                  </button>
+                  <button
+                    className={`btn ${betaConfig.rollout_active ? 'btn-secondary' : 'btn-primary'}`}
+                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', fontWeight: 'bold' }}
+                    onClick={() => handleExecBetaControl(betaConfig.rollout_active ? 'pause_rollout' : 'resume_rollout')}
+                  >
+                    {betaConfig.rollout_active ? '⏸ Pause Rollout' : '▶ Resume Rollout'}
+                  </button>
+                  <button
+                    className="btn btn-secondary"
+                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', fontWeight: 'bold' }}
+                    onClick={() => setShowConfigModal(true)}
+                  >
+                    ⚙️ Limits & Capacity
+                  </button>
+                  <a
+                    href="/api/admin/beta/report"
+                    download="swaply_beta_rollout_report.csv"
+                    className="btn btn-secondary"
+                    style={{ padding: '0.4rem 0.8rem', fontSize: '0.8rem', fontWeight: 'bold', textDecoration: 'none' }}
+                  >
+                    📥 Download CSV Report
+                  </a>
+                </div>
+              </div>
+
+              {/* Metrics Grid & Capacity Fill Gauge */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+                <div style={{ background: '#FFF', padding: '1rem', borderRadius: '8px', border: '2px solid #111827', boxShadow: '3px 3px 0 #111827' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Total Registered</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#111827' }}>{betaMetrics.totalRegistered}</div>
+                </div>
+                <div style={{ background: '#FEF3C7', padding: '1rem', borderRadius: '8px', border: '2px solid #111827', boxShadow: '3px 3px 0 #111827' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#92400E', textTransform: 'uppercase' }}>Waiting Queue</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#78350F' }}>{betaMetrics.waitingQueue}</div>
+                </div>
+                <div style={{ background: '#E0F2FE', padding: '1rem', borderRadius: '8px', border: '2px solid #111827', boxShadow: '3px 3px 0 #111827' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#075985', textTransform: 'uppercase' }}>Ready for Rollout</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0369A1' }}>{betaMetrics.readyUsers}</div>
+                </div>
+                <div style={{ background: '#FDE68A', padding: '1rem', borderRadius: '8px', border: '2px solid #111827', boxShadow: '3px 3px 0 #111827' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#92400E', textTransform: 'uppercase' }}>Invited (Pending)</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#B45309' }}>{betaMetrics.invitedUsers}</div>
+                </div>
+                <div style={{ background: '#D1FAE5', padding: '1rem', borderRadius: '8px', border: '2px solid #111827', boxShadow: '3px 3px 0 #111827' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#065F46', textTransform: 'uppercase' }}>Accepted Users</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#047857' }}>{betaMetrics.acceptedUsers}</div>
+                </div>
+                <div style={{ background: '#FEE2E2', padding: '1rem', borderRadius: '8px', border: '2px solid #111827', boxShadow: '3px 3px 0 #111827' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#991B1B', textTransform: 'uppercase' }}>Expired / Reallocated</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#B91C1C' }}>{betaMetrics.expiredUsers}</div>
+                </div>
+              </div>
+
+              {/* Progress Gauge */}
+              <div style={{ background: '#FAF6EE', border: '2px solid #111827', borderRadius: '8px', padding: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '0.4rem' }}>
+                  <span>Beta Network Capacity Fill Progress</span>
+                  <span>{betaMetrics.acceptedUsers} / {betaConfig.max_capacity} Users ({betaMetrics.rolloutProgress}%)</span>
+                </div>
+                <div style={{ height: '14px', background: '#E5E7EB', borderRadius: '7px', border: '1.5px solid #111827', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${Math.min(100, betaMetrics.rolloutProgress)}%`, background: 'var(--color-primary)', transition: 'width 0.4s ease' }} />
+                </div>
+              </div>
+
+              {/* Filter Tabs & Search Bar */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  {['ALL', 'READY_FOR_ROLLOUT', 'INVITED', 'ACCEPTED', 'WAITING_QUEUE', 'EXPIRED', 'REJECTED'].map(st => (
+                    <button
+                      key={st}
+                      className={`btn ${betaFilterStatus === st ? 'btn-primary' : 'btn-secondary'}`}
+                      style={{ padding: '0.35rem 0.7rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+                      onClick={() => setBetaFilterStatus(st)}
+                    >
+                      {st.replace(/_/g, ' ')}
+                    </button>
+                  ))}
+                </div>
+
+                <input
+                  type="text"
+                  placeholder="Search by Username, Email or Beta ID..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    borderRadius: '6px',
+                    border: '2px solid #111827',
+                    fontSize: '0.8rem',
+                    width: '240px'
+                  }}
+                />
+              </div>
+
+              {/* Interactive User Table */}
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                  <thead>
+                    <tr style={{ background: '#111827', color: '#FFF', textAlign: 'left' }}>
+                      <th style={{ padding: '0.6rem 0.8rem' }}>Pos #</th>
+                      <th style={{ padding: '0.6rem 0.8rem' }}>User / Email</th>
+                      <th style={{ padding: '0.6rem 0.8rem' }}>Beta ID</th>
+                      <th style={{ padding: '0.6rem 0.8rem' }}>Status</th>
+                      <th style={{ padding: '0.6rem 0.8rem' }}>Batch</th>
+                      <th style={{ padding: '0.6rem 0.8rem' }}>Registered</th>
+                      <th style={{ padding: '0.6rem 0.8rem' }}>Expiry / Notes</th>
+                      <th style={{ padding: '0.6rem 0.8rem', textAlign: 'right' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {betaWaitlistUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                          No beta waitlist entries match the current filter.
+                        </td>
+                      </tr>
+                    ) : (
+                      betaWaitlistUsers.map((u) => (
+                        <tr key={u.id} style={{ borderBottom: '1px solid #E5E7EB', background: u.rollout_status === 'INVITED' ? '#FFFBEB' : '#FFF' }}>
+                          <td style={{ padding: '0.6rem 0.8rem', fontWeight: 900, fontFamily: 'var(--font-mono)' }}>
+                            #{u.waitlist_position || '-'}
+                          </td>
+                          <td style={{ padding: '0.6rem 0.8rem' }}>
+                            <strong style={{ display: 'block' }}>@{u.username}</strong>
+                            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>{u.email}</span>
+                          </td>
+                          <td style={{ padding: '0.6rem 0.8rem', fontFamily: 'var(--font-mono)', fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                            {u.beta_id}
+                          </td>
+                          <td style={{ padding: '0.6rem 0.8rem' }}>
+                            <span style={{
+                              padding: '0.25rem 0.5rem',
+                              borderRadius: '4px',
+                              border: '1px solid #111827',
+                              fontSize: '0.7rem',
+                              fontWeight: 800,
+                              background:
+                                u.rollout_status === 'ACCEPTED' ? '#D1FAE5' :
+                                u.rollout_status === 'INVITED' ? '#FEF3C7' :
+                                u.rollout_status === 'READY_FOR_ROLLOUT' ? '#E0F2FE' :
+                                u.rollout_status === 'EXPIRED' ? '#FEE2E2' : '#F3F4F6'
+                            }}>
+                              {u.rollout_status}
+                            </span>
+                          </td>
+                          <td style={{ padding: '0.6rem 0.8rem', fontFamily: 'var(--font-mono)' }}>
+                            Batch {u.rollout_batch || 1}
+                          </td>
+                          <td style={{ padding: '0.6rem 0.8rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                            {new Date(u.registration_timestamp).toLocaleDateString()}
+                          </td>
+                          <td style={{ padding: '0.6rem 0.8rem', fontSize: '0.75rem' }}>
+                            {u.invitation_expiry_time ? (
+                              <span style={{ color: new Date(u.invitation_expiry_time) < new Date() ? '#EF4444' : '#D97706', fontWeight: 'bold' }}>
+                                {new Date(u.invitation_expiry_time).toLocaleString()}
+                              </span>
+                            ) : (u.admin_notes || 'N/A')}
+                          </td>
+                          <td style={{ padding: '0.6rem 0.8rem', textAlign: 'right' }}>
+                            <div style={{ display: 'flex', gap: '0.3rem', justifyContent: 'flex-end' }}>
+                              {(u.rollout_status === 'READY_FOR_ROLLOUT' || u.rollout_status === 'WAITING_QUEUE') && (
+                                <button
+                                  className="btn btn-primary"
+                                  style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
+                                  onClick={() => handleExecBetaControl('approve_selected', { ids: [u.id] })}
+                                >
+                                  Invite
+                                </button>
+                              )}
+                              {u.rollout_status === 'INVITED' && (
+                                <>
+                                  <button
+                                    className="btn btn-secondary"
+                                    style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem' }}
+                                    onClick={() => handleExecBetaControl('extend_invitation', { waitlistId: u.id })}
+                                  >
+                                    +48h
+                                  </button>
+                                  <button
+                                    className="btn btn-secondary"
+                                    style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem', color: '#EF4444' }}
+                                    onClick={() => handleExecBetaControl('cancel_invitation', { waitlistId: u.id })}
+                                  >
+                                    Revoke
+                                  </button>
+                                </>
+                              )}
+                              {u.rollout_status !== 'REJECTED' && u.rollout_status !== 'ACCEPTED' && (
+                                <button
+                                  className="btn btn-secondary"
+                                  style={{ padding: '0.2rem 0.5rem', fontSize: '0.7rem', color: '#DC2626' }}
+                                  onClick={() => handleExecBetaControl('reject_user', { waitlistId: u.id, reason: 'Admin rejected' })}
+                                >
+                                  Reject
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Configuration Modal */}
+              {showConfigModal && (
+                <div style={{
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'rgba(0,0,0,0.6)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 9999
+                }}>
+                  <div className="glass-panel" style={{ padding: '2rem', maxWidth: '420px', width: '90%', border: '3px solid #111827', background: '#FFF' }}>
+                    <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.2rem', fontWeight: 900, textTransform: 'uppercase' }}>
+                      ⚙️ Configure Beta Rollout Limits
+                    </h3>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1.5rem' }}>
+                      <div>
+                        <label style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'block', marginBottom: '0.3rem' }}>
+                          Maximum Beta Network Capacity (Users)
+                        </label>
+                        <input
+                          type="number"
+                          value={capInput}
+                          onChange={(e) => setCapInput(parseInt(e.target.value) || 0)}
+                          style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '2px solid #111827', fontSize: '0.9rem', fontWeight: 'bold' }}
+                        />
+                      </div>
+
+                      <div>
+                        <label style={{ fontSize: '0.85rem', fontWeight: 'bold', display: 'block', marginBottom: '0.3rem' }}>
+                          Daily Batch Rollout Size (Users / Day)
+                        </label>
+                        <input
+                          type="number"
+                          value={batchInput}
+                          onChange={(e) => setBatchInput(parseInt(e.target.value) || 0)}
+                          style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '2px solid #111827', fontSize: '0.9rem', fontWeight: 'bold' }}
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                      <button
+                        className="btn btn-secondary"
+                        onClick={() => setShowConfigModal(false)}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        className="btn btn-primary"
+                        onClick={() => {
+                          handleExecBetaControl('update_config', { config: { max_capacity: capInput, daily_batch_size: batchInput } });
+                          setShowConfigModal(false);
+                        }}
+                      >
+                        Save Configuration
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
         </>

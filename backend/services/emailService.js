@@ -200,6 +200,20 @@ export async function sendBetaInvitation(userId, email, inviteLink) {
   return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Beta' });
 }
 
+export async function sendBetaWaitlistConfirmationEmail(userId, email, username, position) {
+  const subject = `You're on the SwaplyOne Beta Waitlist (Position ${position})`;
+  const text = `Hello ${username}, you are confirmed on the SwaplyOne beta waitlist at position ${position}.`;
+  const html = Templates.getBetaWaitlistConfirmationTemplate({ username, queuePosition: position });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Beta' });
+}
+
+export async function sendBetaInvitationEmail(userId, email, username, betaId, activationCode, expiryTime) {
+  const subject = 'Your SwaplyOne Beta Invitation Pass is Ready!';
+  const text = `Congratulations ${username}! Your SwaplyOne Beta pass is ready. Activate before ${new Date(expiryTime).toLocaleString()}.`;
+  const html = Templates.getBetaInvitationTemplate({ username, inviteCode: activationCode });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Beta' });
+}
+
 /**
  * 6. Beta Accepted
  */
@@ -210,6 +224,8 @@ export async function sendBetaAccepted(userId, email, betaId) {
   const html = Templates.getBetaAcceptedTemplate({ username, betaId });
   return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Beta' });
 }
+
+export const sendBetaAcceptedEmail = sendBetaAccepted;
 
 /**
  * 7. Rollout Update

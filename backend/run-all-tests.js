@@ -28,7 +28,11 @@ const testSuites = [
   'test-account-deletion-api.js',
   'test-account-deletion-scheduler.js',
   'test-account-recovery.js',
-  'test-account-cleanup.js'
+  'test-account-cleanup.js',
+  // Phase 11 Test Suites
+  'test-beta-waitlist-db.js',
+  'test-beta-api.js',
+  'test-beta-rollout-scheduler.js'
 ];
 
 console.log('==================================================');
