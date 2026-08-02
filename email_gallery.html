@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SwaplyOne HTML Email Templates Showcase</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0F172A;
+      color: #F8FAFC;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    header {
+      background: #1E293B;
+      padding: 1rem 1.5rem;
+      border-bottom: 2px solid #334155;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .brand-logo {
+      background: linear-gradient(135deg, #2563EB, #4F46E5);
+      color: #FFF;
+      font-weight: 900;
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 1.1rem;
+    }
+    select {
+      background: #0F172A;
+      color: #F8FAFC;
+      border: 2px solid #3B82F6;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      outline: none;
+      cursor: pointer;
+    }
+    .main-stage {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem;
+      background: #0F172A;
+    }
+    iframe {
+      width: 100%;
+      max-width: 680px;
+      height: 100%;
+      border: 3px solid #334155;
+      border-radius: 16px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      background: #FFFFFF;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-logo">&infin; SwaplyOne</div>
+      <div>
+        <strong style="display:block; font-size: 1.05rem;">HTML Email Design System Showcase</strong>
+        <span style="font-size: 0.8rem; color: #94A3B8;">24 Responsive Templates &bull; "In a Deep Ocean of Skills."</span>
+      </div>
+    </div>
+    <div>
+      <label for="template-select" style="font-size: 0.85rem; color: #94A3B8; margin-right: 8px;">Select Template:</label>
+      <select id="template-select" onchange="loadTemplate(this.value)">
+        <option value="1_email_verification_otp">1. EMAIL VERIFICATION OTP</option>
+<option value="2_welcome_to_swaplyone">2. WELCOME TO SWAPLYONE</option>
+<option value="3_beta_registration_successful">3. BETA REGISTRATION SUCCESSFUL</option>
+<option value="4_beta_waitlist_confirmation">4. BETA WAITLIST CONFIRMATION</option>
+<option value="5_beta_invitation">5. BETA INVITATION</option>
+<option value="6_beta_accepted">6. BETA ACCEPTED</option>
+<option value="7_rollout_update">7. ROLLOUT UPDATE</option>
+<option value="8_friend_request_received">8. FRIEND REQUEST RECEIVED</option>
+<option value="9_friend_request_accepted">9. FRIEND REQUEST ACCEPTED</option>
+<option value="10_password_reset_otp">10. PASSWORD RESET OTP</option>
+<option value="11_email_change_verification">11. EMAIL CHANGE VERIFICATION</option>
+<option value="12_new_device_login_alert">12. NEW DEVICE LOGIN ALERT</option>
+<option value="13_security_alert">13. SECURITY ALERT</option>
+<option value="14_privacy_warning">14. PRIVACY WARNING</option>
+<option value="15_call_missed_notification">15. CALL MISSED NOTIFICATION</option>
+<option value="16_call_summary">16. CALL SUMMARY</option>
+<option value="17_account_scheduled_deletion">17. ACCOUNT SCHEDULED DELETION</option>
+<option value="18_account_recovery_successful">18. ACCOUNT RECOVERY SUCCESSFUL</option>
+<option value="19_account_permanently_deleted">19. ACCOUNT PERMANENTLY DELETED</option>
+<option value="20_feature_announcement">20. FEATURE ANNOUNCEMENT</option>
+<option value="21_maintenance_notification">21. MAINTENANCE NOTIFICATION</option>
+<option value="22_admin_announcement">22. ADMIN ANNOUNCEMENT</option>
+<option value="23_beta_feedback_request">23. BETA FEEDBACK REQUEST</option>
+<option value="24_weekly_product_updates">24. WEEKLY PRODUCT UPDATES</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="main-stage">
+    <iframe id="preview-frame" src="email_previews/1_email_verification_otp.html"></iframe>
+  </div>
+
+  <script>
+    function loadTemplate(key) {
+      document.getElementById('preview-frame').src = 'email_previews/' + key + '.html';
+    }
+  </script>
+</body>
+</html>

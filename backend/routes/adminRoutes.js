@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../db.js';
 import { authenticateToken, requireAdmin } from '../middleware/authMiddleware.js';
+import * as Templates from '../services/emailTemplates.js';
 
 const router = express.Router();
 
@@ -319,6 +320,44 @@ router.get('/deletion-requests', authenticateToken, requireAdmin, async (req, re
     console.error('Error fetching deletion requests:', err);
     res.json({ success: true, requests: [] });
   }
+});
+
+router.get('/email-templates/:key', authenticateToken, requireAdmin, (req, res) => {
+  const { key } = req.params;
+  const username = 'AlexCreator';
+  const betaId = 'BETA-8821';
+  const otp = '849204';
+
+  const map = {
+    '1_email_verification_otp': Templates.getEmailVerificationOTPTemplate({ username, otp, expiresInMinutes: 5 }),
+    '2_welcome_to_swaplyone': Templates.getWelcomeTemplate({ username, betaId }),
+    '3_beta_registration_successful': Templates.getBetaRegistrationSuccessfulTemplate({ username, betaId }),
+    '4_beta_waitlist_confirmation': Templates.getBetaWaitlistConfirmationTemplate({ username, queuePosition: '#142' }),
+    '5_beta_invitation': Templates.getBetaInvitationTemplate({ username, inviteCode: 'SWAPLY-PASS-2026', buttonUrl: 'https://swaply.app/register' }),
+    '6_beta_accepted': Templates.getBetaAcceptedTemplate({ username, betaId }),
+    '7_rollout_update': Templates.getRolloutUpdateTemplate({ username, version: 'v2.4.0', highlights: 'Enhanced WebRTC connection setup, dynamic PiP telemetry, and improved security audit logs.' }),
+    '8_friend_request_received': Templates.getFriendRequestReceivedTemplate({ username, requesterName: 'Taylor Code', requesterUsername: 'taylor_code' }),
+    '9_friend_request_accepted': Templates.getFriendRequestAcceptedTemplate({ username, friendName: 'Sam Design', friendUsername: 'sam_design' }),
+    '10_password_reset_otp': Templates.getPasswordResetOTPTemplate({ username, otp: '392015', expiresInMinutes: 5 }),
+    '11_email_change_verification': Templates.getEmailChangeVerificationTemplate({ username, otp: '710492', newEmail: 'alex.new@swaply.app' }),
+    '12_new_device_login_alert': Templates.getNewDeviceLoginAlertTemplate({ username, device: 'Chrome on macOS', location: 'San Francisco, US', ip: '192.168.1.1' }),
+    '13_security_alert': Templates.getSecurityAlertTemplate({ username, title: 'Security Token Rotated', details: 'Your security ID was updated following a password modification.' }),
+    '14_privacy_warning': Templates.getPrivacyWarningTemplate({ username, warningType: 'Screen Capture Attempt', callId: 'call_sess_9921' }),
+    '15_call_missed_notification': Templates.getCallMissedNotificationTemplate({ username, callerName: 'Morgan Smith', callerUsername: 'morgan_s' }),
+    '16_call_summary': Templates.getCallSummaryTemplate({ username, peerName: 'Morgan Smith', duration: '24m 15s', callId: 'call_sess_9921' }),
+    '17_account_scheduled_deletion': Templates.getAccountScheduledForDeletionTemplate({ username, scheduledDate: 'Today at 07:30 PM (5-Hour Window)' }),
+    '18_account_recovery_successful': Templates.getAccountRecoverySuccessfulTemplate({ username }),
+    '19_account_permanently_deleted': Templates.getAccountPermanentlyDeletedTemplate({ username }),
+    '20_feature_announcement': Templates.getFeatureAnnouncementTemplate({ username, featureName: 'QR Code Direct Connect', description: 'Instant 1-on-1 peer connections via custom dynamic QR tokens.' }),
+    '21_maintenance_notification': Templates.getMaintenanceNotificationTemplate({ username, scheduledTime: 'Sunday 02:00 UTC', duration: '30 Minutes', impact: 'Brief WebRTC signaling upgrade' }),
+    '22_admin_announcement': Templates.getAdminAnnouncementTemplate({ username, title: 'Community Safety Guidelines Update', message: 'We have updated our platform safety protocols.' }),
+    '23_beta_feedback_request': Templates.getBetaFeedbackRequestTemplate({ username, surveyUrl: 'https://swaply.app/feedback' }),
+    '24_weekly_product_updates': Templates.getWeeklyProductUpdatesTemplate({ username, weekDate: 'Week 31, 2026', highlights: 'Faster connection latency and enhanced dark mode branding.' })
+  };
+
+  const html = map[key] || map['1_email_verification_otp'];
+  res.setHeader('Content-Type', 'text/html');
+  res.send(html);
 });
 
 export default router;

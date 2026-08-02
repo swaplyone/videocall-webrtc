@@ -24,6 +24,7 @@ export default function AdminDashboard({ userDetails }) {
   const [incidents, setIncidents] = useState([]);
   const [deletionRequests, setDeletionRequests] = useState([]);
   const [lifecycleFilter, setLifecycleFilter] = useState('ALL');
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState('1_email_verification_otp');
 
   // Search filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -266,6 +267,13 @@ export default function AdminDashboard({ userDetails }) {
           onClick={() => setActiveTab('lifecycle')}
         >
           Account Lifecycle ({deletionRequests.length})
+        </button>
+        <button 
+          className={`btn ${activeTab === 'templates' ? 'btn-primary' : 'btn-secondary'}`} 
+          style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+          onClick={() => setActiveTab('templates')}
+        >
+          Email Showcase (24)
         </button>
       </div>
 
@@ -592,6 +600,92 @@ export default function AdminDashboard({ userDetails }) {
                     ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* TAB 6: EMAIL TEMPLATES SHOWCASE */}
+          {activeTab === 'templates' && (
+            <div className="glass-panel" style={{ padding: '1.25rem', border: '3px solid #111827', boxShadow: '4px 4px 0 #111827' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Mail size={20} style={{ color: '#2563EB' }} /> SwaplyOne HTML Email Design System (24 Templates)
+                  </h3>
+                  <span style={{ fontSize: '0.8rem', color: '#6B7280' }}>Tagline: "In a Deep Ocean of Skills." &bull; Table-Based Inline CSS HTML Email Showcase</span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <label htmlFor="template-picker" style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>Template:</label>
+                  <select
+                    id="template-picker"
+                    value={selectedTemplateKey}
+                    onChange={(e) => setSelectedTemplateKey(e.target.value)}
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      borderRadius: '6px',
+                      border: '2px solid #111827',
+                      fontWeight: 'bold',
+                      fontSize: '0.8rem',
+                      background: '#FFF',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {[
+                      { key: '1_email_verification_otp', label: '1. Email Verification OTP' },
+                      { key: '2_welcome_to_swaplyone', label: '2. Welcome to SwaplyOne' },
+                      { key: '3_beta_registration_successful', label: '3. Beta Registration Successful' },
+                      { key: '4_beta_waitlist_confirmation', label: '4. Beta Waitlist Confirmation' },
+                      { key: '5_beta_invitation', label: '5. Beta Invitation' },
+                      { key: '6_beta_accepted', label: '6. Beta Accepted' },
+                      { key: '7_rollout_update', label: '7. Rollout Update' },
+                      { key: '8_friend_request_received', label: '8. Friend Request Received' },
+                      { key: '9_friend_request_accepted', label: '9. Friend Request Accepted' },
+                      { key: '10_password_reset_otp', label: '10. Password Reset OTP' },
+                      { key: '11_email_change_verification', label: '11. Email Change Verification' },
+                      { key: '12_new_device_login_alert', label: '12. New Device Login Alert' },
+                      { key: '13_security_alert', label: '13. Security Alert' },
+                      { key: '14_privacy_warning', label: '14. Screenshot / Privacy Warning' },
+                      { key: '15_call_missed_notification', label: '15. Call Missed Notification' },
+                      { key: '16_call_summary', label: '16. Call Summary' },
+                      { key: '17_account_scheduled_deletion', label: '17. Account Scheduled for Deletion' },
+                      { key: '18_account_recovery_successful', label: '18. Account Recovery Successful' },
+                      { key: '19_account_permanently_deleted', label: '19. Account Permanently Deleted' },
+                      { key: '20_feature_announcement', label: '20. Feature Announcement' },
+                      { key: '21_maintenance_notification', label: '21. Maintenance Notification' },
+                      { key: '22_admin_announcement', label: '22. Admin Announcement' },
+                      { key: '23_beta_feedback_request', label: '23. Beta Feedback Request' },
+                      { key: '24_weekly_product_updates', label: '24. Weekly Product Updates' }
+                    ].map(t => (
+                      <option key={t.key} value={t.key}>{t.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Template Preview Stage */}
+              <div style={{
+                background: '#F1F5F9',
+                border: '2px solid #111827',
+                borderRadius: '8px',
+                padding: '1rem',
+                display: 'flex',
+                justifyContent: 'center',
+                minHeight: '620px'
+              }}>
+                <iframe
+                  title="SwaplyOne Email Template Live Preview"
+                  src={`/api/admin/email-templates/${selectedTemplateKey}`}
+                  style={{
+                    width: '100%',
+                    maxWidth: '650px',
+                    height: '620px',
+                    border: '3px solid #111827',
+                    borderRadius: '12px',
+                    boxShadow: '4px 4px 0 #111827',
+                    background: '#FFF'
+                  }}
+                />
+              </div>
             </div>
           )}
         </>
