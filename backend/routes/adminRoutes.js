@@ -182,14 +182,16 @@ router.get('/beta-users', authenticateToken, requireAdmin, async (req, res) => {
 
 /**
  * POST /api/admin/users/:id/status
- * Suspends or restores account access, invalidating sessions (Module 19, 23)
+ * Suspends or restores account access, invalidating sessions
  */
 router.post('/users/:id/status', authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
-  const { status } = req.body; // 'suspended' or 'offline'
-  if (!status || !['suspended', 'offline'].includes(status)) {
+  const { status } = req.body; // 'suspended', 'active', or 'offline'
+  if (!status || !['suspended', 'offline', 'active'].includes(status)) {
     return res.status(400).json({ error: 'Invalid status' });
   }
+
+  const dbStatus = status === 'active' ? 'offline' : status;
 
   try {
     const { randomUUID } = await import('crypto');
@@ -197,7 +199,7 @@ router.post('/users/:id/status', authenticateToken, requireAdmin, async (req, re
 
     const updateRes = await query(
       'UPDATE users SET online_status = $1, security_id = $2, updated_at = NOW() WHERE id = $3 RETURNING email',
-      [status, newSecurityId, id]
+      [dbStatus, newSecurityId, id]
     );
 
     if (updateRes.rowCount === 0) {
@@ -205,7 +207,7 @@ router.post('/users/:id/status', authenticateToken, requireAdmin, async (req, re
     }
 
     const email = updateRes.rows[0].email;
-    if (email && status === 'suspended') {
+    if (email && dbStatus === 'suspended') {
       const { sendSecurityAlert } = await import('../services/emailService.js');
       await sendSecurityAlert(id, email, 'Account Suspended', 'Your beta tester account access has been suspended due to safety reports.');
     }
@@ -213,13 +215,42 @@ router.post('/users/:id/status', authenticateToken, requireAdmin, async (req, re
     // Log admin audit event
     await query(
       'INSERT INTO admin_audit_logs (admin_id, action, target_id, details) VALUES ($1, $2, $3, $4)',
-      [req.user.id, status === 'suspended' ? 'Suspend User' : 'Restore User', id, `Updated online_status to ${status}`]
+      [req.user.id, dbStatus === 'suspended' ? 'Suspend User' : 'Restore User', id, `Updated online_status to ${dbStatus}`]
     );
 
     res.json({ success: true, message: `User status updated to ${status}` });
   } catch (err) {
     console.error('Error updating user status:', err);
     res.status(500).json({ error: 'Server error updating user status' });
+  }
+});
+
+/**
+ * DELETE /api/admin/users/:id
+ * Permanently deletes a user account (Admin level action)
+ */
+router.delete('/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deleteRes = await query('DELETE FROM users WHERE id = $1 RETURNING username, email', [id]);
+
+    if (deleteRes.rowCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const { username, email } = deleteRes.rows[0];
+
+    // Log admin audit event
+    await query(
+      'INSERT INTO admin_audit_logs (admin_id, action, target_id, details) VALUES ($1, $2, $3, $4)',
+      [req.user.id, 'Delete User Account', id, `Deleted user @${username} (${email})`]
+    );
+
+    res.json({ success: true, message: `Account @${username} has been permanently deleted.` });
+  } catch (err) {
+    console.error('Error deleting user account:', err);
+    res.status(500).json({ error: 'Server error deleting user account' });
   }
 });
 

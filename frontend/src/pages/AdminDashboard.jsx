@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ShieldAlert, Activity, Users, Mail, AlertOctagon, 
-  Search, Shield, Check, X, ArrowLeft, RefreshCw, Lock 
+  Search, Shield, Check, X, ArrowLeft, RefreshCw, Lock, Trash2 
 } from 'lucide-react';
 import { apiClient } from '../utils/apiClient';
 
@@ -13,77 +13,66 @@ export default function AdminDashboard({ userDetails }) {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  // Data states
+  // Stats data states
   const [stats, setStats] = useState({ totalUsers: 0, onlineUsers: 0, totalCalls: 0, flaggedMessages: 0 });
   const [reports, setReports] = useState([]);
-  const [incidents, setIncidents] = useState([]);
-  const [emailStats, setEmailStats] = useState({ totalSent: 0, verifiedCount: 0, localFallback: true });
+  const [emailStats, setEmailStats] = useState({});
   const [emailLogs, setEmailLogs] = useState([]);
-  const [otpStats, setOtpStats] = useState({ totalCodes: 0, activeCount: 0 });
+  const [otpStats, setOtpStats] = useState({});
+  const [suspiciousAttempts, setSuspiciousAttempts] = useState([]);
   const [betaUsers, setBetaUsers] = useState([]);
+  const [incidents, setIncidents] = useState([]);
+
+  // Search filter
   const [searchQuery, setSearchQuery] = useState('');
 
-  const isAdmin = userDetails?.is_admin === true;
-
   const loadAllAdminData = async () => {
-    if (!isAdmin) return;
     setLoading(true);
     setError(null);
     try {
-      // 1. Stats
-      const statsRes = await apiClient.getAdminStats();
-      if (statsRes.success) setStats(statsRes.stats);
+      const [statsRes, reportsRes, emailStatsRes, emailLogsRes, otpStatsRes, betaUsersRes, incidentsRes] = await Promise.allSettled([
+        apiClient.request('/api/admin/stats'),
+        apiClient.request('/api/admin/reports'),
+        apiClient.request('/api/admin/email-stats'),
+        apiClient.request('/api/admin/email-logs'),
+        apiClient.request('/api/admin/otp-stats'),
+        apiClient.request('/api/admin/beta-users'),
+        apiClient.request('/api/privacy/admin/incidents')
+      ]);
 
-      // 2. Reports
-      const reportsRes = await apiClient.getAdminReports();
-      if (reportsRes.success) setReports(reportsRes.reports || []);
-
-      // 3. Incidents
-      const incidentsRes = await apiClient.request('/api/privacy/admin/incidents');
-      if (incidentsRes.success) setIncidents(incidentsRes.incidents || []);
-
-      // 4. Email Stats & Logs
-      const emailStatsRes = await apiClient.request('/api/admin/email-stats');
-      if (emailStatsRes.success) setEmailStats(emailStatsRes.stats);
-
-      const emailLogsRes = await apiClient.request('/api/admin/email-logs');
-      if (emailLogsRes.success) setEmailLogs(emailLogsRes.logs || []);
-
-      // 5. OTP Stats
-      const otpStatsRes = await apiClient.request('/api/admin/otp-stats');
-      if (otpStatsRes.success) setOtpStats(otpStatsRes.stats);
-
-      // 6. Beta Users
-      const betaUsersRes = await apiClient.request('/api/admin/beta-users');
-      if (betaUsersRes.success) setBetaUsers(betaUsersRes.users || []);
-
+      if (statsRes.status === 'fulfilled' && statsRes.value.success) setStats(statsRes.value.stats);
+      if (reportsRes.status === 'fulfilled' && reportsRes.value.success) setReports(reportsRes.value.reports || []);
+      if (emailStatsRes.status === 'fulfilled' && emailStatsRes.value.success) setEmailStats(emailStatsRes.value.stats || {});
+      if (emailLogsRes.status === 'fulfilled' && emailLogsRes.value.success) setEmailLogs(emailLogsRes.value.logs || []);
+      if (otpStatsRes.status === 'fulfilled' && otpStatsRes.value.success) {
+        setOtpStats(otpStatsRes.value.stats || {});
+        setSuspiciousAttempts(otpStatsRes.value.suspicious || []);
+      }
+      if (betaUsersRes.status === 'fulfilled' && betaUsersRes.value.success) setBetaUsers(betaUsersRes.value.users || []);
+      if (incidentsRes.status === 'fulfilled' && incidentsRes.value.success) setIncidents(incidentsRes.value.incidents || []);
     } catch (err) {
-      console.error('Error fetching admin data:', err);
-      setError('Failed to fetch full administrative panel metrics.');
+      console.error('Error fetching admin dashboard data:', err);
+      setError('Failed to fetch some administration metrics.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (!isAdmin) {
-      navigate('/dashboard');
-      return;
-    }
     loadAllAdminData();
-  }, [isAdmin]);
+  }, []);
 
-  // Action Handlers
   const handleUpdateReportStatus = async (reportId, status) => {
     setError(null);
     setSuccess(null);
     try {
-      const res = await apiClient.updateReportStatus(reportId, status);
+      const res = await apiClient.request(`/api/admin/reports/${reportId}/status`, {
+        method: 'POST',
+        body: JSON.stringify({ status })
+      });
       if (res.success) {
-        setSuccess(`Safety complaint updated to ${status}`);
-        // Reload reports
-        const reportsRes = await apiClient.getAdminReports();
-        if (reportsRes.success) setReports(reportsRes.reports || []);
+        setSuccess(`Report status updated to ${status}`);
+        setReports(prev => prev.map(r => r.id === reportId ? { ...r, status } : r));
       }
     } catch (err) {
       setError('Failed to update report status.');
@@ -94,14 +83,13 @@ export default function AdminDashboard({ userDetails }) {
     setError(null);
     setSuccess(null);
     try {
-      const res = await apiClient.request(`/api/privacy/admin/incidents/${incidentId}`, {
-        method: 'PATCH',
+      const res = await apiClient.request(`/api/privacy/admin/incidents/${incidentId}/status`, {
+        method: 'POST',
         body: JSON.stringify({ status })
       });
       if (res.success) {
         setSuccess(`Incident updated to ${status}`);
-        const incidentsRes = await apiClient.request('/api/privacy/admin/incidents');
-        if (incidentsRes.success) setIncidents(incidentsRes.incidents || []);
+        setIncidents(prev => prev.map(i => i.id === incidentId ? { ...i, status } : i));
       }
     } catch (err) {
       setError('Failed to update incident status.');
@@ -111,7 +99,16 @@ export default function AdminDashboard({ userDetails }) {
   const handleToggleUserSuspension = async (userId, currentStatus) => {
     setError(null);
     setSuccess(null);
-    const newStatus = currentStatus === 'suspended' ? 'active' : 'suspended';
+    const isCurrentlySuspended = currentStatus === 'suspended';
+    const newStatus = isCurrentlySuspended ? 'active' : 'suspended';
+    
+    // Fast Optimistic UI Update
+    setBetaUsers(prev => prev.map(u => 
+      u.id === userId 
+        ? { ...u, online_status: newStatus === 'suspended' ? 'suspended' : 'offline', is_suspended: newStatus === 'suspended' } 
+        : u
+    ));
+
     try {
       const res = await apiClient.request(`/api/admin/users/${userId}/status`, {
         method: 'POST',
@@ -119,11 +116,42 @@ export default function AdminDashboard({ userDetails }) {
       });
       if (res.success) {
         setSuccess(`User status updated to ${newStatus}`);
-        const betaUsersRes = await apiClient.request('/api/admin/beta-users');
-        if (betaUsersRes.success) setBetaUsers(betaUsersRes.users || []);
+      } else {
+        // Rollback on failure
+        setBetaUsers(prev => prev.map(u => u.id === userId ? { ...u, online_status: currentStatus, is_suspended: isCurrentlySuspended } : u));
+        setError('Failed to update user status.');
       }
     } catch (err) {
+      setBetaUsers(prev => prev.map(u => u.id === userId ? { ...u, online_status: currentStatus, is_suspended: isCurrentlySuspended } : u));
       setError('Failed to update user status.');
+    }
+  };
+
+  const handleDeleteUser = async (userId, username) => {
+    if (!window.confirm(`Are you sure you want to permanently delete user @${username}? This action cannot be undone.`)) {
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+
+    // Fast Optimistic Removal
+    const previousUsers = [...betaUsers];
+    setBetaUsers(prev => prev.filter(u => u.id !== userId));
+
+    try {
+      const res = await apiClient.request(`/api/admin/users/${userId}`, {
+        method: 'DELETE'
+      });
+      if (res.success) {
+        setSuccess(`Account @${username} permanently deleted.`);
+      } else {
+        setBetaUsers(previousUsers);
+        setError(res.error || 'Failed to delete user account.');
+      }
+    } catch (err) {
+      setBetaUsers(previousUsers);
+      setError(err.message || 'Failed to delete user account.');
     }
   };
 
@@ -324,11 +352,11 @@ export default function AdminDashboard({ userDetails }) {
 
                       <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.25rem', borderTop: '1px dashed #EEE', paddingTop: '0.5rem' }}>
                         <button 
-                          className={`btn ${user.is_suspended ? 'btn-primary' : 'btn-secondary'}`}
+                          className={`btn ${user.online_status === 'suspended' || user.is_suspended ? 'btn-primary' : 'btn-secondary'}`}
                           style={{ flex: 1, padding: '0.3rem 0.5rem', fontSize: '0.75rem' }}
-                          onClick={() => handleToggleUserSuspension(user.id, user.is_suspended ? 'suspended' : 'active')}
+                          onClick={() => handleToggleUserSuspension(user.id, (user.online_status === 'suspended' || user.is_suspended) ? 'suspended' : 'active')}
                         >
-                          {user.is_suspended ? 'Unsuspend' : 'Suspend User'}
+                          {(user.online_status === 'suspended' || user.is_suspended) ? 'Unsuspend' : 'Suspend User'}
                         </button>
                         <button 
                           className="btn btn-secondary"
@@ -336,6 +364,15 @@ export default function AdminDashboard({ userDetails }) {
                           onClick={() => handleToggleBetaAccess(user.id, user.searchable)}
                         >
                           {user.searchable ? 'Revoke Beta' : 'Grant Beta'}
+                        </button>
+                        <button 
+                          className="btn btn-secondary"
+                          style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', color: '#BE4D4D', borderColor: '#BE4D4D', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                          onClick={() => handleDeleteUser(user.id, user.username)}
+                          title="Delete Account Permanently"
+                        >
+                          <Trash2 size={13} />
+                          Delete
                         </button>
                       </div>
                     </div>
