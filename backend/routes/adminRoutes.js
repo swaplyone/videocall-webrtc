@@ -233,6 +233,17 @@ const handleDeleteUserAccount = async (req, res) => {
   const { id } = req.params;
 
   try {
+    // 1. Delete user foreign key dependencies safely
+    await query('DELETE FROM friendships WHERE user_id = $1 OR friend_id = $1', [id]).catch(() => {});
+    await query('DELETE FROM friend_requests WHERE sender_id = $1 OR receiver_id = $1', [id]).catch(() => {});
+    await query('DELETE FROM blocks WHERE blocker_id = $1 OR blocked_user_id = $1', [id]).catch(() => {});
+    await query('DELETE FROM email_verification_codes WHERE user_id = $1', [id]).catch(() => {});
+    await query('DELETE FROM email_logs WHERE user_id = $1', [id]).catch(() => {});
+    await query('DELETE FROM privacy_events WHERE user_id = $1 OR target_user_id = $1', [id]).catch(() => {});
+    await query('DELETE FROM reports WHERE reporter_id = $1 OR reported_user_id = $1', [id]).catch(() => {});
+    await query('DELETE FROM calls WHERE caller_id = $1 OR receiver_id = $1', [id]).catch(() => {});
+
+    // 2. Delete main user account
     const deleteRes = await query('DELETE FROM users WHERE id = $1 RETURNING username, email', [id]);
 
     if (deleteRes.rowCount === 0) {
@@ -245,12 +256,12 @@ const handleDeleteUserAccount = async (req, res) => {
     await query(
       'INSERT INTO admin_audit_logs (admin_id, action, target_id, details) VALUES ($1, $2, $3, $4)',
       [req.user.id, 'Delete User Account', id, `Deleted user @${username} (${email})`]
-    );
+    ).catch(() => {});
 
     res.json({ success: true, message: `Account @${username} has been permanently deleted.` });
   } catch (err) {
     console.error('Error deleting user account:', err);
-    res.status(500).json({ error: 'Server error deleting user account' });
+    res.status(500).json({ error: err.message || 'Server error deleting user account' });
   }
 };
 
