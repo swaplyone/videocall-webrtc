@@ -1,19 +1,20 @@
 /**
- * SwaplyOne HTML Email Design System
+ * SwaplyOne Editorial Paper & Sticker HTML Email Design System
  * 
- * Brand Overview:
- * Company Name: SwaplyOne
- * Tagline: "In a Deep Ocean of Skills."
- * Theme: Premium • Minimal • Modern • Trustworthy • Social Platform
- * Colors: Primary #2563EB, Secondary #4F46E5, Accent #06B6D4, Success #10B981, Warning #F59E0B, Danger #EF4444
- * Background: #F5F7FB, Card Background: #FFFFFF, Border Radius: 18px
- * Compatibility: Outlook, Gmail, Apple Mail, Yahoo Mail (Table-based, Inline CSS)
+ * Theme: Warm Recycled Paper & Neo-Brutalist Sticker Design System
+ * Background: #FAF6EE (Recycled Warm Paper)
+ * Card: #FFFFFF (White Paper Sticker Card, Border: 3px solid #2A2723, Box-Shadow: 6px 6px 0px #2A2723)
+ * Primary Accent: #D45B3E (Terracotta Red)
+ * Secondary Accent: #4A6E53 (Moss Green)
+ * Mustard Accent: #E5A93C / #FEF3C7 (Warm Mustard Yellow Badge)
+ * Dark Charcoal: #2A2723 (Text & Outlines)
+ * Compatibility: Outlook, Gmail, Apple Mail, Yahoo Mail
  */
 
-// --- CORE REUSABLE COMPONENT BUILDERS ---
+// --- CORE STICKER & PAPER COMPONENT BUILDERS ---
 
 /**
- * Primary CTA Button Builder
+ * Primary Sticker Button Builder
  */
 export function renderButton(text, url) {
   if (!text || !url) return '';
@@ -23,15 +24,15 @@ export function renderButton(text, url) {
         <td align="center">
           <table role="presentation" border="0" cellpadding="0" cellspacing="0">
             <tr>
-              <td align="center" bgcolor="#2563EB" style="border-radius: 12px; background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%);">
+              <td align="center" bgcolor="#D45B3E" style="border: 3px solid #2A2723; border-radius: 10px; background-color: #D45B3E; box-shadow: 4px 4px 0px #2A2723;">
                 <!--[if mso]>
-                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${url}" style="height:48px;v-text-anchor:middle;width:240px;" arcsize="25%" stroke="f" fillcolor="#2563EB">
+                <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${url}" style="height:48px;v-text-anchor:middle;width:240px;" arcsize="20%" stroke="t" strokecolor="#2A2723" fillcolor="#D45B3E">
                   <w:anchorlock/>
-                  <center style="color:#ffffff;font-family:sans-serif;font-size:15px;font-weight:bold;">${text}</center>
+                  <center style="color:#ffffff;font-family:sans-serif;font-size:15px;font-weight:bold;text-transform:uppercase;">${text}</center>
                 </v:roundrect>
                 <![endif]-->
                 <!--[if !mso]><!-->
-                <a href="${url}" target="_blank" style="display: inline-block; padding: 14px 32px; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; font-weight: 700; color: #FFFFFF; text-decoration: none; border-radius: 12px; letter-spacing: 0.02em;">
+                <a href="${url}" target="_blank" style="display: inline-block; padding: 14px 28px; font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; font-weight: 900; color: #FFFFFF; text-decoration: none; border-radius: 8px; letter-spacing: 0.05em; text-transform: uppercase;">
                   ${text} &rarr;
                 </a>
                 <!--<![endif]-->
@@ -45,12 +46,12 @@ export function renderButton(text, url) {
 }
 
 /**
- * Centered Large OTP Card Builder
+ * Centered Large OTP Paper Sticker Card Builder
  */
 export function renderOTPBlock(otp, expiresInMinutes = 5) {
   const digits = String(otp).split('');
   const formattedDigits = digits.map(d => `
-    <td align="center" valign="middle" width="44" height="52" style="background: #FFFFFF; border: 2px solid #D1D5DB; border-radius: 10px; font-family: 'Courier New', Courier, monospace; font-size: 26px; font-weight: 900; color: #1E293B; box-shadow: 0 2px 4px rgba(0,0,0,0.04);">
+    <td align="center" valign="middle" width="46" height="54" style="background: #FFFFFF; border: 2.5px solid #2A2723; border-radius: 8px; font-family: 'Space Mono', Courier, monospace; font-size: 26px; font-weight: 900; color: #2A2723; box-shadow: 2px 2px 0px #2A2723;">
       ${d}
     </td>
   `).join('<td width="8"></td>');
@@ -59,10 +60,10 @@ export function renderOTPBlock(otp, expiresInMinutes = 5) {
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 28px 0;">
       <tr>
         <td align="center">
-          <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="background: #F0F5FF; border: 1px solid #C7D2FE; border-radius: 16px; padding: 24px; max-width: 440px; width: 100%;">
+          <table role="presentation" border="0" cellpadding="0" cellspacing="0" style="background: #FEF3C7; border: 3px solid #2A2723; border-radius: 14px; padding: 24px; max-width: 440px; width: 100%; box-shadow: 5px 5px 0px #2A2723;">
             <tr>
-              <td align="center" style="font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #4F46E5; padding-bottom: 14px;">
-                One-Time Verification Code
+              <td align="center" style="font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #2A2723; padding-bottom: 14px;">
+                &#128274; One-Time Verification Pass
               </td>
             </tr>
             <tr>
@@ -75,9 +76,9 @@ export function renderOTPBlock(otp, expiresInMinutes = 5) {
               </td>
             </tr>
             <tr>
-              <td align="center" style="font-family: 'Inter', sans-serif; font-size: 13px; color: #64748B; padding-top: 16px;">
-                &bull; Code expires in <strong>${expiresInMinutes} minutes</strong> &bull;<br/>
-                <span style="font-size: 12px; color: #94A3B8;">Do not share this code with anyone for your account security.</span>
+              <td align="center" style="font-family: 'Work Sans', sans-serif; font-size: 13px; color: #6B655C; padding-top: 16px;">
+                &bull; Code expires in <strong style="color: #2A2723;">${expiresInMinutes} minutes</strong> &bull;<br/>
+                <span style="font-size: 12px; color: #6B655C;">Do not share this code for security reasons.</span>
               </td>
             </tr>
           </table>
@@ -88,22 +89,22 @@ export function renderOTPBlock(otp, expiresInMinutes = 5) {
 }
 
 /**
- * Alert Box Component Builder
+ * Sticker Alert Box Component Builder
  */
 export function renderAlertBox(type, message) {
   const styles = {
-    success: { bg: '#ECFDF5', border: '#10B981', text: '#065F46', icon: '&#10004;' },
-    warning: { bg: '#FFFBEB', border: '#F59E0B', text: '#92400E', icon: '&#9888;' },
-    error:   { bg: '#FEF2F2', border: '#EF4444', text: '#991B1B', icon: '&#9888;' },
-    danger:  { bg: '#FEF2F2', border: '#EF4444', text: '#991B1B', icon: '&#9888;' },
-    info:    { bg: '#EFF6FF', border: '#2563EB', text: '#1E40AF', icon: '&#8505;' }
+    success: { bg: '#E6F4EA', border: '#4A6E53', text: '#1E3A27', icon: '&#10004;' },
+    warning: { bg: '#FEF3C7', border: '#E5A93C', text: '#78350F', icon: '&#9888;' },
+    error:   { bg: '#FCE8E6', border: '#BE4D4D', text: '#7A1C1C', icon: '&#9888;' },
+    danger:  { bg: '#FCE8E6', border: '#BE4D4D', text: '#7A1C1C', icon: '&#9888;' },
+    info:    { bg: '#EBF3FA', border: '#4C779F', text: '#1A365D', icon: '&#8505;' }
   };
   const cfg = styles[type] || styles.info;
   return `
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0;">
       <tr>
-        <td style="background-color: ${cfg.bg}; border-left: 4px solid ${cfg.border}; border-radius: 8px; padding: 14px 18px; font-family: 'Inter', sans-serif; font-size: 14px; line-height: 1.5; color: ${cfg.text};">
-          <strong style="margin-right: 6px;">${cfg.icon}</strong> ${message}
+        <td style="background-color: ${cfg.bg}; border: 2.5px solid #2A2723; border-left: 6px solid ${cfg.border}; border-radius: 10px; padding: 14px 18px; font-family: 'Work Sans', sans-serif; font-size: 14px; line-height: 1.5; color: ${cfg.text}; box-shadow: 3px 3px 0px #2A2723;">
+          <strong style="margin-right: 6px; font-size: 16px;">${cfg.icon}</strong> ${message}
         </td>
       </tr>
     </table>
@@ -111,25 +112,25 @@ export function renderAlertBox(type, message) {
 }
 
 /**
- * Information Card Component Builder
+ * Information Card Component Builder (Paper Sticker Card)
  */
 export function renderInfoCard(title, items = []) {
   const rows = items.map(item => `
     <tr>
-      <td valign="top" style="padding: 8px 0; font-family: 'Inter', sans-serif; font-size: 13px; color: #64748B; width: 38%; font-weight: 600;">
+      <td valign="top" style="padding: 8px 0; font-family: 'Space Mono', monospace; font-size: 12px; color: #6B655C; width: 40%; font-weight: 700; text-transform: uppercase;">
         ${item.label}
       </td>
-      <td valign="top" style="padding: 8px 0; font-family: 'Inter', sans-serif; font-size: 13px; color: #0F172A; font-weight: 700;">
+      <td valign="top" style="padding: 8px 0; font-family: 'Work Sans', sans-serif; font-size: 13px; color: #2A2723; font-weight: 700;">
         ${item.value}
       </td>
     </tr>
   `).join('');
 
   return `
-    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px 20px;">
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 20px 0; background: #FFF0EB; border: 2.5px solid #2A2723; border-radius: 12px; padding: 18px; box-shadow: 4px 4px 0px #2A2723;">
       ${title ? `
       <tr>
-        <td colspan="2" style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 800; color: #1E293B; text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 8px; border-bottom: 1px solid #E2E8F0;">
+        <td colspan="2" style="font-family: 'Syne', 'Work Sans', sans-serif; font-size: 13px; font-weight: 800; color: #2A2723; text-transform: uppercase; letter-spacing: 0.05em; padding-bottom: 10px; border-bottom: 2px dashed #2A2723;">
           ${title}
         </td>
       </tr>
@@ -139,10 +140,10 @@ export function renderInfoCard(title, items = []) {
   `;
 }
 
-// --- MASTER TEMPLATE LAYOUT BUILDER ---
+// --- MASTER STICKER PAPER TEMPLATE LAYOUT BUILDER ---
 
 /**
- * Wraps content in the SwaplyOne master HTML email wrapper.
+ * Wraps content in SwaplyOne Editorial Warm Paper & Sticker Master Wrapper.
  */
 export function renderMasterLayout({
   preheader = 'SwaplyOne - In a Deep Ocean of Skills.',
@@ -156,73 +157,63 @@ export function renderMasterLayout({
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="light dark" />
-  <meta name="supported-color-schemes" content="light dark" />
   <title>${title} | SwaplyOne</title>
   <style type="text/css">
     /* Client-specific Resets */
     body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
     table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-    img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+    img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
     table { border-collapse: collapse !important; }
-    body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #F5F7FB; }
-    
-    /* Dark Mode Media Queries */
-    @media (prefers-color-scheme: dark) {
-      .bg-main { background-color: #0F172A !important; }
-      .bg-card { background-color: #1E293B !important; border-color: #334155 !important; }
-      .text-dark { color: #F8FAFC !important; }
-      .text-muted { color: #94A3B8 !important; }
-    }
+    body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #FAF6EE; }
   </style>
 </head>
-<body class="bg-main" style="margin: 0; padding: 0; background-color: #F5F7FB; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+<body style="margin: 0; padding: 0; background-color: #FAF6EE; font-family: 'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #2A2723;">
   
   <!-- Hidden Preheader Text -->
-  <div style="display: none; font-size: 1px; color: #F5F7FB; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">
+  <div style="display: none; font-size: 1px; color: #FAF6EE; line-height: 1px; max-height: 0px; max-width: 0px; opacity: 0; overflow: hidden;">
     ${preheader} &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
   </div>
 
-  <!-- Outer Background Container -->
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="bg-main" style="background-color: #F5F7FB; table-layout: fixed;">
+  <!-- Outer Recycled Paper Background -->
+  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FAF6EE; table-layout: fixed;">
     <tr>
       <td align="center" style="padding: 40px 16px;">
         
         <!-- Main Card Container (Max Width 600px) -->
         <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; margin: 0 auto;">
           
-          <!-- BRAND HEADER BANNER -->
+          <!-- BRAND STICKER HEADER BANNER -->
           <tr>
-            <td align="center" style="background: linear-gradient(135deg, #2563EB 0%, #4F46E5 100%); border-top-left-radius: 18px; border-top-right-radius: 18px; padding: 36px 32px; text-align: center;">
+            <td align="center" style="background-color: #D45B3E; border: 3px solid #2A2723; border-top-left-radius: 16px; border-top-right-radius: 16px; padding: 32px 28px; text-align: center; box-shadow: 6px 6px 0px #2A2723;">
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td align="center">
-                    <!-- Brand Icon Badge -->
-                    <div style="display: inline-block; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 14px; padding: 10px 16px; margin-bottom: 12px;">
-                      <span style="font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 900; color: #FFFFFF; letter-spacing: -0.02em;">
-                        &infin; Swaply<span style="color: #06B6D4;">One</span>
+                    <!-- Yellow Sticker Badge -->
+                    <div style="display: inline-block; background-color: #FEF3C7; border: 2.5px solid #2A2723; border-radius: 10px; padding: 8px 18px; box-shadow: 3px 3px 0px #2A2723; margin-bottom: 10px;">
+                      <span style="font-family: 'Syne', 'Work Sans', sans-serif; font-size: 22px; font-weight: 900; color: #2A2723; letter-spacing: -0.02em; text-transform: uppercase;">
+                        &infin; Swaply<span style="color: #D45B3E;">One</span>
                       </span>
                     </div>
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; color: #E0E7FF; letter-spacing: 0.1em; text-transform: uppercase;">
-                    In a Deep Ocean of Skills.
+                  <td align="center" style="font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700; color: #FFFFFF; letter-spacing: 0.1em; text-transform: uppercase; padding-top: 4px;">
+                    "In a Deep Ocean of Skills."
                   </td>
                 </tr>
               </table>
             </td>
           </tr>
 
-          <!-- MAIN CARD BODY -->
+          <!-- MAIN WHITE PAPER CARD BODY -->
           <tr>
-            <td class="bg-card" style="background-color: #FFFFFF; border-bottom-left-radius: 18px; border-bottom-right-radius: 18px; border: 1px solid #E2E8F0; border-top: none; padding: 40px 36px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);">
+            <td style="background-color: #FFFFFF; border: 3px solid #2A2723; border-top: none; border-bottom-left-radius: 16px; border-bottom-right-radius: 16px; padding: 36px 32px; box-shadow: 6px 6px 0px #2A2723;">
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                 
                 ${title ? `
                 <tr>
                   <td style="padding-bottom: 8px;">
-                    <h1 class="text-dark" style="margin: 0; font-family: 'Inter', -apple-system, sans-serif; font-size: 24px; font-weight: 800; color: #0F172A; letter-spacing: -0.02em; line-height: 1.3;">
+                    <h1 style="margin: 0; font-family: 'Syne', 'Work Sans', sans-serif; font-size: 24px; font-weight: 900; color: #2A2723; letter-spacing: -0.02em; line-height: 1.3; text-transform: uppercase;">
                       ${title}
                     </h1>
                   </td>
@@ -231,8 +222,8 @@ export function renderMasterLayout({
 
                 ${subtitle ? `
                 <tr>
-                  <td style="padding-bottom: 24px; border-bottom: 1px solid #F1F5F9;">
-                    <p class="text-muted" style="margin: 0; font-family: 'Inter', sans-serif; font-size: 15px; color: #64748B; line-height: 1.5;">
+                  <td style="padding-bottom: 22px; border-bottom: 2px dashed #2A2723;">
+                    <p style="margin: 0; font-family: 'Work Sans', sans-serif; font-size: 15px; color: #6B655C; line-height: 1.5; font-weight: 500;">
                       ${subtitle}
                     </p>
                   </td>
@@ -241,15 +232,15 @@ export function renderMasterLayout({
 
                 <!-- Content Slot -->
                 <tr>
-                  <td style="padding-top: 20px; font-family: 'Inter', sans-serif; font-size: 15px; color: #334155; line-height: 1.6;">
+                  <td style="padding-top: 22px; font-family: 'Work Sans', sans-serif; font-size: 15px; color: #2A2723; line-height: 1.6;">
                     ${contentHtml}
                   </td>
                 </tr>
 
                 ${footerNote ? `
                 <tr>
-                  <td style="padding-top: 28px; border-top: 1px solid #F1F5F9;">
-                    <p class="text-muted" style="margin: 0; font-family: 'Inter', sans-serif; font-size: 13px; color: #94A3B8; line-height: 1.5;">
+                  <td style="padding-top: 26px; border-top: 2px dashed #2A2723;">
+                    <p style="margin: 0; font-family: 'Work Sans', sans-serif; font-size: 13px; color: #6B655C; line-height: 1.5;">
                       ${footerNote}
                     </p>
                   </td>
@@ -265,22 +256,22 @@ export function renderMasterLayout({
             <td align="center" style="padding: 32px 24px 0 24px; text-align: center;">
               <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
-                  <td align="center" style="font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; color: #475569;">
-                    SwaplyOne Inc. &bull; <span style="font-weight: 400; color: #64748B;">In a Deep Ocean of Skills.</span>
+                  <td align="center" style="font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 800; color: #2A2723;">
+                    SwaplyOne Inc. &bull; <span style="font-family: 'Space Mono', monospace; font-size: 12px; color: #6B655C; font-weight: 400;">In a Deep Ocean of Skills.</span>
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="padding-top: 12px; font-family: 'Inter', sans-serif; font-size: 13px; color: #64748B;">
-                    <a href="https://swaply.app" target="_blank" style="color: #2563EB; text-decoration: none; font-weight: 600;">Website</a> &bull; 
-                    <a href="mailto:support@swaply.app" style="color: #2563EB; text-decoration: none; font-weight: 600;">Support</a> &bull; 
-                    <a href="https://swaply.app/privacy" target="_blank" style="color: #64748B; text-decoration: none;">Privacy Policy</a> &bull; 
-                    <a href="https://swaply.app/terms" target="_blank" style="color: #64748B; text-decoration: none;">Terms of Service</a>
+                  <td align="center" style="padding-top: 12px; font-family: 'Work Sans', sans-serif; font-size: 13px; color: #6B655C;">
+                    <a href="https://swaply.app" target="_blank" style="color: #D45B3E; text-decoration: none; font-weight: 800;">Website</a> &bull; 
+                    <a href="mailto:support@swaply.app" style="color: #D45B3E; text-decoration: none; font-weight: 800;">Support</a> &bull; 
+                    <a href="https://swaply.app/privacy" target="_blank" style="color: #2A2723; text-decoration: none;">Privacy Policy</a> &bull; 
+                    <a href="https://swaply.app/terms" target="_blank" style="color: #2A2723; text-decoration: none;">Terms of Service</a>
                   </td>
                 </tr>
                 <tr>
-                  <td align="center" style="padding-top: 16px; font-family: 'Inter', sans-serif; font-size: 12px; color: #94A3B8;">
+                  <td align="center" style="padding-top: 16px; font-family: 'Space Mono', monospace; font-size: 11px; color: #6B655C;">
                     &copy; 2026 SwaplyOne Inc. All rights reserved.<br/>
-                    You are receiving this automated email regarding your SwaplyOne account activity.
+                    Automated notification regarding your SwaplyOne account activity.
                   </td>
                 </tr>
               </table>
@@ -297,7 +288,7 @@ export function renderMasterLayout({
 </html>`;
 }
 
-// --- 24 REUSABLE PRODUCTION EMAIL TEMPLATES ---
+// --- 24 REUSABLE STICKER PAPER EMAIL TEMPLATES ---
 
 /**
  * 1. Email Verification OTP
@@ -305,14 +296,14 @@ export function renderMasterLayout({
 export function getEmailVerificationOTPTemplate({ username = 'Member', otp = '123456', expiresInMinutes = 5 }) {
   const contentHtml = `
     <p>Hello <strong>@${username}</strong>,</p>
-    <p>Please enter the following one-time verification code to verify your email address and secure your SwaplyOne account:</p>
+    <p>Please enter the following one-time verification pass code to confirm your email address and activate your SwaplyOne account:</p>
     ${renderOTPBlock(otp, expiresInMinutes)}
-    ${renderAlertBox('warning', 'If you did not request this verification code, please ignore this message or contact security.')}
+    ${renderAlertBox('warning', 'If you did not request this verification pass, please ignore this email.')}
   `;
   return renderMasterLayout({
-    preheader: `Your SwaplyOne verification code is ${otp}`,
+    preheader: `Your SwaplyOne verification pass code is ${otp}`,
     title: 'Verify Your Email Address',
-    subtitle: 'Security Verification & Identity Confirmation',
+    subtitle: 'Security Verification & Identity Pass',
     contentHtml
   });
 }
@@ -322,15 +313,15 @@ export function getEmailVerificationOTPTemplate({ username = 'Member', otp = '12
  */
 export function getWelcomeTemplate({ username = 'Member', betaId = 'BETA-9999' }) {
   const contentHtml = `
-    <p>Welcome to <strong>SwaplyOne</strong>, <strong>@${username}</strong>! We're thrilled to have you in our community.</p>
-    <p>SwaplyOne connects skilled creators, developers, and learners across a deep ocean of skills through peer-to-peer video communication.</p>
-    ${renderInfoCard('Your Account Credentials', [
+    <p>Welcome to <strong>SwaplyOne</strong>, <strong>@${username}</strong>!</p>
+    <p>SwaplyOne connects creators, developers, and learners across a deep ocean of skills through peer-to-peer video communication.</p>
+    ${renderInfoCard('Your Account Pass', [
       { label: 'Username', value: `@${username}` },
-      { label: 'Assigned Beta ID', value: betaId },
-      { label: 'Platform Access', value: 'Full Peer Video & Chat' }
+      { label: 'Beta ID', value: betaId },
+      { label: 'Platform Status', value: 'Full Access Granted' }
     ])}
-    ${renderButton('Enter SwaplyOne Dashboard', 'https://swaply.app/dashboard')}
-    ${renderAlertBox('info', 'Keep your Beta ID private. SwaplyOne features automated screenshot and screen capture telemetry for participant protection.')}
+    ${renderButton('Enter SwaplyOne Console', 'https://swaply.app/dashboard')}
+    ${renderAlertBox('info', 'Keep your Beta ID private. SwaplyOne incorporates participant capture telemetry for safety.')}
   `;
   return renderMasterLayout({
     preheader: `Welcome to SwaplyOne! Your Beta ID is ${betaId}`,
@@ -346,12 +337,12 @@ export function getWelcomeTemplate({ username = 'Member', betaId = 'BETA-9999' }
 export function getBetaRegistrationSuccessfulTemplate({ username = 'Member', betaId = 'BETA-1234' }) {
   const contentHtml = `
     <p>Hello <strong>@${username}</strong>,</p>
-    <p>Your beta registration for <strong>SwaplyOne</strong> has been successfully processed and verified.</p>
-    ${renderAlertBox('success', `Beta Profile Activated! Your Beta ID is <strong>${betaId}</strong>.`)}
-    ${renderInfoCard('Beta Membership Details', [
+    <p>Your beta registration for <strong>SwaplyOne</strong> has been processed and verified.</p>
+    ${renderAlertBox('success', `Beta Profile Activated! Assigned Beta ID: <strong>${betaId}</strong>`)}
+    ${renderInfoCard('Beta Access Pass', [
       { label: 'Status', value: 'ACTIVE BETA ACCESS' },
       { label: 'Beta ID', value: betaId },
-      { label: 'Capabilities', value: 'Unlimited 1-on-1 Calls, QR Connect' }
+      { label: 'Access Level', value: 'Peer Video, Dynamic QR Dial' }
     ])}
     ${renderButton('Access Beta Features', 'https://swaply.app/dashboard')}
   `;
@@ -369,17 +360,17 @@ export function getBetaRegistrationSuccessfulTemplate({ username = 'Member', bet
 export function getBetaWaitlistConfirmationTemplate({ username = 'Applicant', queuePosition = '#142' }) {
   const contentHtml = `
     <p>Hello <strong>${username}</strong>,</p>
-    <p>Thank you for applying to the <strong>SwaplyOne Private Beta</strong>. You are officially on our priority waitlist!</p>
-    ${renderInfoCard('Waitlist Status', [
-      { label: 'Current Queue Position', value: queuePosition },
-      { label: 'Estimated Invitation', value: 'Upcoming Batch Release' }
+    <p>Thank you for applying to the <strong>SwaplyOne Private Beta</strong>. You are officially registered on our waitlist!</p>
+    ${renderInfoCard('Waitlist Record', [
+      { label: 'Queue Position', value: queuePosition },
+      { label: 'Estimated Batch', value: 'Next Slot Release' }
     ])}
-    <p>We roll out new beta slots weekly to ensure maximum video stability and network infrastructure performance.</p>
-    ${renderAlertBox('info', 'We will send an invitation link directly to this email address once your slot opens.')}
+    <p>We roll out new beta passes in batches to maintain video streaming stability.</p>
+    ${renderAlertBox('info', 'We will send a direct invite pass to this email as soon as your slot opens.')}
   `;
   return renderMasterLayout({
     preheader: `SwaplyOne Beta Waitlist Confirmation - Position ${queuePosition}`,
-    title: 'Beta Waitlist Confirmed',
+    title: 'Waitlist Confirmed',
     subtitle: 'You are on the list for SwaplyOne Beta',
     contentHtml
   });
@@ -388,16 +379,16 @@ export function getBetaWaitlistConfirmationTemplate({ username = 'Applicant', qu
 /**
  * 5. Beta Invitation
  */
-export function getBetaInvitationTemplate({ username = 'Member', inviteCode = 'SWAPLY-BETA-2026', buttonUrl = 'https://swaply.app/register' }) {
+export function getBetaInvitationTemplate({ username = 'Member', inviteCode = 'SWAPLY-PASS-2026', buttonUrl = 'https://swaply.app/register' }) {
   const contentHtml = `
     <p>Hello <strong>${username}</strong>,</p>
     <p>You have been officially invited to join the <strong>SwaplyOne Private Beta Platform</strong>!</p>
-    ${renderInfoCard('Exclusive Invitation Details', [
-      { label: 'Invite Pass', value: inviteCode },
-      { label: 'Validity', value: '72 Hours' }
+    ${renderInfoCard('Invitation Pass Details', [
+      { label: 'Invite Pass Code', value: inviteCode },
+      { label: 'Pass Expiration', value: '72 Hours' }
     ])}
-    ${renderButton('Claim Your Beta Account', buttonUrl)}
-    ${renderAlertBox('warning', 'This invitation code is non-transferable and linked to your email address.')}
+    ${renderButton('Claim Beta Pass Now', buttonUrl)}
+    ${renderAlertBox('warning', 'This invitation pass is non-transferable and linked to your email address.')}
   `;
   return renderMasterLayout({
     preheader: 'You are invited to join SwaplyOne Private Beta!',
@@ -413,8 +404,8 @@ export function getBetaInvitationTemplate({ username = 'Member', inviteCode = 'S
 export function getBetaAcceptedTemplate({ username = 'Member', betaId = 'BETA-5678', buttonUrl = 'https://swaply.app/dashboard' }) {
   const contentHtml = `
     <p>Congratulations <strong>@${username}</strong>!</p>
-    <p>Your request to join the SwaplyOne Beta Creator Network has been accepted by our review team.</p>
-    ${renderAlertBox('success', 'Full Beta Credentials Approved.')}
+    <p>Your request to join the SwaplyOne Beta Creator Network has been accepted by our team.</p>
+    ${renderAlertBox('success', `Beta Application Approved! Beta ID: <strong>${betaId}</strong>`)}
     ${renderButton('Open SwaplyOne App', buttonUrl)}
   `;
   return renderMasterLayout({
@@ -431,21 +422,21 @@ export function getBetaAcceptedTemplate({ username = 'Member', betaId = 'BETA-56
 export function getRolloutUpdateTemplate({ username = 'Member', version = 'v2.4.0', highlights = 'Enhanced WebRTC connection setup, dynamic PiP telemetry, and improved security audit logs.' }) {
   const contentHtml = `
     <p>Hello <strong>@${username}</strong>,</p>
-    <p>A new platform rollout (<strong>${version}</strong>) has been deployed across the SwaplyOne network.</p>
-    ${renderInfoCard('Rollout Highlights', [
-      { label: 'Version', value: version },
+    <p>A new platform update (<strong>${version}</strong>) has been deployed across the SwaplyOne network.</p>
+    ${renderInfoCard('Release Notes', [
+      { label: 'Version Tag', value: version },
       { label: 'Release Date', value: new Date().toLocaleDateString() }
     ])}
-    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 16px; border-radius: 12px; font-size: 14px;">
+    <div style="background: #FAF6EE; border: 2px solid #2A2723; padding: 16px; border-radius: 10px; font-size: 14px; box-shadow: 3px 3px 0px #2A2723;">
       <strong>Key Enhancements:</strong><br/>
       ${highlights}
     </div>
-    ${renderButton('Explore New Release', 'https://swaply.app/dashboard')}
+    ${renderButton('Explore Release', 'https://swaply.app/dashboard')}
   `;
   return renderMasterLayout({
     preheader: `SwaplyOne Rollout Update ${version}`,
     title: `Platform Update ${version}`,
-    subtitle: 'New features and security enhancements',
+    subtitle: 'New features and performance enhancements',
     contentHtml
   });
 }
@@ -459,7 +450,7 @@ export function getFriendRequestReceivedTemplate({ username = 'Member', requeste
     <p><strong>${requesterName}</strong> (<code>@${requesterUsername}</code>) has sent you a connection request on SwaplyOne.</p>
     ${renderInfoCard('Connection Details', [
       { label: 'Requester', value: `${requesterName} (@${requesterUsername})` },
-      { label: 'Privacy Status', value: 'Verified Peer' }
+      { label: 'Connection Type', value: 'Peer Skill Sharing' }
     ])}
     ${renderButton('Respond to Request', buttonUrl)}
   `;
@@ -495,14 +486,14 @@ export function getFriendRequestAcceptedTemplate({ username = 'Member', friendNa
 export function getPasswordResetOTPTemplate({ username = 'Member', otp = '654321', expiresInMinutes = 5 }) {
   const contentHtml = `
     <p>Hello <strong>@${username}</strong>,</p>
-    <p>We received a request to reset the password for your SwaplyOne account. Use the code below to set a new password:</p>
+    <p>We received a request to reset the password for your SwaplyOne account. Use the verification pass code below to set your new password:</p>
     ${renderOTPBlock(otp, expiresInMinutes)}
-    ${renderAlertBox('danger', 'If you did not request a password reset, someone may be trying to access your account. Please secure your email immediately.')}
+    ${renderAlertBox('danger', 'If you did not request a password reset, please secure your email account immediately.')}
   `;
   return renderMasterLayout({
     preheader: `SwaplyOne Password Reset Code: ${otp}`,
     title: 'Reset Your Password',
-    subtitle: 'Account Password Recovery Security',
+    subtitle: 'Account Password Security',
     contentHtml
   });
 }
@@ -513,13 +504,13 @@ export function getPasswordResetOTPTemplate({ username = 'Member', otp = '654321
 export function getEmailChangeVerificationTemplate({ username = 'Member', otp = '987654', newEmail = 'new@swaply.app' }) {
   const contentHtml = `
     <p>Hello <strong>@${username}</strong>,</p>
-    <p>A request was made to change your registered email address to <strong>${newEmail}</strong>.</p>
+    <p>A request was made to update your registered email address to <strong>${newEmail}</strong>.</p>
     ${renderOTPBlock(otp, 10)}
-    ${renderAlertBox('warning', 'If you did not initiate this email modification, please contact SwaplyOne security immediately.')}
+    ${renderAlertBox('warning', 'If you did not initiate this change, please contact SwaplyOne support immediately.')}
   `;
   return renderMasterLayout({
     preheader: `Email Change Verification Code: ${otp}`,
-    title: 'Verify Email Modification',
+    title: 'Verify Email Change',
     subtitle: 'Confirming your new contact address',
     contentHtml
   });
@@ -531,15 +522,15 @@ export function getEmailChangeVerificationTemplate({ username = 'Member', otp = 
 export function getNewDeviceLoginAlertTemplate({ username = 'Member', device = 'Chrome on Windows', location = 'New York, US', ip = '192.168.1.1', time = new Date().toLocaleString(), buttonUrl = 'https://swaply.app/settings' }) {
   const contentHtml = `
     <p>Hello <strong>@${username}</strong>,</p>
-    <p>We detected a new login to your SwaplyOne account from an unrecognized device or location.</p>
-    ${renderInfoCard('Login Activity Details', [
+    <p>We detected a login to your SwaplyOne account from a new device or location.</p>
+    ${renderInfoCard('Login Details', [
       { label: 'Device / Browser', value: device },
       { label: 'Location', value: location },
       { label: 'IP Address', value: ip },
       { label: 'Timestamp', value: time }
     ])}
     ${renderAlertBox('warning', 'If this was you, no action is required.')}
-    ${renderButton('Review Account Security', buttonUrl)}
+    ${renderButton('Review Security', buttonUrl)}
   `;
   return renderMasterLayout({
     preheader: 'New device login detected on your SwaplyOne account',
@@ -573,7 +564,7 @@ export function getSecurityAlertTemplate({ username = 'Member', title = 'Securit
 export function getPrivacyWarningTemplate({ username = 'Member', warningType = 'Screen Capture Attempt', time = new Date().toLocaleString(), callId = 'call_9999' }) {
   const contentHtml = `
     <p>Hello <strong>@${username}</strong>,</p>
-    ${renderAlertBox('danger', 'Privacy Telemetry Alert Triggered!')}
+    ${renderAlertBox('danger', 'Privacy Protection Telemetry Alert Triggered!')}
     <p>Our automated participant protection system registered a <strong>${warningType}</strong> during an active call session.</p>
     ${renderInfoCard('Incident Record', [
       { label: 'Event Type', value: warningType },
@@ -584,8 +575,8 @@ export function getPrivacyWarningTemplate({ username = 'Member', warningType = '
   `;
   return renderMasterLayout({
     preheader: `SwaplyOne Privacy Alert: ${warningType}`,
-    title: 'Privacy Violation Warning',
-    subtitle: 'Automated telemetry detection alert',
+    title: 'Privacy Warning',
+    subtitle: 'Automated telemetry alert',
     contentHtml
   });
 }
@@ -617,14 +608,14 @@ export function getCallMissedNotificationTemplate({ username = 'Member', callerN
 export function getCallSummaryTemplate({ username = 'Member', peerName = 'Jordan', duration = '18m 42s', callId = 'call_8888', date = new Date().toLocaleDateString() }) {
   const contentHtml = `
     <p>Hello <strong>@${username}</strong>,</p>
-    <p>Here is your summary for your video session with <strong>${peerName}</strong>.</p>
+    <p>Here is your call summary for your session with <strong>${peerName}</strong>.</p>
     ${renderInfoCard('Session Summary', [
       { label: 'Peer Connection', value: peerName },
       { label: 'Duration', value: duration },
       { label: 'Session ID', value: callId },
       { label: 'Date', value: date }
     ])}
-    ${renderButton('View Call Log History', 'https://swaply.app/history')}
+    ${renderButton('View Call History', 'https://swaply.app/history')}
   `;
   return renderMasterLayout({
     preheader: `Call Summary with ${peerName} (${duration})`,
@@ -647,7 +638,7 @@ export function getAccountScheduledForDeletionTemplate({ username = 'Member', sc
       { label: 'Scheduled Execution', value: scheduledDate },
       { label: 'Recovery Window', value: '5 Hours Grace Period' }
     ])}
-    <p>Your account is currently disabled and hidden from search. If you wish to cancel this request, simply log into SwaplyOne within 5 hours.</p>
+    <p>Your account is currently disabled and hidden from search. If you wish to cancel this request, log into SwaplyOne within 5 hours.</p>
     ${renderButton('Cancel Deletion & Recover Account', recoveryUrl)}
   `;
   return renderMasterLayout({
@@ -665,8 +656,8 @@ export function getAccountRecoverySuccessfulTemplate({ username = 'Member', rest
   const contentHtml = `
     <p>Welcome back <strong>@${username}</strong>!</p>
     ${renderAlertBox('success', 'Account Deletion Request Cancelled & Account Restored!')}
-    <p>Your SwaplyOne account, profile data, connections, and privacy settings have been fully reactivated.</p>
-    ${renderInfoCard('Restoration Summary', [
+    <p>Your SwaplyOne account, profile data, connections, and settings have been fully reactivated.</p>
+    ${renderInfoCard('Restoration Record', [
       { label: 'Account Username', value: `@${username}` },
       { label: 'Restoration Date', value: restoredDate },
       { label: 'Account Status', value: 'ACTIVE' }
@@ -688,12 +679,12 @@ export function getAccountPermanentlyDeletedTemplate({ username = 'Member', dele
   const contentHtml = `
     <p>Hello <strong>@${username}</strong>,</p>
     ${renderAlertBox('error', 'Account Permanently Purged.')}
-    <p>Your SwaplyOne account and all associated profile records, call logs, messages, and security identifiers have been permanently deleted following the 5-hour grace period.</p>
+    <p>Your SwaplyOne account and all associated profile records, call logs, messages, and identifiers have been permanently deleted following the 5-hour grace period.</p>
     ${renderInfoCard('Deletion Record', [
       { label: 'Account Username', value: `@${username}` },
       { label: 'Purged Timestamp', value: deletedDate }
     ])}
-    <p style="font-size: 13px; color: #64748B;">Thank you for being part of the SwaplyOne platform.</p>
+    <p style="font-size: 13px; color: #6B655C;">Thank you for being part of the SwaplyOne platform.</p>
   `;
   return renderMasterLayout({
     preheader: `SwaplyOne Account @${username} Permanently Deleted`,
@@ -709,9 +700,9 @@ export function getAccountPermanentlyDeletedTemplate({ username = 'Member', dele
 export function getFeatureAnnouncementTemplate({ username = 'Member', featureName = 'QR Code Direct Connect', description = 'Instant 1-on-1 peer connections via custom dynamic QR tokens.', buttonUrl = 'https://swaply.app/dashboard' }) {
   const contentHtml = `
     <p>Hello <strong>@${username}</strong>,</p>
-    <p>We are excited to introduce a major new capability to SwaplyOne: <strong>${featureName}</strong>!</p>
-    <div style="background: #F0F5FF; border: 1px solid #C7D2FE; padding: 20px; border-radius: 14px; font-size: 15px; color: #1E1B4B; margin: 20px 0;">
-      <strong style="font-size: 16px; color: #2563EB;">${featureName}</strong><br/><br/>
+    <p>We are excited to introduce a major new feature to SwaplyOne: <strong>${featureName}</strong>!</p>
+    <div style="background: #FFF0EB; border: 2.5px solid #2A2723; padding: 20px; border-radius: 12px; font-size: 15px; color: #2A2723; margin: 20px 0; box-shadow: 4px 4px 0px #2A2723;">
+      <strong style="font-size: 16px; color: #D45B3E; font-family: 'Syne', sans-serif;">${featureName}</strong><br/><br/>
       ${description}
     </div>
     ${renderButton('Try Feature Now', buttonUrl)}
@@ -769,7 +760,7 @@ export function getAdminAnnouncementTemplate({ username = 'Member', title = 'Com
 export function getBetaFeedbackRequestTemplate({ username = 'Member', surveyUrl = 'https://swaply.app/feedback' }) {
   const contentHtml = `
     <p>Hello <strong>@${username}</strong>,</p>
-    <p>As an active member of the <strong>SwaplyOne Beta Program</strong>, your insights shape the future of our skill-sharing communication platform.</p>
+    <p>As an active member of the <strong>SwaplyOne Beta Program</strong>, your feedback shapes the future of our platform.</p>
     <p>Could you take 2 minutes to share your experience regarding video clarity and connection setup?</p>
     ${renderButton('Share Beta Feedback', surveyUrl)}
   `;
@@ -788,11 +779,11 @@ export function getWeeklyProductUpdatesTemplate({ username = 'Member', weekDate 
   const contentHtml = `
     <p>Hello <strong>@${username}</strong>,</p>
     <p>Here is your weekly roundup of what's new on SwaplyOne for <strong>${weekDate}</strong>:</p>
-    <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 18px; border-radius: 12px; font-size: 14px; color: #334155;">
+    <div style="background: #FFF0EB; border: 2.5px solid #2A2723; padding: 18px; border-radius: 12px; font-size: 14px; color: #2A2723; box-shadow: 4px 4px 0px #2A2723;">
       <strong>Weekly Digest:</strong><br/>
       ${highlights}
     </div>
-    ${renderButton('Open SwaplyOne App', buttonUrl)}
+    ${renderButton('Open SwaplyOne Console', buttonUrl)}
   `;
   return renderMasterLayout({
     preheader: `SwaplyOne Weekly Update - ${weekDate}`,
