@@ -298,6 +298,9 @@ router.post('/users/:id/beta-access', authenticateToken, requireAdmin, async (re
   } catch (err) {
     console.error('Error modifying beta access options:', err);
     res.status(500).json({ error: 'Server error updating beta access options' });
+  }
+});
+
 /**
  * GET /api/admin/deletion-requests
  * Retrieves account lifecycle deletion & recovery audit requests
