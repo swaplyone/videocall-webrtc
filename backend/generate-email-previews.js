@@ -117,7 +117,10 @@ const galleryHtml = `<!DOCTYPE html>
 <body>
   <header>
     <div class="brand">
-      <div class="brand-logo">&infin; SwaplyOne</div>
+      <div class="brand-logo" style="background:#FEF3C7; border:2px solid #2A2723; padding:0.4rem 0.8rem; border-radius:10px; display:flex; align-items:center; gap:0.5rem;">
+        <img src="swaply-favicon-bgl.png" alt="Swaply Logo" width="28" height="28" style="object-fit:contain;" />
+        <span style="color:#2A2723; font-weight:900; font-family:'Syne', sans-serif;">Swaply<span style="color:#D45B3E;">One</span></span>
+      </div>
       <div>
         <strong style="display:block; font-size: 1.05rem;">HTML Email Design System Showcase</strong>
         <span style="font-size: 0.8rem; color: #94A3B8;">24 Responsive Templates &bull; "In a Deep Ocean of Skills."</span>

@@ -39,6 +39,7 @@ app.use(securityHeaders);
 // Body limit restrictions (buffer-overflow protection)
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
+app.use(express.static('public'));
 
 // Define rate limiters
 const globalLimiter = createRateLimiter({
