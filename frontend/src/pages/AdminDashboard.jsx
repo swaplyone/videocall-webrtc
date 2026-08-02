@@ -25,6 +25,19 @@ export default function AdminDashboard({ userDetails }) {
   const [deletionRequests, setDeletionRequests] = useState([]);
   const [lifecycleFilter, setLifecycleFilter] = useState('ALL');
   const [selectedTemplateKey, setSelectedTemplateKey] = useState('1_email_verification_otp');
+  const [templateHtml, setTemplateHtml] = useState('');
+
+  useEffect(() => {
+    if (activeTab === 'templates' && selectedTemplateKey) {
+      apiClient.request(`/api/admin/email-templates/${selectedTemplateKey}`)
+        .then((html) => {
+          if (typeof html === 'string') {
+            setTemplateHtml(html);
+          }
+        })
+        .catch((err) => console.error('Error fetching email template preview:', err));
+    }
+  }, [activeTab, selectedTemplateKey]);
 
   // Search filter
   const [searchQuery, setSearchQuery] = useState('');
@@ -674,7 +687,7 @@ export default function AdminDashboard({ userDetails }) {
               }}>
                 <iframe
                   title="SwaplyOne Email Template Live Preview"
-                  src={`/api/admin/email-templates/${selectedTemplateKey}`}
+                  srcDoc={templateHtml || '<p style="font-family:sans-serif;padding:20px;">Loading SwaplyOne Email Template...</p>'}
                   style={{
                     width: '100%',
                     maxWidth: '650px',

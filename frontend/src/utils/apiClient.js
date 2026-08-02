@@ -46,6 +46,11 @@ const request = async (path, options = {}, isRetry = false) => {
     credentials: 'include'
   });
 
+  const contentType = res.headers.get('content-type');
+  if (contentType && contentType.includes('text/html')) {
+    return await res.text();
+  }
+
   const data = await res.json().catch(() => ({}));
 
   if ((res.status === 401 || res.status === 403) && !isRetry && !path.startsWith('/api/auth/login') && !path.startsWith('/api/auth/refresh')) {
