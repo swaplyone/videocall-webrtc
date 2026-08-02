@@ -1,0 +1,145 @@
+Create a modern, premium, fully responsive HTML Email Design System for my company "SwaplyOne".
+
+Brand Overview:
+Company Name: SwaplyOne
+Tagline: "In a Deep Ocean of Skills."
+Theme: Premium • Minimal • Modern • Trustworthy • Social Platform
+Primary Color: #2563EB
+Secondary Color: #4F46E5
+Accent: #06B6D4
+Success: #10B981
+Warning: #F59E0B
+Danger: #EF4444
+Background: #F5F7FB
+Card Background: #FFFFFF
+Border Radius: 18px
+Typography: Inter / Segoe UI / San Francisco style
+
+Requirements:
+- Pure HTML Email
+- Inline CSS only (no external CSS)
+- Compatible with Gmail, Outlook, Apple Mail, Yahoo Mail
+- Mobile Responsive
+- Table-based layout
+- Dark mode friendly
+- Accessibility friendly
+- No JavaScript
+- Optimized for Nodemailer
+- Easy placeholder replacement
+- Professional spacing and typography
+
+Header:
+- SwaplyOne Logo
+- Company Name
+- Tagline:
+  "In a Deep Ocean of Skills."
+- Premium blue gradient banner
+
+Body:
+Create reusable placeholder variables such as:
+
+{{TITLE}}
+{{SUBTITLE}}
+{{MESSAGE}}
+{{OTP}}
+{{BUTTON_TEXT}}
+{{BUTTON_URL}}
+{{USERNAME}}
+{{BETA_ID}}
+{{CALL_ID}}
+{{DATE}}
+{{TIME}}
+{{DEVICE}}
+{{LOCATION}}
+{{FOOTER_NOTE}}
+
+OTP Block:
+Design a beautiful centered OTP card with:
+- Large digits
+- Rounded corners
+- Soft shadow
+- Expiration note
+- Copy-friendly spacing
+
+Primary Button:
+Modern rounded CTA button
+Hover-compatible styling where supported
+Large touch-friendly size
+
+Information Cards:
+Reusable cards for:
+- Beta Status
+- Friend Request
+- Call Details
+- Security Alert
+- Account Status
+- Privacy Warning
+- Rollout Progress
+
+Alert Boxes:
+Success
+Warning
+Error
+Information
+
+Footer:
+Include:
+Company Name
+Website
+Support Email
+Privacy Policy
+Terms of Service
+Copyright
+Social Icons placeholders
+
+Email Templates:
+Generate separate reusable templates for:
+
+1. Email Verification OTP
+2. Welcome to SwaplyOne
+3. Beta Registration Successful
+4. Beta Waitlist Confirmation
+5. Beta Invitation
+6. Beta Accepted
+7. Rollout Update
+8. Friend Request Received
+9. Friend Request Accepted
+10. Password Reset OTP
+11. Email Change Verification
+12. New Device Login Alert
+13. Security Alert
+14. Screenshot / Privacy Warning
+15. Call Missed Notification
+16. Call Summary
+17. Account Scheduled for Deletion
+18. Account Recovery Successful
+19. Account Permanently Deleted
+20. Feature Announcement
+21. Maintenance Notification
+22. Admin Announcement
+23. Beta Feedback Request
+24. Weekly Product Updates
+
+Branding Style:
+Every email should feel like it belongs to the same design system.
+
+Use:
+- Premium gradients
+- Clean white cards
+- Soft shadows
+- Large headings
+- Rounded buttons
+- Modern icons (emoji placeholders are acceptable)
+- Plenty of whitespace
+- Elegant spacing
+- Consistent typography
+
+Developer Requirements:
+- Organize each email into reusable template functions.
+- Keep repeated sections modular (Header, Footer, Buttons, Cards).
+- Make all text configurable through placeholders.
+- Ensure all HTML is production-ready for Node.js + Nodemailer.
+- Avoid CSS that is not supported by major email clients.
+- Keep code clean, reusable, and maintainable.
+
+The final result should look like a premium SaaS product (similar to Linear, Notion, Stripe, GitHub, or Vercel) while maintaining SwaplyOne's unique identity as a trusted skill-sharing and video communication platform.

@@ -144,149 +144,272 @@ async function dispatchEmail({ userId, to, subject, html, text, emailType }) {
   }
 }
 
+import * as Templates from './emailTemplates.js';
+
 /**
- * Module 1 & 11: verification and welcoming dispatchers.
+ * 1. Email Verification OTP
  */
-export async function sendVerificationOTP(userId, email, otp, purpose) {
-  const subject = `Swaply Verification Code: ${otp}`;
-  const text = `Your Swaply verification code for ${purpose} is ${otp}. It expires in 5 minutes.`;
-  const html = `
-    <div style="font-family: sans-serif; padding: 20px; border: 3px solid #111827; background: #FFFDF9; border-radius: 8px; box-shadow: 4px 4px 0px #111827; max-width: 450px;">
-      <h2 style="margin-top: 0; color: #111827;">Swaply Security</h2>
-      <p>Please enter the following one-time code to complete your <strong>${purpose}</strong> request:</p>
-      <div style="font-size: 2.2rem; font-weight: 800; font-family: monospace; letter-spacing: 4px; padding: 15px; background: #FEF3C7; border: 2px solid #111827; display: inline-block; margin: 15px 0; border-radius: 6px; box-shadow: 2px 2px 0 #111827; color: #111827;">
-        ${otp}
-      </div>
-      <p style="font-size: 0.85rem; color: #6B7280; margin-bottom: 0;">This code is valid for 5 minutes and can only be used once. If you did not make this request, please change your password immediately.</p>
-    </div>
-  `;
+export async function sendVerificationOTP(userId, email, otp, purpose = 'EMAIL_VERIFICATION') {
+  const subject = `SwaplyOne Verification Code: ${otp}`;
+  const text = `Your SwaplyOne verification code for ${purpose} is ${otp}. It expires in 5 minutes.`;
+  const html = Templates.getEmailVerificationOTPTemplate({ username: email.split('@')[0], otp, expiresInMinutes: 5 });
   return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'OTP' });
 }
 
+/**
+ * 2. Welcome to SwaplyOne
+ */
 export async function sendWelcomeEmail(userId, email, betaId) {
-  const subject = 'Welcome to Swaply Web Beta!';
-  const text = `Welcome to Swaply! Your unique Beta ID is ${betaId}. Visit our site to begin Calling.`;
-  const html = `
-    <div style="font-family: sans-serif; padding: 20px; border: 3px solid #111827; background: #FFFDF9; border-radius: 8px; box-shadow: 4px 4px 0px #111827; max-width: 450px;">
-      <h2 style="margin-top: 0; color: #10B981;">Welcome to Swaply!</h2>
-      <p>Your Swaply account is verified and ready for secure video calling.</p>
-      <p><strong>Your Unique Beta ID:</strong> <span style="font-family: monospace; background: #E5E7EB; padding: 2px 6px; border-radius: 4px; border: 1px solid #9CA3AF;">${betaId}</span></p>
-      <hr style="border: 0; border-top: 2px dashed #111827; margin: 15px 0;" />
-      <h4 style="margin: 0 0 8px 0; color: #D97706;">🔒 Privacy Reminder:</h4>
-      <ul style="padding-left: 20px; margin: 0; font-size: 0.9rem; line-height: 1.4;">
-        <li>Keep your invitations private.</li>
-        <li>Be respectful of other participants.</li>
-        <li>We enforce active screenshot and screen capture alerts to prevent image blackmail.</li>
-      </ul>
-    </div>
-  `;
+  const username = email.split('@')[0];
+  const subject = 'Welcome to SwaplyOne!';
+  const text = `Welcome to SwaplyOne! Your unique Beta ID is ${betaId}. Visit our site to begin.`;
+  const html = Templates.getWelcomeTemplate({ username, betaId });
   return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Welcome' });
 }
 
-export async function sendFriendRequestEmail(userId, email, senderUsername) {
-  const subject = `Swaply: New connection request from @${senderUsername}`;
-  const text = `@${senderUsername} sent you a connection request on Swaply.`;
-  const html = `
-    <div style="font-family: sans-serif; padding: 20px; border: 3px solid #111827; background: #FFFDF9; border-radius: 8px; box-shadow: 4px 4px 0px #111827; max-width: 450px;">
-      <h3 style="margin-top: 0; color: #111827;">New Connection Invitation</h3>
-      <p><strong>@${senderUsername}</strong> wants to connect with you on Swaply so you can video call and chat securely.</p>
-      <p>Accept or reject this invitation in your Swaply dashboard swipe deck.</p>
-    </div>
-  `;
-  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Friend Requests' });
+/**
+ * 3. Beta Registration Successful
+ */
+export async function sendBetaRegistrationSuccessful(userId, email, betaId) {
+  const username = email.split('@')[0];
+  const subject = 'SwaplyOne Beta Registration Successful!';
+  const text = `Your beta registration is successful! Beta ID: ${betaId}`;
+  const html = Templates.getBetaRegistrationSuccessfulTemplate({ username, betaId });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Beta' });
 }
 
-export async function sendFriendAcceptedEmail(userId, email, friendUsername) {
-  const subject = `Swaply: Invitation accepted by @${friendUsername}`;
-  const text = `@${friendUsername} accepted your connection request on Swaply.`;
-  const html = `
-    <div style="font-family: sans-serif; padding: 20px; border: 3px solid #111827; background: #FFFDF9; border-radius: 8px; box-shadow: 4px 4px 0px #111827; max-width: 450px;">
-      <h3 style="margin-top: 0; color: #10B981;">Connection Request Accepted!</h3>
-      <p><strong>@${friendUsername}</strong> is now your friend on Swaply.</p>
-      <p>You can start placing end-to-end authorized calls and messaging them right away.</p>
-    </div>
-  `;
-  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Friend Requests' });
+/**
+ * 4. Beta Waitlist Confirmation
+ */
+export async function sendBetaWaitlistConfirmation(userId, email, queuePosition = '#142') {
+  const username = email.split('@')[0];
+  const subject = 'SwaplyOne Beta Waitlist Confirmation';
+  const text = `You are on the SwaplyOne beta waitlist at position ${queuePosition}.`;
+  const html = Templates.getBetaWaitlistConfirmationTemplate({ username, queuePosition });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Beta' });
 }
 
-export async function sendSecurityAlert(userId, email, alertType, details) {
-  const subject = `Swaply Security Alert: ${alertType}`;
-  const text = `Security alert on your account: ${details}`;
-  const html = `
-    <div style="font-family: sans-serif; padding: 20px; border: 3px solid #111827; background: #FFFDF9; border-radius: 8px; box-shadow: 4px 4px 0px #111827; max-width: 450px;">
-      <h3 style="margin-top: 0; color: #EF4444;">⚠ Account Security Alert</h3>
-      <p>We detected important changes or logins on your Swaply account:</p>
-      <p><strong>Event:</strong> ${alertType}</p>
-      <p><strong>Details:</strong> ${details}</p>
-      <p style="font-size: 0.85rem; color: #6B7280; border-top: 1px solid #E5E7EB; padding-top: 10px; margin-top: 15px;">If you did not perform this action, please change your password immediately.</p>
-    </div>
-  `;
-  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Security' });
-}
-
-export async function sendPasswordResetOTP(userId, email, otp) {
-  return sendVerificationOTP(userId, email, otp, 'PASSWORD_RESET');
-}
-
+/**
+ * 5. Beta Invitation
+ */
 export async function sendBetaInvitation(userId, email, inviteLink) {
-  const subject = 'You are invited to join Swaply Beta!';
-  const text = `You have been invited to test Swaply. Join using this link: ${inviteLink}`;
-  const html = `
-    <div style="font-family: sans-serif; padding: 20px; border: 3px solid #111827; background: #FFFDF9; border-radius: 8px; box-shadow: 4px 4px 0px #111827; max-width: 450px;">
-      <h2 style="margin-top: 0; color: #8B5CF6;">Swaply Beta Invitation</h2>
-      <p>You have been invited to join the private beta of the Swaply Video Calling Platform.</p>
-      <a href="${inviteLink}" style="display: inline-block; padding: 10px 20px; background: #8B5CF6; color: #FFF; text-decoration: none; border: 2px solid #111827; border-radius: 6px; box-shadow: 2px 2px 0 #111827; font-weight: bold; margin: 15px 0;">
-        Accept Invitation & Register
-      </a>
-      <p style="font-size: 0.85rem; color: #6B7280;">This invitation is unique and should not be shared.</p>
-    </div>
-  `;
+  const username = email.split('@')[0];
+  const subject = 'Exclusive Invitation to Join SwaplyOne Beta';
+  const text = `You are invited to join SwaplyOne Beta. Accept invitation: ${inviteLink}`;
+  const html = Templates.getBetaInvitationTemplate({ username, buttonUrl: inviteLink });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Beta' });
+}
+
+/**
+ * 6. Beta Accepted
+ */
+export async function sendBetaAccepted(userId, email, betaId) {
+  const username = email.split('@')[0];
+  const subject = 'Your SwaplyOne Beta Application was Accepted!';
+  const text = `Congratulations! Your beta application was accepted. Beta ID: ${betaId}`;
+  const html = Templates.getBetaAcceptedTemplate({ username, betaId });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Beta' });
+}
+
+/**
+ * 7. Rollout Update
+ */
+export async function sendRolloutUpdate(userId, email, version, highlights) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne Platform Rollout Update ${version}`;
+  const text = `SwaplyOne platform update ${version} is now live: ${highlights}`;
+  const html = Templates.getRolloutUpdateTemplate({ username, version, highlights });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Updates' });
+}
+
+/**
+ * 8. Friend Request Received
+ */
+export async function sendFriendRequestEmail(userId, email, senderUsername) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne: New connection request from @${senderUsername}`;
+  const text = `@${senderUsername} sent you a connection request on SwaplyOne.`;
+  const html = Templates.getFriendRequestReceivedTemplate({ username, requesterName: senderUsername, requesterUsername: senderUsername });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Friend Requests' });
+}
+
+/**
+ * 9. Friend Request Accepted
+ */
+export async function sendFriendAcceptedEmail(userId, email, friendUsername) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne: Connection request accepted by @${friendUsername}`;
+  const text = `@${friendUsername} accepted your connection request on SwaplyOne.`;
+  const html = Templates.getFriendRequestAcceptedTemplate({ username, friendName: friendUsername, friendUsername });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Friend Requests' });
+}
+
+/**
+ * 10. Password Reset OTP
+ */
+export async function sendPasswordResetOTP(userId, email, otp) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne Password Reset Code: ${otp}`;
+  const text = `Your SwaplyOne password reset code is ${otp}. Expires in 5 minutes.`;
+  const html = Templates.getPasswordResetOTPTemplate({ username, otp, expiresInMinutes: 5 });
   return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Security' });
 }
 
+/**
+ * 11. Email Change Verification
+ */
+export async function sendEmailChangeVerification(userId, email, otp, newEmail) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne Email Change Verification Code: ${otp}`;
+  const text = `Your SwaplyOne verification code to update email to ${newEmail} is ${otp}.`;
+  const html = Templates.getEmailChangeVerificationTemplate({ username, otp, newEmail });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Security' });
+}
+
+/**
+ * 12. New Device Login Alert
+ */
+export async function sendNewDeviceLoginAlert(userId, email, deviceDetails) {
+  const username = email.split('@')[0];
+  const subject = 'SwaplyOne Security Alert: New Device Login';
+  const text = `New login detected on your SwaplyOne account from ${deviceDetails.device || 'unrecognized device'}.`;
+  const html = Templates.getNewDeviceLoginAlertTemplate({
+    username,
+    device: deviceDetails.device,
+    location: deviceDetails.location,
+    ip: deviceDetails.ip,
+    time: deviceDetails.time
+  });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Security' });
+}
+
+/**
+ * 13. Security Alert
+ */
+export async function sendSecurityAlert(userId, email, alertType, details) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne Security Alert: ${alertType}`;
+  const text = `Security alert on your account: ${details}`;
+  const html = Templates.getSecurityAlertTemplate({ username, title: alertType, details });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Security' });
+}
+
+/**
+ * 14. Screenshot / Privacy Warning
+ */
+export async function sendPrivacyWarning(userId, email, warningType, callId) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne Privacy Alert: ${warningType}`;
+  const text = `Privacy warning triggered on session ${callId}: ${warningType}`;
+  const html = Templates.getPrivacyWarningTemplate({ username, warningType, callId });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Security' });
+}
+
+/**
+ * 15. Call Missed Notification
+ */
+export async function sendCallMissedNotification(userId, email, callerUsername, callTime) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne: Missed video call from @${callerUsername}`;
+  const text = `You missed a call from @${callerUsername} on SwaplyOne at ${callTime}.`;
+  const html = Templates.getCallMissedNotificationTemplate({ username, callerName: callerUsername, callerUsername, callTime });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Calls' });
+}
+
+/**
+ * 16. Call Summary
+ */
+export async function sendCallSummary(userId, email, peerName, duration, callId) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne Call Summary with ${peerName}`;
+  const text = `Summary for call with ${peerName}. Duration: ${duration}. Session ID: ${callId}`;
+  const html = Templates.getCallSummaryTemplate({ username, peerName, duration, callId });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Calls' });
+}
+
+/**
+ * 17. Account Scheduled for Deletion
+ */
 export async function sendAccountDeletionRequestedEmail(userId, email, username, scheduledTime) {
-  const subject = 'Swaply: Account Deletion Requested (5-Hour Grace Period)';
+  const subject = 'SwaplyOne: Account Deletion Scheduled (5-Hour Grace Period)';
   const formattedTime = new Date(scheduledTime).toLocaleString();
   const text = `Account deletion requested for @${username}. Permanent deletion scheduled for ${formattedTime}. Log in within 5 hours to cancel.`;
-  const html = `
-    <div style="font-family: sans-serif; padding: 20px; border: 3px solid #111827; background: #FFFDF9; border-radius: 8px; box-shadow: 4px 4px 0px #111827; max-width: 480px;">
-      <h2 style="margin-top: 0; color: #E11D48;">⚠ Account Deletion Requested</h2>
-      <p>Hello <strong>@${username}</strong>,</p>
-      <p>A request to permanently delete your Swaply account has been received.</p>
-      <div style="background: #FEE2E2; border: 2px solid #111827; padding: 12px; border-radius: 6px; font-size: 0.9rem; margin: 15px 0;">
-        <strong>Scheduled Permanent Deletion:</strong> ${formattedTime}<br/>
-        <strong>Recovery Grace Window:</strong> 5 Hours
-      </div>
-      <p>Your account is temporarily suspended and hidden from search. If you did NOT request this, log into Swaply immediately to recover your account.</p>
-    </div>
-  `;
+  const html = Templates.getAccountScheduledForDeletionTemplate({ username, scheduledDate: formattedTime });
   return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Security' });
 }
 
+/**
+ * 18. Account Recovery Successful
+ */
 export async function sendAccountRestoredEmail(userId, email, username) {
-  const subject = 'Swaply: Account Successfully Restored!';
-  const text = `Great news @${username}! Your Swaply account deletion request has been cancelled and full access is restored.`;
-  const html = `
-    <div style="font-family: sans-serif; padding: 20px; border: 3px solid #111827; background: #FFFDF9; border-radius: 8px; box-shadow: 4px 4px 0px #111827; max-width: 480px;">
-      <h2 style="margin-top: 0; color: #10B981;">✅ Account Deletion Cancelled & Restored</h2>
-      <p>Hello <strong>@${username}</strong>,</p>
-      <p>Your scheduled account deletion has been successfully cancelled.</p>
-      <p>Your profile, friend connections, call history, and search visibility have been fully restored.</p>
-    </div>
-  `;
+  const subject = 'SwaplyOne: Account Successfully Restored!';
+  const text = `Great news @${username}! Your SwaplyOne account deletion request has been cancelled and full access is restored.`;
+  const html = Templates.getAccountRecoverySuccessfulTemplate({ username });
   return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Security' });
 }
 
+/**
+ * 19. Account Permanently Deleted
+ */
 export async function sendPermanentDeletionConfirmedEmail(email, username) {
-  const subject = 'Swaply: Account Permanently Deleted';
-  const text = `Your Swaply account (@${username}) has been permanently deleted as requested.`;
-  const html = `
-    <div style="font-family: sans-serif; padding: 20px; border: 3px solid #111827; background: #FFFDF9; border-radius: 8px; box-shadow: 4px 4px 0px #111827; max-width: 480px;">
-      <h2 style="margin-top: 0; color: #6B7280;">Account Permanently Deleted</h2>
-      <p>Hello <strong>@${username}</strong>,</p>
-      <p>Your Swaply account and all associated data have been permanently purged following the 5-hour grace period.</p>
-      <p>Thank you for using Swaply.</p>
-    </div>
-  `;
+  const subject = 'SwaplyOne: Account Permanently Deleted';
+  const text = `Your SwaplyOne account (@${username}) has been permanently deleted as requested.`;
+  const html = Templates.getAccountPermanentlyDeletedTemplate({ username });
   return dispatchEmail({ userId: null, to: email, subject, html, text, emailType: 'Security' });
 }
+
+/**
+ * 20. Feature Announcement
+ */
+export async function sendFeatureAnnouncement(userId, email, featureName, description, buttonUrl) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne Feature Announcement: ${featureName}`;
+  const text = `Introducing ${featureName}: ${description}`;
+  const html = Templates.getFeatureAnnouncementTemplate({ username, featureName, description, buttonUrl });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Announcements' });
+}
+
+/**
+ * 21. Maintenance Notification
+ */
+export async function sendMaintenanceNotification(userId, email, scheduledTime, duration, impact) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne Scheduled System Maintenance Notice: ${scheduledTime}`;
+  const text = `SwaplyOne system maintenance scheduled for ${scheduledTime}. Expected duration: ${duration}. Impact: ${impact}`;
+  const html = Templates.getMaintenanceNotificationTemplate({ username, scheduledTime, duration, impact });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Maintenance' });
+}
+
+/**
+ * 22. Admin Announcement
+ */
+export async function sendAdminAnnouncement(userId, email, title, message, buttonUrl) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne Official Announcement: ${title}`;
+  const text = `${title}: ${message}`;
+  const html = Templates.getAdminAnnouncementTemplate({ username, title, message, buttonUrl });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Announcements' });
+}
+
+/**
+ * 23. Beta Feedback Request
+ */
+export async function sendBetaFeedbackRequest(userId, email, surveyUrl) {
+  const username = email.split('@')[0];
+  const subject = 'SwaplyOne Beta Program: We Want Your Feedback!';
+  const text = `Please take 2 minutes to share your SwaplyOne beta experience: ${surveyUrl}`;
+  const html = Templates.getBetaFeedbackRequestTemplate({ username, surveyUrl });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Feedback' });
+}
+
+/**
+ * 24. Weekly Product Updates
+ */
+export async function sendWeeklyProductUpdates(userId, email, weekDate, highlights) {
+  const username = email.split('@')[0];
+  const subject = `SwaplyOne Weekly Digest - ${weekDate}`;
+  const text = `SwaplyOne weekly digest for ${weekDate}: ${highlights}`;
+  const html = Templates.getWeeklyProductUpdatesTemplate({ username, weekDate, highlights });
+  return dispatchEmail({ userId, to: email, subject, html, text, emailType: 'Updates' });
+}
+
