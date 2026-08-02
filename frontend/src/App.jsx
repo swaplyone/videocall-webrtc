@@ -14,6 +14,7 @@ import Profile from './pages/Profile';
 import Friends from './pages/Friends';
 import FriendRequests from './pages/FriendRequests';
 import CallHistory from './pages/CallHistory';
+import Notifications from './pages/Notifications';
 import VerifyPhone from './pages/VerifyPhone';
 import PrivacyCenter from './pages/PrivacyCenter';
 import Settings from './pages/Settings';
