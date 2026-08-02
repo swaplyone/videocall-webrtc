@@ -370,15 +370,11 @@ io.on('connection', (socket) => {
 
     // Handle takeover for multi-tab / browser refreshes
     if (onlineUsers.has(cleanUsername) && onlineUsers.get(cleanUsername) !== socket.id) {
-      if (socket.user) {
-        const oldSocketId = onlineUsers.get(cleanUsername);
-        const oldSocket = io.sockets.sockets.get(oldSocketId);
-        if (oldSocket) {
-          console.log(`Disconnecting old duplicate session for ${cleanUsername}`);
-          oldSocket.disconnect();
-        }
-      } else {
-        return callback({ success: false, error: 'Username already taken' });
+      const oldSocketId = onlineUsers.get(cleanUsername);
+      const oldSocket = io.sockets.sockets.get(oldSocketId);
+      if (oldSocket) {
+        console.log(`Disconnecting old duplicate session for ${cleanUsername}`);
+        oldSocket.disconnect();
       }
     }
 

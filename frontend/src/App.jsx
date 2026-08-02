@@ -239,8 +239,7 @@ export default function App() {
               setModerationConfig(config);
             });
           } else {
-            console.warn('Failed to restore secure socket session, clearing data:', response.error);
-            handleLogout();
+            console.warn('Socket registration info:', response.error);
           }
         });
       } else {
@@ -350,24 +349,27 @@ export default function App() {
   };
 
   const handleOTPVerified = (token, verifiedUser) => {
+    const userObj = verifiedUser ? { ...verifiedUser, email_verified: true } : (userDetails ? { ...userDetails, email_verified: true } : { email_verified: true });
     setAuthToken(token);
-    setUserDetails(verifiedUser);
-    setCurrentUser(verifiedUser.username);
+    setUserDetails(userObj);
+    if (userObj.username) setCurrentUser(userObj.username);
     
     apiClient.setAuthToken(token);
 
     localStorage.setItem('swaply_auth_token', token);
-    localStorage.setItem('swaply_user_details', JSON.stringify(verifiedUser));
-    localStorage.setItem('swaply_current_user', verifiedUser.username);
+    localStorage.setItem('swaply_user_details', JSON.stringify(userObj));
+    if (userObj.username) localStorage.setItem('swaply_current_user', userObj.username);
     
-    socketClient.connect(token);
-    socketClient.register(verifiedUser.username, (response) => {
-      if (response.success) {
-        socketClient.getModerationConfig((config) => {
-          setModerationConfig(config);
-        });
-      }
-    });
+    if (userObj.username) {
+      socketClient.connect(token);
+      socketClient.register(userObj.username, (response) => {
+        if (response.success) {
+          socketClient.getModerationConfig((config) => {
+            setModerationConfig(config);
+          });
+        }
+      });
+    }
 
     navigate('/dashboard');
   };
