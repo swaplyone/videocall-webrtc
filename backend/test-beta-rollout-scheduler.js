@@ -69,8 +69,8 @@ async function testBetaRolloutScheduler() {
     assert(check1.rows[0].rollout_status === 'EXPIRED', 'User 1 status is EXPIRED');
     assert(check3.rows[0].rollout_status === 'READY_FOR_ROLLOUT' || check3.rows[0].rollout_status === 'INVITED', 'User 3 promoted into freed capacity slot');
 
-    // Restore capacity to default 150
-    await betaRolloutService.updateBetaConfig({ max_capacity: 150, daily_batch_size: 10 });
+    // Restore capacity to default 150 & expiry_hours to 72
+    await betaRolloutService.updateBetaConfig({ max_capacity: 150, daily_batch_size: 10, expiry_hours: 72 });
 
     // Cleanup
     await query("DELETE FROM beta_waitlist WHERE email LIKE '%@test-rollout.app'");
