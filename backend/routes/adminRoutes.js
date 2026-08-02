@@ -226,10 +226,10 @@ router.post('/users/:id/status', authenticateToken, requireAdmin, async (req, re
 });
 
 /**
- * DELETE /api/admin/users/:id
+ * DELETE & POST /api/admin/users/:id
  * Permanently deletes a user account (Admin level action)
  */
-router.delete('/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+const handleDeleteUserAccount = async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -252,7 +252,10 @@ router.delete('/users/:id', authenticateToken, requireAdmin, async (req, res) =>
     console.error('Error deleting user account:', err);
     res.status(500).json({ error: 'Server error deleting user account' });
   }
-});
+};
+
+router.delete('/users/:id', authenticateToken, requireAdmin, handleDeleteUserAccount);
+router.post('/users/:id/delete', authenticateToken, requireAdmin, handleDeleteUserAccount);
 
 /**
  * POST /api/admin/users/:id/beta-access

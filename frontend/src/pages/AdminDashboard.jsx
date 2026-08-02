@@ -140,14 +140,18 @@ export default function AdminDashboard({ userDetails }) {
     setBetaUsers(prev => prev.filter(u => u.id !== userId));
 
     try {
-      const res = await apiClient.request(`/api/admin/users/${userId}`, {
-        method: 'DELETE'
-      });
-      if (res.success) {
+      let res;
+      try {
+        res = await apiClient.request(`/api/admin/users/${userId}`, { method: 'DELETE' });
+      } catch (err) {
+        res = await apiClient.request(`/api/admin/users/${userId}/delete`, { method: 'POST' });
+      }
+
+      if (res && res.success) {
         setSuccess(`Account @${username} permanently deleted.`);
       } else {
         setBetaUsers(previousUsers);
-        setError(res.error || 'Failed to delete user account.');
+        setError(res?.error || 'Failed to delete user account.');
       }
     } catch (err) {
       setBetaUsers(previousUsers);

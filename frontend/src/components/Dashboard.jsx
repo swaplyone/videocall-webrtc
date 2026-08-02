@@ -82,9 +82,18 @@ export default function Dashboard({
     qr_active: true
   });
 
+  const [userBetaId, setUserBetaId] = useState(userDetails?.beta_id || '');
+
   useEffect(() => {
     setCompatReport(checkBrowserCompatibility());
-  }, []);
+    if (!userBetaId) {
+      apiClient.getMe().then(data => {
+        if (data && data.user && data.user.beta_id) {
+          setUserBetaId(data.user.beta_id);
+        }
+      }).catch(() => {});
+    }
+  }, [userBetaId]);
 
   const fetchFriends = async () => {
     if (!authToken) return;
@@ -521,7 +530,7 @@ export default function Dashboard({
                     <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary)', fontWeight: 'bold', fontFamily: 'var(--font-mono)' }}>ACTIVE NODE</span>
                   </div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', marginTop: '0.1rem' }}>
-                    NODE ID: #{(currentUser.length * 104).toString()}-S &nbsp;|&nbsp; PROTOCOL: P2P WebRTC
+                    Beta ID: <strong style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>{userDetails?.beta_id || userBetaId || 'SWP-BETA'}</strong> &nbsp;|&nbsp; PROTOCOL: P2P WebRTC
                   </div>
                 </div>
               </div>
