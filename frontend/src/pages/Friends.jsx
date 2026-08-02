@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, QrCode, Phone, UserMinus, UserPlus, AlertCircle, CheckCircle, Camera } from 'lucide-react';
+import { Users, Search, Phone, UserMinus, UserPlus, AlertCircle, CheckCircle, Camera } from 'lucide-react';
 import { apiClient } from '../utils/apiClient';
 import QRScanner from '../components/QRScanner';
+import QrcodeIcon from '../components/QrcodeIcon';
 
 export default function Friends({ onInitiateCall }) {
   const [friends, setFriends] = useState([]);
@@ -219,7 +220,7 @@ export default function Friends({ onInitiateCall }) {
           {/* QR invitation section */}
           <div className="glass-panel" style={{ flex: 1, minWidth: '280px', padding: '1.5rem', border: '3px solid #111827', boxShadow: '5px 5px 0 #111827' }}>
             <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', fontWeight: 800, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <QrCode size={18} /> My QR Connection
+              <QrcodeIcon size={20} color="var(--text-primary)" /> My QR Connection
             </h3>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center', textAlign: 'center' }}>

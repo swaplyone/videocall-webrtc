@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Shield, Clock, AlertTriangle } from 'lucide-react';
 import { apiClient } from '../utils/apiClient';
 
-export default function OTPVerification({ email, tempToken, purpose = 'FIRST_LOGIN', onVerified, onCancel }) {
+export default function OTPVerification({ email, tempToken, purpose = 'FIRST_LOGIN', onVerified, onCancel, showCancel = false }) {
   const [code, setCode] = useState('');
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -150,21 +150,23 @@ export default function OTPVerification({ email, tempToken, purpose = 'FIRST_LOG
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem' }}>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={onCancel}
-              style={{ flex: 1, padding: '0.65rem' }}
-            >
-              Cancel
-            </button>
+            {showCancel && onCancel && (
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={onCancel}
+                style={{ flex: 1, padding: '0.65rem' }}
+              >
+                Cancel
+              </button>
+            )}
             <button
               type="submit"
               className="btn btn-primary"
               disabled={isSubmitting || expiresIn <= 0}
-              style={{ flex: 2, padding: '0.65rem' }}
+              style={{ flex: 1, padding: '0.65rem', fontWeight: 'bold' }}
             >
-              {isSubmitting ? 'Verifying...' : 'Verify'}
+              {isSubmitting ? 'Verifying...' : 'Verify & Complete Setup'}
             </button>
           </div>
         </form>
