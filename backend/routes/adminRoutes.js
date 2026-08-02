@@ -310,7 +310,19 @@ router.post('/users/:id/beta-access', authenticateToken, requireAdmin, async (re
 router.get('/deletion-requests', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const requestsRes = await query(`
-      SELECT adr.*, u.username, u.email, u.beta_id
+      SELECT 
+        adr.id,
+        adr.user_id,
+        COALESCE(adr.username, u.username, 'Deleted User') AS username,
+        COALESCE(adr.email, u.email, 'No Email') AS email,
+        COALESCE(adr.beta_id, u.beta_id, 'N/A') AS beta_id,
+        adr.deletion_reason,
+        adr.deletion_status,
+        adr.deletion_requested_at,
+        adr.scheduled_deletion_at,
+        adr.recovered_at,
+        adr.ip_address,
+        adr.user_agent
       FROM account_deletion_requests adr
       LEFT JOIN users u ON adr.user_id = u.id
       ORDER BY adr.deletion_requested_at DESC

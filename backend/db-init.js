@@ -12,7 +12,10 @@ export async function runDbMigrations() {
 
       CREATE TABLE IF NOT EXISTS account_deletion_requests (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        username VARCHAR(100),
+        email VARCHAR(255),
+        beta_id VARCHAR(50),
         deletion_reason TEXT,
         deletion_status VARCHAR(50) DEFAULT 'PENDING_DELETION',
         deletion_requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -21,6 +24,21 @@ export async function runDbMigrations() {
         ip_address VARCHAR(100),
         user_agent TEXT
       );
+
+      ALTER TABLE account_deletion_requests ADD COLUMN IF NOT EXISTS username VARCHAR(100);
+      ALTER TABLE account_deletion_requests ADD COLUMN IF NOT EXISTS email VARCHAR(255);
+      ALTER TABLE account_deletion_requests ADD COLUMN IF NOT EXISTS beta_id VARCHAR(50);
+
+      DO $$ 
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.table_constraints 
+          WHERE constraint_name = 'account_deletion_requests_user_id_fkey'
+        ) THEN
+          ALTER TABLE account_deletion_requests DROP CONSTRAINT account_deletion_requests_user_id_fkey;
+          ALTER TABLE account_deletion_requests ADD CONSTRAINT account_deletion_requests_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL;
+        END IF;
+      END $$;
 
       CREATE INDEX IF NOT EXISTS idx_adr_user_id ON account_deletion_requests(user_id);
       CREATE INDEX IF NOT EXISTS idx_adr_status ON account_deletion_requests(deletion_status);

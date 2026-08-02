@@ -10,8 +10,8 @@ const activeTimers = new Map(); // userId -> Timeout object
 export async function executePermanentAccountCleanup(userId) {
   console.log(`🧹 Executing permanent data cleanup for User ID ${userId}...`);
   try {
-    // 1. Fetch user email & username before deletion
-    const userRes = await query('SELECT username, email FROM users WHERE id = $1', [userId]);
+    // 1. Fetch user email, username & beta_id before deletion
+    const userRes = await query('SELECT username, email, beta_id FROM users WHERE id = $1', [userId]);
     const user = userRes.rows[0];
 
     if (!user) {
@@ -19,7 +19,17 @@ export async function executePermanentAccountCleanup(userId) {
       return true;
     }
 
-    // 2. Cascade delete all user dependencies
+    // 2. Update account_deletion_requests record status & snapshot user info
+    await query(`
+      UPDATE account_deletion_requests 
+      SET deletion_status = 'PERMANENTLY_DELETED',
+          username = COALESCE(username, $2),
+          email = COALESCE(email, $3),
+          beta_id = COALESCE(beta_id, $4)
+      WHERE user_id = $1 AND deletion_status = 'PENDING_DELETION'
+    `, [userId, user.username, user.email, user.beta_id]).catch(() => {});
+
+    // 3. Cascade delete all user dependencies
     await query('DELETE FROM friendships WHERE user_id = $1 OR friend_id = $1', [userId]).catch(() => {});
     await query('DELETE FROM friend_requests WHERE sender_id = $1 OR receiver_id = $1', [userId]).catch(() => {});
     await query('DELETE FROM blocks WHERE blocker_id = $1 OR blocked_user_id = $1', [userId]).catch(() => {});
@@ -29,14 +39,7 @@ export async function executePermanentAccountCleanup(userId) {
     await query('DELETE FROM reports WHERE reporter_id = $1 OR reported_user_id = $1', [userId]).catch(() => {});
     await query('DELETE FROM calls WHERE caller_id = $1 OR receiver_id = $1', [userId]).catch(() => {});
 
-    // 3. Update account_deletion_requests record status
-    await query(`
-      UPDATE account_deletion_requests 
-      SET deletion_status = 'PERMANENTLY_DELETED' 
-      WHERE user_id = $1 AND deletion_status = 'PENDING_DELETION'
-    `, [userId]).catch(() => {});
-
-    // 4. Delete user record
+    // 4. Delete user record (Foreign key ON DELETE SET NULL retains account_deletion_requests audit log)
     await query('DELETE FROM users WHERE id = $1', [userId]);
 
     // 5. Send permanent deletion confirmation email

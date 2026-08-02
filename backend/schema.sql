@@ -248,7 +248,10 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_reason TEXT;
 
 CREATE TABLE IF NOT EXISTS account_deletion_requests (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    username VARCHAR(100),
+    email VARCHAR(255),
+    beta_id VARCHAR(50),
     deletion_reason TEXT,
     deletion_status VARCHAR(50) DEFAULT 'PENDING_DELETION', -- PENDING_DELETION, RECOVERED, PERMANENTLY_DELETED
     deletion_requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

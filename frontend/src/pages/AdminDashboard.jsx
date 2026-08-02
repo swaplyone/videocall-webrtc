@@ -666,10 +666,15 @@ export default function AdminDashboard({ userDetails }) {
                             <span style={{ fontSize: '0.75rem', color: '#6B7280', display: 'block' }}>{req.email || 'No Email'} • Beta ID: {req.beta_id || 'N/A'}</span>
                           </div>
                           <span className="badge" style={{
-                            background: req.deletion_status === 'PENDING_DELETION' ? '#EF4444' : req.deletion_status === 'RECOVERED' ? '#10B981' : '#6B7280',
-                            color: '#FFF'
+                            padding: '0.25rem 0.5rem',
+                            borderRadius: '4px',
+                            border: '1px solid #111827',
+                            fontSize: '0.7rem',
+                            fontWeight: 800,
+                            background: req.deletion_status === 'PENDING_DELETION' ? '#FEE2E2' : req.deletion_status === 'RECOVERED' ? '#D1FAE5' : '#111827',
+                            color: req.deletion_status === 'PENDING_DELETION' ? '#991B1B' : req.deletion_status === 'RECOVERED' ? '#065F46' : '#FFF'
                           }}>
-                            {req.deletion_status}
+                            {req.deletion_status.replace(/_/g, ' ')}
                           </span>
                         </div>
 

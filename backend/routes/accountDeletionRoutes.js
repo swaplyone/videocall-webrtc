@@ -22,7 +22,7 @@ router.post('/request', authenticateToken, async (req, res) => {
 
   try {
     // 1. Fetch user password hash and current status
-    const userRes = await query('SELECT username, email, password_hash, deletion_status FROM users WHERE id = $1', [userId]);
+    const userRes = await query('SELECT username, email, beta_id, password_hash, deletion_status FROM users WHERE id = $1', [userId]);
     const user = userRes.rows[0];
 
     if (!user) {
@@ -59,9 +59,9 @@ router.post('/request', authenticateToken, async (req, res) => {
     // 5. Insert deletion request log
     await query(`
       INSERT INTO account_deletion_requests 
-        (user_id, deletion_reason, deletion_status, deletion_requested_at, scheduled_deletion_at, ip_address, user_agent)
-      VALUES ($1, $2, 'PENDING_DELETION', $3, $4, $5, $6)
-    `, [userId, reason || 'User requested deletion', now, scheduledTime, req.ip || '127.0.0.1', req.headers['user-agent'] || 'Unknown']);
+        (user_id, username, email, beta_id, deletion_reason, deletion_status, deletion_requested_at, scheduled_deletion_at, ip_address, user_agent)
+      VALUES ($1, $2, $3, $4, $5, 'PENDING_DELETION', $6, $7, $8, $9)
+    `, [userId, user.username, user.email, user.beta_id, reason || 'User requested deletion', now, scheduledTime, req.ip || '127.0.0.1', req.headers['user-agent'] || 'Unknown']);
 
     // 6. Schedule background job
     scheduleDelayedDeletionJob(userId, scheduledTime);
