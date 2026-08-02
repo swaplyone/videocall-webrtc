@@ -7,8 +7,10 @@ import SuccessAnimation from './SuccessAnimation';
 
 export default function BottomSheet({
   isOpen = true,
-  email = 'user@swaply.app',
-  phoneNumber = '+1 (555) 019-2834',
+  email = '',
+  phoneNumber = '',
+  title,
+  subtitle,
   onVerifySubmit,
   onResendOtp,
   onClose,
@@ -17,6 +19,12 @@ export default function BottomSheet({
   const [otpValue, setOtpValue] = useState('');
   const [status, setStatus] = useState('IDLE'); // 'IDLE' | 'VERIFYING' | 'SUCCESS' | 'ERROR'
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Determine if verifying Email or Phone
+  const isEmailVerification = Boolean(email && (!phoneNumber || email.includes('@')));
+  const displayTitle = title || (isEmailVerification ? 'Verify your email address' : 'Verify your phone number');
+  const successTitle = isEmailVerification ? 'Email Verified!' : 'Phone Verified!';
+  const targetAddress = isEmailVerification ? email : (phoneNumber || email);
 
   // Timers
   const [expiresIn, setExpiresIn] = useState(300);
@@ -44,7 +52,6 @@ export default function BottomSheet({
     setErrorMessage('');
     setStatus('VERIFYING');
 
-    // Simulate 800ms verification verification latency & verification callback
     const startTime = Date.now();
     try {
       if (onVerifySubmit) {
@@ -55,7 +62,6 @@ export default function BottomSheet({
 
       setTimeout(() => {
         setStatus('SUCCESS');
-        // Wait 1 second after success animation then slide down & close
         setTimeout(() => {
           if (onClose) onClose();
         }, 1200);
@@ -115,11 +121,11 @@ export default function BottomSheet({
               damping: 30,
               bounce: 0.15
             }}
-            drag="y"
+            drag={showCancel ? "y" : false}
             dragConstraints={{ top: 0 }}
             dragElastic={0.2}
             onDragEnd={(_, info) => {
-              if (info.offset.y > 140 && showCancel && onClose) {
+              if (showCancel && info.offset.y > 140 && onClose) {
                 onClose();
               }
             }}
@@ -142,7 +148,7 @@ export default function BottomSheet({
             }}
           >
             {/* Top Drag Handle */}
-            <div style={{ width: '100%', padding: '12px 0 6px 0', display: 'flex', justifyContent: 'center', cursor: 'grab' }}>
+            <div style={{ width: '100%', padding: '12px 0 6px 0', display: 'flex', justifyContent: 'center', cursor: showCancel ? 'grab' : 'default' }}>
               <div style={{ width: '48px', height: '5px', borderRadius: '3px', backgroundColor: '#E5E7EB' }} />
             </div>
 
@@ -151,8 +157,8 @@ export default function BottomSheet({
               
               {status === 'SUCCESS' ? (
                 <SuccessAnimation
-                  title="Phone Verified!"
-                  message={`Security setup verified for ${phoneNumber || email}.`}
+                  title={successTitle}
+                  message={`Security setup verified for ${targetAddress}.`}
                 />
               ) : status === 'VERIFYING' ? (
                 <LoadingSpinner text="Verifying Code..." />
@@ -190,13 +196,13 @@ export default function BottomSheet({
                       textTransform: 'uppercase',
                       letterSpacing: '0.01em'
                     }}>
-                      Verify your phone number
+                      {displayTitle}
                     </h2>
                     
                     <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary, #6B655C)', margin: 0, lineHeight: 1.4 }}>
-                      Enter the 6-digit OTP code sent to:<br />
+                      {subtitle || `Enter the 6-digit OTP code sent to:`}<br />
                       <strong style={{ color: '#111827', fontFamily: 'var(--font-mono, monospace)' }}>
-                        {phoneNumber || email}
+                        {targetAddress}
                       </strong>
                     </p>
                   </div>
