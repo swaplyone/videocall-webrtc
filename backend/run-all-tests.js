@@ -32,7 +32,9 @@ const testSuites = [
   // Phase 11 Test Suites
   'test-beta-waitlist-db.js',
   'test-beta-api.js',
-  'test-beta-rollout-scheduler.js'
+  'test-beta-rollout-scheduler.js',
+  // Phase 12 Test Suites
+  'test-phase12-production.js'
 ];
 
 console.log('==================================================');

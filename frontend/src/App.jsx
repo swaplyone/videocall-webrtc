@@ -21,6 +21,12 @@ import PendingDeletionModal from './components/PendingDeletionModal';
 import PrivacyCenter from './pages/PrivacyCenter';
 import Settings from './pages/Settings';
 import AdminDashboard from './pages/AdminDashboard';
+import SystemHealth from './pages/SystemHealth';
+import Feedback from './pages/Feedback';
+import Diagnostics from './pages/Diagnostics';
+import LandingPage from './pages/LandingPage';
+import SecurityCenter from './pages/SecurityCenter';
+import Changelog from './pages/Changelog';
 
 import { checkBrowserCompatibility } from './utils/browserSupport';
 import { apiClient } from './utils/apiClient';
@@ -493,6 +499,7 @@ export default function App() {
           <Register onSecureRegister={handleSecureRegister} loginError={loginError} />
         } />
         <Route path="/verify-phone" element={<VerifyPhone />} />
+        <Route path="/welcome" element={<LandingPage />} />
 
         {/* Protected Dashboard Routes */}
         <Route path="/*" element={
@@ -525,6 +532,11 @@ export default function App() {
                   <Route path="/privacy" element={<PrivacyCenter userDetails={userDetails} />} />
                   <Route path="/settings" element={<Settings userDetails={userDetails} onUpdateUserDetails={setUserDetails} />} />
                   <Route path="/admin" element={<AdminDashboard userDetails={userDetails} />} />
+                  <Route path="/health" element={<SystemHealth />} />
+                  <Route path="/feedback" element={<Feedback />} />
+                  <Route path="/diagnostics" element={<Diagnostics />} />
+                  <Route path="/security" element={<SecurityCenter />} />
+                  <Route path="/changelog" element={<Changelog userDetails={userDetails} />} />
                   <Route path="*" element={<Navigate to="/dashboard" replace />} />
                 </Routes>
               </main>

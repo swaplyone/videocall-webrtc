@@ -67,20 +67,74 @@ export async function runDbMigrations() {
       CREATE INDEX IF NOT EXISTS idx_bw_expiry ON beta_waitlist(invitation_expiry_time);
       CREATE INDEX IF NOT EXISTS idx_bw_code ON beta_waitlist(activation_code);
 
-      CREATE TABLE IF NOT EXISTS beta_config (
-        id INTEGER PRIMARY KEY DEFAULT 1,
-        max_capacity INTEGER DEFAULT 150,
-        daily_batch_size INTEGER DEFAULT 10,
-        rollout_active BOOLEAN DEFAULT TRUE,
-        expiry_hours INTEGER DEFAULT 72,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      );
-
       INSERT INTO beta_config (id, max_capacity, daily_batch_size, rollout_active, expiry_hours)
       VALUES (1, 150, 10, TRUE, 72)
       ON CONFLICT (id) DO NOTHING;
+
+      -- Phase 12: Enterprise Production Suite Tables & Columns
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS presence_status VARCHAR(50) DEFAULT 'online';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret TEXT;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS call_preferences JSONB DEFAULT '{}'::jsonb;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_preferences JSONB DEFAULT '{}'::jsonb;
+
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        category VARCHAR(50) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        message TEXT NOT NULL,
+        read_status BOOLEAN DEFAULT FALSE,
+        metadata JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_notif_user_id ON notifications(user_id);
+      CREATE INDEX IF NOT EXISTS idx_notif_category ON notifications(category);
+
+      CREATE TABLE IF NOT EXISTS user_sessions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        session_token VARCHAR(255) UNIQUE NOT NULL,
+        device_name VARCHAR(100),
+        browser VARCHAR(100),
+        os VARCHAR(100),
+        ip_address VARCHAR(100),
+        location VARCHAR(100),
+        is_trusted BOOLEAN DEFAULT FALSE,
+        last_active_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_us_user_id ON user_sessions(user_id);
+      CREATE INDEX IF NOT EXISTS idx_us_token ON user_sessions(session_token);
+
+      CREATE TABLE IF NOT EXISTS feedback_reports (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        type VARCHAR(50) NOT NULL,
+        rating INTEGER,
+        description TEXT NOT NULL,
+        log_payload JSONB DEFAULT '{}'::jsonb,
+        status VARCHAR(50) DEFAULT 'SUBMITTED',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_fr_user_id ON feedback_reports(user_id);
+      CREATE INDEX IF NOT EXISTS idx_fr_type ON feedback_reports(type);
+
+      CREATE TABLE IF NOT EXISTS changelog_entries (
+        id SERIAL PRIMARY KEY,
+        version VARCHAR(50) NOT NULL,
+        title VARCHAR(255) NOT NULL,
+        category VARCHAR(50) NOT NULL,
+        content TEXT NOT NULL,
+        published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_ce_category ON changelog_entries(category);
     `);
-    console.log('✅ Phase 10 & Phase 11 database migrations applied successfully!');
+    console.log('✅ Phase 10, Phase 11 & Phase 12 database migrations applied successfully!');
     return true;
   } catch (err) {
     console.error('❌ Phase 10 database migration error:', err);

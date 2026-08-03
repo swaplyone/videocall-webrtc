@@ -16,6 +16,13 @@ import friendRoutes from './routes/friendRoutes.js';
 import privacyRoutes from './routes/privacyRoutes.js';
 import accountDeletionRoutes from './routes/accountDeletionRoutes.js';
 import betaRoutes from './routes/betaRoutes.js';
+import monitoringRoutes from './routes/monitoringRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import sessionRoutes from './routes/sessionRoutes.js';
+import feedbackRoutes from './routes/feedbackRoutes.js';
+import securityRoutes from './routes/securityRoutes.js';
+import changelogRoutes from './routes/changelogRoutes.js';
 import { initAccountDeletionScheduler } from './services/accountDeletionService.js';
 import * as betaRolloutService from './services/betaRolloutService.js';
 import pool, { query } from './db.js';
@@ -67,6 +74,13 @@ app.use('/api/friends', friendRoutes);
 app.use('/api/privacy', privacyRoutes);
 app.use('/api/account/delete', accountDeletionRoutes);
 app.use('/api/beta', betaRoutes);
+app.use('/api/monitoring', monitoringRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/sessions', sessionRoutes);
+app.use('/api/feedback', feedbackRoutes);
+app.use('/api/security', securityRoutes);
+app.use('/api/changelog', changelogRoutes);
 
 // System Health Checks Telemetry Endpoint
 app.get('/api/health', async (req, res) => {
