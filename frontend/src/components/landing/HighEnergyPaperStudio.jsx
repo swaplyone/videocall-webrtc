@@ -59,6 +59,21 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
     { name: 'David Miller', handle: '@david', skill: 'Cybersecurity', color: '#E5A93C', bg: '#FFFBF0' }
   ];
 
+  const faqs = [
+    {
+      q: 'How does SwaplyOne protect user privacy?',
+      a: 'We use Peer-to-Peer WebRTC encryption for all video sessions and Canvas Screenshot Guard to prevent unauthorized screen captures.'
+    },
+    {
+      q: 'Is SwaplyOne free to use?',
+      a: 'Yes! SwaplyOne is free for skill discovery, peer matching, and encrypted video calls during our Beta release.'
+    },
+    {
+      q: 'Do I need to install any apps or extensions?',
+      a: 'No plugins or downloads required. SwaplyOne runs entirely in modern web browsers.'
+    }
+  ];
+
   const filteredPeers = samplePeers.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.skill.toLowerCase().includes(searchQuery.toLowerCase())
