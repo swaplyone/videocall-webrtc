@@ -41,8 +41,8 @@
 body {
   background-color: var(--bg-primary);
   background-image: 
-    linear-gradient(rgba(42, 39, 35, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(42, 39, 35, 0.02) 1px, transparent 1px);
+    linear-gradient(rgba(42, 39, 35, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(42, 39, 35, 0.03) 1px, transparent 1px);
   background-size: 24px 24px;
   color: var(--text-primary);
   font-family: var(--font-body);
@@ -50,11 +50,6 @@ body {
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-}
-
-body.abyssal-landing-body {
-  background-color: #030712 !important;
-  background-image: none !important;
 }
 
 #root {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Video, Sparkles, UserCheck, PhoneCall, Zap, RefreshCw } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Video, RefreshCw, Zap } from 'lucide-react';
 
 export default function KineticFusionEngine() {
   const [fused, setFused] = useState(false);
@@ -10,7 +10,7 @@ export default function KineticFusionEngine() {
     setFused(true);
     setTimeout(() => {
       setActiveCall(true);
-    }, 600);
+    }, 500);
   };
 
   const handleReset = () => {
@@ -19,56 +19,58 @@ export default function KineticFusionEngine() {
   };
 
   return (
-    <div style={{ position: 'relative', zIndex: 1, padding: '5rem 1.5rem', maxWidth: '1100px', margin: '0 auto', color: '#FFF' }}>
-      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#06B6D4', letterSpacing: '2px', textTransform: 'uppercase' }}>
-          Kinetic Peer Fusion
+    <div style={{ position: 'relative', zIndex: 1, padding: '4rem 1.5rem', maxWidth: '1100px', margin: '0 auto', color: '#2A2723' }}>
+      <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#D45B3E', letterSpacing: '1px', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
+          Tactile Peer Connection
         </span>
-        <h2 style={{ fontSize: '2.5rem', fontWeight: 900, margin: '0.5rem 0 0.75rem 0', textTransform: 'uppercase' }}>
+        <h2 style={{ fontSize: '2.2rem', fontWeight: 800, margin: '0.4rem 0 0.6rem 0', fontFamily: 'var(--font-display)' }}>
           Connect Skills Through Fusion
         </h2>
-        <p style={{ color: '#94A3B8', fontSize: '1.05rem', maxWidth: '620px', margin: '0 auto' }}>
-          Click or drag nodes together to fuse peer skill energies and launch a zero-latency WebRTC encrypted video call.
+        <p style={{ color: '#6B655C', fontSize: '1rem', maxWidth: '600px', margin: '0 auto' }}>
+          Fuse peer skill badges to establish direct WebRTC encrypted video calls.
         </p>
       </div>
 
-      {/* Fusion Stage Container */}
+      {/* Tactile Paper Stage */}
       <div
         style={{
-          maxWidth: '700px',
+          maxWidth: '680px',
           margin: '0 auto',
-          background: 'rgba(15, 23, 42, 0.85)',
-          border: '1.5px solid rgba(255, 255, 255, 0.15)',
-          borderRadius: '24px',
+          background: '#FFF',
+          border: '2.5px solid #2A2723',
+          borderRadius: '20px',
           padding: '2.5rem 1.5rem',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
-          backdropFilter: 'blur(16px)',
-          minHeight: '380px',
+          boxShadow: '8px 8px 0px 0px #2A2723',
+          minHeight: '360px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justify: 'center',
-          position: 'relative',
-          overflow: 'hidden'
+          position: 'relative'
         }}
       >
         {activeCall ? (
           <motion.div
-            initial={{ scale: 0.85, opacity: 0 }}
+            initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             style={{ width: '100%', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.25rem' }}
           >
-            <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, #10B981, #059669)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 30px #10B981aa' }}>
-              <Video size={40} color="#FFF" />
+            <div style={{ width: '76px', height: '76px', borderRadius: '50%', background: '#4A6E53', border: '2.5px solid #2A2723', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '4px 4px 0px 0px #2A2723' }}>
+              <Video size={36} color="#FFF" />
             </div>
 
             <div>
-              <h3 style={{ margin: 0, fontWeight: 900, fontSize: '1.4rem' }}>P2P WebRTC Video Stream Active</h3>
-              <span style={{ fontSize: '0.85rem', color: '#10B981', fontWeight: 800 }}>🟢 Encrypted Session Established (@founder &bull; @peer_alice)</span>
+              <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1.3rem', fontFamily: 'var(--font-display)' }}>
+                Encrypted WebRTC Session Active
+              </h3>
+              <span style={{ fontSize: '0.85rem', color: '#4A6E53', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
+                🟢 Direct Peer Connection Established (@founder &bull; @alice)
+              </span>
             </div>
 
-            <div style={{ display: 'flex', gap: '1rem', background: 'rgba(255,255,255,0.06)', padding: '0.5rem 1rem', borderRadius: '10px', fontSize: '0.8rem' }}>
-              <span>Latency: 18ms</span> &bull; <span>Resolution: 1280x720 (720p HD)</span> &bull; <span>Codec: Opus / VP8</span>
+            <div style={{ display: 'flex', gap: '1rem', background: '#FAF6EE', border: '2px solid #2A2723', padding: '0.5rem 1rem', borderRadius: '10px', fontSize: '0.8rem', fontFamily: 'var(--font-mono)' }}>
+              <span>Latency: 18ms</span> &bull; <span>Resolution: 720p HD</span> &bull; <span>Codec: VP8</span>
             </div>
 
             <button
@@ -77,82 +79,68 @@ export default function KineticFusionEngine() {
                 marginTop: '0.5rem',
                 padding: '0.5rem 1.25rem',
                 borderRadius: '30px',
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.2)',
-                color: '#FFF',
+                background: '#FAF6EE',
+                border: '2px solid #2A2723',
+                color: '#2A2723',
                 fontWeight: 800,
                 fontSize: '0.8rem',
                 cursor: 'pointer',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.4rem'
+                gap: '0.4rem',
+                fontFamily: 'var(--font-mono)'
               }}
             >
-              <RefreshCw size={14} /> Reset Fusion Stage
+              <RefreshCw size={14} /> Reset Stage
             </button>
           </motion.div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2rem', width: '100%' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: fused ? '0px' : '4rem', transition: 'gap 0.5s cubic-bezier(0.23, 1, 0.32, 1)' }}>
-              {/* Skill Energy Node 1 */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: fused ? '10px' : '4rem', transition: 'gap 0.4s ease' }}>
+              {/* Skill Badge 1 */}
               <motion.div
-                animate={{ scale: fused ? 1.2 : 1 }}
                 style={{
-                  width: '90px',
-                  height: '90px',
+                  width: '95px',
+                  height: '95px',
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
-                  border: '2px solid #60A5FA',
-                  boxShadow: '0 0 35px #2563EBaa',
+                  background: '#FFF0EB',
+                  border: '2.5px solid #D45B3E',
+                  boxShadow: '4px 4px 0px 0px #2A2723',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justify: 'center',
-                  fontWeight: 900,
-                  fontSize: '0.85rem'
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  color: '#D45B3E',
+                  fontFamily: 'var(--font-mono)'
                 }}
               >
                 <span>React</span>
-                <span style={{ fontSize: '0.7rem', color: '#93C5FD' }}>@founder</span>
+                <span style={{ fontSize: '0.7rem', color: '#2A2723' }}>@founder</span>
               </motion.div>
 
-              {/* Energy Shockwave Ring */}
-              {fused && (
-                <motion.div
-                  initial={{ scale: 0, opacity: 1 }}
-                  animate={{ scale: 3, opacity: 0 }}
-                  transition={{ duration: 0.6 }}
-                  style={{
-                    position: 'absolute',
-                    width: '100px',
-                    height: '100px',
-                    borderRadius: '50%',
-                    border: '3px solid #06B6D4',
-                    pointerEvents: 'none'
-                  }}
-                />
-              )}
-
-              {/* Skill Energy Node 2 */}
+              {/* Skill Badge 2 */}
               <motion.div
-                animate={{ scale: fused ? 1.2 : 1 }}
                 style={{
-                  width: '90px',
-                  height: '90px',
+                  width: '95px',
+                  height: '95px',
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #06B6D4, #0891B2)',
-                  border: '2px solid #67E8F9',
-                  boxShadow: '0 0 35px #06B6D4aa',
+                  background: '#F1F6F1',
+                  border: '2.5px solid #4A6E53',
+                  boxShadow: '4px 4px 0px 0px #2A2723',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justify: 'center',
-                  fontWeight: 900,
-                  fontSize: '0.85rem'
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  color: '#4A6E53',
+                  fontFamily: 'var(--font-mono)'
                 }}
               >
                 <span>AI & ML</span>
-                <span style={{ fontSize: '0.7rem', color: '#A5F3FC' }}>@alice</span>
+                <span style={{ fontSize: '0.7rem', color: '#2A2723' }}>@alice</span>
               </motion.div>
             </div>
 
@@ -161,21 +149,20 @@ export default function KineticFusionEngine() {
               style={{
                 padding: '0.85rem 2.2rem',
                 borderRadius: '50px',
-                background: 'linear-gradient(135deg, #06B6D4, #2563EB)',
-                border: 'none',
+                background: '#D45B3E',
+                border: '2.5px solid #2A2723',
+                boxShadow: '4px 4px 0px 0px #2A2723',
                 color: '#FFF',
-                fontWeight: 900,
+                fontWeight: 800,
                 fontSize: '0.9rem',
                 cursor: 'pointer',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                boxShadow: '0 0 30px rgba(6, 182, 212, 0.4)'
+                fontFamily: 'var(--font-body)'
               }}
             >
-              <Zap size={18} /> Fuse Energy Nodes & Call
+              <Zap size={18} /> Fuse Skill Badges & Connect
             </button>
           </div>
         )}

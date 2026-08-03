@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, EyeOff, Lock, Camera, AlertOctagon } from 'lucide-react';
+import { ShieldCheck, EyeOff, Lock, Camera, AlertTriangle } from 'lucide-react';
 
 export default function RefractionPrivacyShield() {
   const [shieldTriggered, setShieldTriggered] = useState(false);
   const [auditLog, setAuditLog] = useState([
-    { id: 1, text: 'P2P_SIGNAL_ENCRYPTED_AES256', time: '21:18:04' },
-    { id: 2, text: 'CANVAS_ANTI_CAPTURE_ACTIVE', time: '21:18:05' }
+    { id: 1, text: 'P2P_SIGNAL_ENCRYPTED_AES256', time: '21:34:04' },
+    { id: 2, text: 'CANVAS_ANTI_CAPTURE_ACTIVE', time: '21:34:05' }
   ]);
 
   const handleSimulateCapture = () => {
@@ -20,48 +20,48 @@ export default function RefractionPrivacyShield() {
 
     setTimeout(() => {
       setShieldTriggered(false);
-    }, 4000);
+    }, 3800);
   };
 
   return (
-    <div style={{ position: 'relative', zIndex: 1, padding: '5rem 1.5rem', maxWidth: '1100px', margin: '0 auto', color: '#FFF' }}>
-      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#10B981', letterSpacing: '2px', textTransform: 'uppercase' }}>
-          Midnight Privacy Matrix
+    <div style={{ position: 'relative', zIndex: 1, padding: '4.5rem 1.5rem', maxWidth: '1100px', margin: '0 auto', color: '#2A2723' }}>
+      <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#4A6E53', letterSpacing: '1px', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
+          Zero-Trust Privacy Engine
         </span>
-        <h2 style={{ fontSize: '2.5rem', fontWeight: 900, margin: '0.5rem 0 0.75rem 0', textTransform: 'uppercase' }}>
+        <h2 style={{ fontSize: '2.2rem', fontWeight: 800, margin: '0.4rem 0 0.6rem 0', fontFamily: 'var(--font-display)' }}>
           Anti-Capture Screen Obfuscation
         </h2>
-        <p style={{ color: '#94A3B8', fontSize: '1.05rem', maxWidth: '620px', margin: '0 auto' }}>
-          SwaplyOne actively detects tab defocusing, screen captures, and external recording tools to protect video privacy.
+        <p style={{ color: '#6B655C', fontSize: '1rem', maxWidth: '600px', margin: '0 auto' }}>
+          SwaplyOne actively detects screen capture attempts to protect peer privacy during video calls.
         </p>
       </div>
 
-      {/* Simulator Container */}
+      {/* Tactile Paper Frame */}
       <div
         style={{
-          maxWidth: '750px',
+          maxWidth: '720px',
           margin: '0 auto',
-          background: '#0B132B',
-          border: '2px solid rgba(16, 185, 129, 0.3)',
-          borderRadius: '24px',
+          background: '#FFF',
+          border: '2.5px solid #2A2723',
+          borderRadius: '20px',
           overflow: 'hidden',
-          boxShadow: '0 0 50px rgba(16, 185, 129, 0.15)'
+          boxShadow: '8px 8px 0px 0px #2A2723'
         }}
       >
-        {/* Frame Top */}
-        <div style={{ background: '#1C2541', padding: '0.8rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        {/* Frame Header */}
+        <div style={{ background: '#FAF6EE', padding: '0.8rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2.5px solid #2A2723' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ShieldCheck size={20} color="#10B981" />
-            <strong style={{ fontSize: '0.85rem' }}>Swaply Shield Anti-Capture Guard</strong>
+            <ShieldCheck size={20} color="#4A6E53" />
+            <strong style={{ fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>Swaply Anti-Capture Guard</strong>
           </div>
           <button
             onClick={handleSimulateCapture}
             style={{
               padding: '0.45rem 1rem',
               borderRadius: '30px',
-              background: '#EF4444',
-              border: 'none',
+              background: '#D45B3E',
+              border: '2px solid #2A2723',
               color: '#FFF',
               fontWeight: 800,
               fontSize: '0.78rem',
@@ -69,15 +69,16 @@ export default function RefractionPrivacyShield() {
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
-              boxShadow: '0 0 15px rgba(239, 68, 68, 0.4)'
+              fontFamily: 'var(--font-mono)',
+              boxShadow: '3px 3px 0px 0px #2A2723'
             }}
           >
             <Camera size={14} /> Simulate PrintScreen
           </button>
         </div>
 
-        {/* Video Canvas Sandbox */}
-        <div style={{ position: 'relative', height: '300px', background: '#050816', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {/* Canvas Display View */}
+        <div style={{ position: 'relative', height: '280px', background: '#F4EFE6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <AnimatePresence>
             {shieldTriggered ? (
               <motion.div
@@ -87,44 +88,44 @@ export default function RefractionPrivacyShield() {
                 style={{
                   position: 'absolute',
                   inset: 0,
-                  background: 'rgba(239, 68, 68, 0.92)',
-                  backdropFilter: 'blur(25px)',
+                  background: '#BE4D4D',
+                  color: '#FFF',
                   zIndex: 10,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justify: 'center',
-                  gap: '0.85rem',
+                  gap: '0.75rem',
                   padding: '1.5rem',
                   textAlign: 'center'
                 }}
               >
-                <AlertOctagon size={52} color="#FFF" />
-                <h3 style={{ margin: 0, fontWeight: 900, fontSize: '1.5rem', textTransform: 'uppercase' }}>
-                  ⚠️ SCREENSHOT ATTEMPT BLOCKED
+                <AlertTriangle size={48} color="#FFF" />
+                <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1.4rem', fontFamily: 'var(--font-display)' }}>
+                  SCREENSHOT ATTEMPT DETECTED
                 </h3>
-                <p style={{ margin: 0, fontSize: '0.92rem', maxWidth: '440px', color: '#FEE2E2' }}>
-                  Video stream immediately obfuscated. Real-time security incident alert sent to peer video session.
+                <p style={{ margin: 0, fontSize: '0.9rem', maxWidth: '420px', color: '#FEE2E2', fontFamily: 'var(--font-body)' }}>
+                  Video stream obfuscated. Security warning logged to session audit log.
                 </p>
               </motion.div>
             ) : (
-              <div style={{ textAlign: 'center', color: '#94A3B8' }}>
-                <Lock size={52} color="#10B981" style={{ marginBottom: '0.75rem' }} />
-                <h4 style={{ margin: 0, color: '#FFF', fontWeight: 900, fontSize: '1.2rem' }}>P2P Encrypted Session Protected</h4>
-                <span style={{ fontSize: '0.8rem', color: '#10B981', fontWeight: 800 }}>🟢 Refraction Canvas Active</span>
+              <div style={{ textAlign: 'center', color: '#2A2723' }}>
+                <Lock size={46} color="#4A6E53" style={{ marginBottom: '0.5rem' }} />
+                <h4 style={{ margin: 0, fontWeight: 800, fontSize: '1.15rem', fontFamily: 'var(--font-display)' }}>P2P Encrypted Session Protected</h4>
+                <span style={{ fontSize: '0.8rem', color: '#4A6E53', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>🟢 Anti-Capture Guard Active</span>
               </div>
             )}
           </AnimatePresence>
         </div>
 
         {/* Audit Log Footer */}
-        <div style={{ background: '#1C2541', padding: '1rem 1.25rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#38BDF8', letterSpacing: '1px', textTransform: 'uppercase' }}>
+        <div style={{ background: '#FAF6EE', padding: '1rem 1.25rem', borderTop: '2.5px solid #2A2723' }}>
+          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#D45B3E', letterSpacing: '1px', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
             Security Audit Stream
           </span>
           <div style={{ marginTop: '0.4rem', display: 'flex', flexDirection: 'column', gap: '0.3rem', fontSize: '0.78rem', fontFamily: 'var(--font-mono)' }}>
             {auditLog.slice(0, 3).map(log => (
-              <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', color: log.text.includes('BLOCKED') ? '#F87171' : '#CBD5E1' }}>
+              <div key={log.id} style={{ display: 'flex', justifyContent: 'space-between', color: log.text.includes('BLOCKED') ? '#BE4D4D' : '#2A2723' }}>
                 <span>&bull; {log.text}</span>
                 <span>{log.time}</span>
               </div>
