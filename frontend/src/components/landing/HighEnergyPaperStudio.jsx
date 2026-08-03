@@ -21,6 +21,7 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
   // Audio chime helper
   const playSound = (freq = 440) => {
     if (!soundOn) return;
+    const numericFreq = typeof freq === 'number' && !isNaN(freq) ? freq : 440;
     try {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return;
@@ -28,8 +29,8 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(freq * 1.4, ctx.currentTime + 0.25);
+      osc.frequency.setValueAtTime(numericFreq, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(numericFreq * 1.4, ctx.currentTime + 0.25);
       gain.gain.setValueAtTime(0.08, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
       osc.connect(gain);
