@@ -1,0 +1,270 @@
+/* DYNAMIC ISLAND STYLES FOR SWAPLYONE */
+* {
+  box-sizing: border-box;
+}
+
+.island-fixed-wrapper {
+  position: fixed;
+  top: 16px;
+  left: 0;
+  right: 0;
+  z-index: 10000;
+  pointer-events: none;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+}
+
+.island-frame {
+  position: relative;
+  pointer-events: auto;
+  display: flex;
+  justify-content: center;
+}
+
+.island-body {
+  position: relative;
+  background: #111827;
+  border: 3px solid #111827;
+  box-shadow: 6px 6px 0 #111827, 0 12px 30px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+  color: white;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+  will-change: width, height;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.island-content-layer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.island-header-row {
+  flex-shrink: 0;
+  height: 56px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+.island-header-row.is-expanded {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+.island-logo-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.2s ease;
+}
+
+.island-logo-link:hover {
+  background: rgba(255, 255, 255, 0.18);
+  transform: scale(1.02);
+}
+
+.island-brand-text {
+  font-weight: 900;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #FFF;
+}
+
+.island-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.island-power-btn {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1.5px solid rgba(239, 68, 68, 0.4);
+  color: #EF4444;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.island-power-btn:hover {
+  background: #EF4444;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+}
+
+.island-toggle-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.island-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.08);
+}
+
+.island-menu-area {
+  flex: 1;
+  width: 100%;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.island-menu-area::-webkit-scrollbar {
+  display: block;
+  width: 4px;
+}
+
+.island-menu-area::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+}
+
+.menu-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.island-quick-access {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 480px) {
+  .island-quick-access {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quick-access-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.quick-access-item:hover, .quick-access-item.active {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--color-accent, #06B6D4);
+  transform: translateY(-2px);
+}
+
+.access-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.access-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.access-label {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #ffffff;
+}
+
+.access-desc {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.island-sticky-footer {
+  padding: 10px 14px 14px;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.1);
+  background: rgba(17, 24, 39, 0.98);
+}
+
+.premium-login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 44px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2563EB, #4F46E5);
+  color: white;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 2px solid #111827;
+  box-shadow: 3px 3px 0 #111827;
+  transition: all 0.2s ease;
+}
+
+.premium-login-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 4px 4px 0 #111827;
+}
+
+.pl-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
