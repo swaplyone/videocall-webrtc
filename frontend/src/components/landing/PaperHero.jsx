@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, ArrowRight, Play } from 'lucide-react';
-import FloatingStickyNotes from './FloatingStickyNotes';
+import CinematicStickyScene from './CinematicStickyScene';
 
 export default function PaperHero({ onTriggerVortex, onScrollToDemo }) {
   return (
-    <div style={{ position: 'relative', zIndex: 1, paddingTop: '110px', paddingBottom: '60px', maxWidth: '1200px', margin: '0 auto', textAlign: 'center', color: '#2A2723' }}>
+    <div style={{ position: 'relative', zIndex: 1, paddingTop: '110px', paddingBottom: '50px', maxWidth: '1250px', margin: '0 auto', textAlign: 'center', color: '#2A2723', overflow: 'visible' }}>
       {/* Paper Badge Tag */}
       <motion.div
         initial={{ opacity: 0, y: -15 }}
@@ -70,7 +70,7 @@ export default function PaperHero({ onTriggerVortex, onScrollToDemo }) {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
-        style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '2.5rem' }}
+        style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '1.5rem' }}
       >
         <button
           onClick={onTriggerVortex}
@@ -87,8 +87,7 @@ export default function PaperHero({ onTriggerVortex, onScrollToDemo }) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.5rem',
-            fontFamily: 'var(--font-body)',
-            transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+            fontFamily: 'var(--font-body)'
           }}
         >
           Become a Beta Tester <ArrowRight size={18} />
@@ -109,16 +108,15 @@ export default function PaperHero({ onTriggerVortex, onScrollToDemo }) {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.5rem',
-            fontFamily: 'var(--font-body)',
-            transition: 'transform 0.15s ease, box-shadow 0.15s ease'
+            fontFamily: 'var(--font-body)'
           }}
         >
           <Play size={18} /> Interactive Demo
         </button>
       </motion.div>
 
-      {/* Interactive Physics Draggable Floating Sticky Notes */}
-      <FloatingStickyNotes />
+      {/* 3D Cinematic Parallax Draggable Sticky Notes Scene */}
+      <CinematicStickyScene />
     </div>
   );
 }
