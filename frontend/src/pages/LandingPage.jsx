@@ -2,13 +2,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Video, ShieldCheck, Zap, Users, Lock, ChevronRight, CheckCircle, HelpCircle } from 'lucide-react';
 
-export default function LandingPage() {
+export default function LandingPage({ currentUser }) {
   const navigate = useNavigate();
 
   return (
-    <div style={{ background: '#FAF6EE', minHeight: '100vh', color: '#111827', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ background: '#FAF6EE', minHeight: '100vh', color: '#111827', fontFamily: 'system-ui, sans-serif', paddingTop: '80px' }}>
       {/* Hero Banner */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '4rem 1.5rem 2rem 1.5rem', textAlign: 'center' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '3rem 1.5rem 2rem 1.5rem', textAlign: 'center' }}>
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -33,20 +33,32 @@ export default function LandingPage() {
         </p>
 
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => navigate('/register')}
-            className="btn btn-primary"
-            style={{ padding: '0.8rem 1.75rem', fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-          >
-            Join Beta Waitlist <ChevronRight size={20} />
-          </button>
-          <button
-            onClick={() => navigate('/login')}
-            className="btn btn-secondary"
-            style={{ padding: '0.8rem 1.75rem', fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase' }}
-          >
-            Sign In
-          </button>
+          {currentUser ? (
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="btn btn-primary"
+              style={{ padding: '0.8rem 1.75rem', fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              Open Dial Console (@{currentUser}) <ChevronRight size={20} />
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => navigate('/register')}
+                className="btn btn-primary"
+                style={{ padding: '0.8rem 1.75rem', fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              >
+                Join Beta Waitlist <ChevronRight size={20} />
+              </button>
+              <button
+                onClick={() => navigate('/login')}
+                className="btn btn-secondary"
+                style={{ padding: '0.8rem 1.75rem', fontSize: '1rem', fontWeight: 900, textTransform: 'uppercase' }}
+              >
+                Sign In
+              </button>
+            </>
+          )}
         </div>
       </div>
 

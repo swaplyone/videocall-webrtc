@@ -24,9 +24,9 @@
 
 .island-body {
   position: relative;
-  background: #111827;
-  border: 3px solid #111827;
-  box-shadow: 6px 6px 0 #111827, 0 12px 30px rgba(0, 0, 0, 0.4);
+  background: #0F172A;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   color: white;
   min-width: 220px;
@@ -253,14 +253,13 @@
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  border: 2px solid #111827;
-  box-shadow: 3px 3px 0 #111827;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   transition: all 0.2s ease;
 }
 
 .premium-login-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 4px 4px 0 #111827;
+  background: linear-gradient(135deg, #1D4ED8, #4338CA);
 }
 
 .pl-content {

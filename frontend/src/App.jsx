@@ -487,9 +487,14 @@ export default function App() {
         onKeepScheduled={() => setPendingDeletionData(null)}
       />
 
+      {/* Global Dynamic Island Navbar */}
+      <Navbar currentUser={currentUser} userDetails={userDetails} onLogout={handleLogout} />
+
       {/* Main Routing Stage */}
       <Routes>
         {/* Public Routes */}
+        <Route path="/" element={<LandingPage currentUser={currentUser} />} />
+        <Route path="/welcome" element={<LandingPage currentUser={currentUser} />} />
         <Route path="/login" element={
           currentUser ? <Navigate to="/dashboard" replace /> :
           <Login onLogin={handleLogin} onSecureLogin={handleSecureLogin} loginError={loginError} />
@@ -499,13 +504,11 @@ export default function App() {
           <Register onSecureRegister={handleSecureRegister} loginError={loginError} />
         } />
         <Route path="/verify-phone" element={<VerifyPhone />} />
-        <Route path="/welcome" element={<LandingPage />} />
 
         {/* Protected Dashboard Routes */}
         <Route path="/*" element={
           !currentUser ? <Navigate to="/login" replace /> : (
-            <div className="dashboard-layout">
-              <Navbar currentUser={currentUser} userDetails={userDetails} onLogout={handleLogout} />
+            <div className="dashboard-layout" style={{ paddingTop: '70px' }}>
               <main className="main-stage">
                 
                 {/* Global Incoming Call notification bar */}
