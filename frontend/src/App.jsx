@@ -283,7 +283,17 @@ export default function App() {
             setUserDetails(res.user);
             localStorage.setItem('swaply_user_details', JSON.stringify(res.user));
           }
-        }).catch(() => {});
+        }).catch((err) => {
+          console.warn('[App] Session token expired or invalid, clearing session:', err.message);
+          localStorage.removeItem('swaply_auth_token');
+          localStorage.removeItem('swaply_user_details');
+          localStorage.removeItem('swaply_current_user');
+          setAuthToken(null);
+          setUserDetails(null);
+          setCurrentUser('');
+          apiClient.setAuthToken(null);
+          socketClient.disconnect();
+        });
 
         socketClient.connect(savedToken);
         socketClient.register(savedUser, (response) => {
