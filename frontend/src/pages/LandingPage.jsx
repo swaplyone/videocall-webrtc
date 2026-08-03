@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, Play, Video, ShieldCheck, QrCode, Users, Activity, Lock, ChevronDown, CheckCircle, Camera, UserX, UserCheck, RefreshCw, Zap, X } from 'lucide-react';
+import { Sparkles, ArrowRight, Play, Video, ShieldCheck, QrCode, Users, Activity, Lock, ChevronDown, CheckCircle, Camera, Zap, X } from 'lucide-react';
 import { apiClient } from '../utils/apiClient';
+import PaperHero from '../components/landing/PaperHero';
 
 export default function LandingPage({ currentUser }) {
   const navigate = useNavigate();
   const [modalOpen, setModalOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
-  const [activeTab, setActiveTab] = useState('connect');
   const [fused, setFused] = useState(false);
   const [callActive, setCallActive] = useState(false);
   const [shieldTriggered, setShieldTriggered] = useState(false);
@@ -79,48 +79,14 @@ export default function LandingPage({ currentUser }) {
   return (
     <div style={{ background: '#FAF6EE', color: '#2A2723', minHeight: '100vh', fontFamily: "var(--font-body), 'Work Sans', sans-serif" }}>
       
-      {/* HERO SECTION */}
-      <section style={{ paddingTop: '110px', paddingBottom: '70px', maxWidth: '1150px', margin: '0 auto', textAlign: 'center', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#FFF', border: '2.5px solid #2A2723', boxShadow: '4px 4px 0px 0px #2A2723', padding: '0.45rem 1.25rem', borderRadius: '50px', fontWeight: 800, fontSize: '0.85rem', fontFamily: 'var(--font-mono)', marginBottom: '2rem' }}>
-          <Sparkles size={16} color="#D45B3E" /> SWAPLYONE BETA PLATFORM v2.5.0
-        </div>
-
-        <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 800, fontFamily: "var(--font-display), 'Syne', sans-serif", lineHeight: 1.1, letterSpacing: '-0.02em', margin: '0 auto 1.5rem auto', maxWidth: '900px' }}>
-          In a Deep Ocean of Skills.
-        </h1>
-
-        <p style={{ fontSize: 'clamp(1rem, 2vw, 1.2rem)', color: '#6B655C', maxWidth: '640px', margin: '0 auto 2.5rem auto', lineHeight: 1.6 }}>
-          Connect people through skills, not randomness. Peer-to-Peer Encrypted WebRTC Video Communication & Screenshot Protection.
-        </p>
-
-        <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3.5rem' }}>
-          <button
-            onClick={() => setModalOpen(true)}
-            style={{ padding: '0.9rem 2.2rem', borderRadius: '50px', background: '#D45B3E', border: '2.5px solid #2A2723', boxShadow: '5px 5px 0px 0px #2A2723', color: '#FFF', fontWeight: 800, fontSize: '0.92rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-          >
-            Become a Beta Tester <ArrowRight size={18} />
-          </button>
-
-          <button
-            onClick={() => {
-              const el = document.getElementById('interactive-demo');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
-            style={{ padding: '0.9rem 2.2rem', borderRadius: '50px', background: '#FFF', border: '2.5px solid #2A2723', boxShadow: '5px 5px 0px 0px #2A2723', color: '#2A2723', fontWeight: 800, fontSize: '0.92rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
-          >
-            <Play size={18} /> Interactive Demo
-          </button>
-        </div>
-
-        {/* Clean Skill Pills */}
-        <div style={{ display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: '0.85rem' }}>
-          {['React', 'Python', 'AI & ML', 'UI/UX Design', 'Photography', 'Music Sync', 'Flutter', 'Node.js'].map((skill, idx) => (
-            <div key={idx} style={{ background: '#FFF', border: '2.5px solid #2A2723', boxShadow: '4px 4px 0px 0px #2A2723', padding: '0.5rem 1.1rem', borderRadius: '50px', fontWeight: 700, fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}>
-              {skill}
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* HERO SECTION WITH FLOATING DRAGGABLE PHYSICS STICKY NOTES */}
+      <PaperHero
+        onTriggerVortex={() => setModalOpen(true)}
+        onScrollToDemo={() => {
+          const el = document.getElementById('interactive-demo');
+          if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }}
+      />
 
       {/* HOW IT WORKS STORY CARDS */}
       <section style={{ padding: '4rem 1.5rem', maxWidth: '1100px', margin: '0 auto', textAlign: 'center' }}>
@@ -365,12 +331,12 @@ export default function LandingPage({ currentUser }) {
                 </div>
                 {error && <div style={{ background: '#FDF2F2', border: '2px solid #BE4D4D', color: '#BE4D4D', padding: '0.5rem', borderRadius: '8px', fontSize: '0.85rem', fontWeight: 'bold' }}>{error}</div>}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <input required type="text" placeholder="Full Name" value={name} onChange={e => setName(e.target.value)} style={{ padding: '0.7rem', borderRadius: '10px', background: '#FAF6EE', border: '2px solid #2A2723' }} />
-                  <input required type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} style={{ padding: '0.7rem', borderRadius: '10px', background: '#FAF6EE', border: '2px solid #2A2723' }} />
+                  <input required type="text" placeholder="Full Name" value={name} onChange={e => setName(e.target.value)} style={{ padding: '0.7rem', borderRadius: '10px', background: '#FAF6EE', border: '2.5px solid #2A2723' }} />
+                  <input required type="text" placeholder="Username" value={username} onChange={e => setUsername(e.target.value)} style={{ padding: '0.7rem', borderRadius: '10px', background: '#FAF6EE', border: '2.5px solid #2A2723' }} />
                 </div>
-                <input required type="email" placeholder="Email Address" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: '0.7rem', borderRadius: '10px', background: '#FAF6EE', border: '2px solid #2A2723' }} />
-                <input required type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} style={{ padding: '0.7rem', borderRadius: '10px', background: '#FAF6EE', border: '2px solid #2A2723' }} />
-                <input type="text" placeholder="Skills (e.g. React, Python)" value={skills} onChange={e => setSkills(e.target.value)} style={{ padding: '0.7rem', borderRadius: '10px', background: '#FAF6EE', border: '2px solid #2A2723' }} />
+                <input required type="email" placeholder="Email Address" value={email} onChange={e => setEmail(e.target.value)} style={{ padding: '0.7rem', borderRadius: '10px', background: '#FAF6EE', border: '2.5px solid #2A2723' }} />
+                <input required type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} style={{ padding: '0.7rem', borderRadius: '10px', background: '#FAF6EE', border: '2.5px solid #2A2723' }} />
+                <input type="text" placeholder="Skills (e.g. React, Python)" value={skills} onChange={e => setSkills(e.target.value)} style={{ padding: '0.7rem', borderRadius: '10px', background: '#FAF6EE', border: '2.5px solid #2A2723' }} />
                 <button type="submit" disabled={loading} style={{ padding: '0.85rem', borderRadius: '50px', background: '#D45B3E', border: '2.5px solid #2A2723', boxShadow: '4px 4px 0px 0px #2A2723', color: '#FFF', fontWeight: 800, marginTop: '0.5rem', cursor: 'pointer' }}>
                   {loading ? 'Processing...' : 'Complete Registration'}
                 </button>

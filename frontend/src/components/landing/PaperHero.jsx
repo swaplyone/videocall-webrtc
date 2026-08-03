@@ -1,21 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, ArrowRight, Play, Code, Camera, Cpu, Palette, Music, Smartphone, Server } from 'lucide-react';
-
-const PAPER_STICKERS = [
-  { id: 'react', label: 'React', icon: Code, bg: '#FFF', border: '#D45B3E', color: '#D45B3E', shadow: '#2A2723' },
-  { id: 'python', label: 'Python', icon: Code, bg: '#FFF', border: '#4A6E53', color: '#4A6E53', shadow: '#2A2723' },
-  { id: 'ai', label: 'AI & ML', icon: Cpu, bg: '#FFF', border: '#E5A93C', color: '#E5A93C', shadow: '#2A2723' },
-  { id: 'uiux', label: 'UI/UX', icon: Palette, bg: '#FFF', border: '#2A2723', color: '#2A2723', shadow: '#2A2723' },
-  { id: 'photo', label: 'Photography', icon: Camera, bg: '#FFF', border: '#D45B3E', color: '#D45B3E', shadow: '#2A2723' },
-  { id: 'music', label: 'Music Sync', icon: Music, bg: '#FFF', border: '#4A6E53', color: '#4A6E53', shadow: '#2A2723' }
-];
+import { Sparkles, ArrowRight, Play } from 'lucide-react';
+import FloatingStickyNotes from './FloatingStickyNotes';
 
 export default function PaperHero({ onTriggerVortex, onScrollToDemo }) {
-  const [activeSticker, setActiveSticker] = useState(null);
-
   return (
-    <div style={{ position: 'relative', zIndex: 1, paddingTop: '110px', paddingBottom: '80px', maxWidth: '1200px', margin: '0 auto', textAlign: 'center', color: '#2A2723' }}>
+    <div style={{ position: 'relative', zIndex: 1, paddingTop: '110px', paddingBottom: '60px', maxWidth: '1200px', margin: '0 auto', textAlign: 'center', color: '#2A2723' }}>
       {/* Paper Badge Tag */}
       <motion.div
         initial={{ opacity: 0, y: -15 }}
@@ -33,11 +23,11 @@ export default function PaperHero({ onTriggerVortex, onScrollToDemo }) {
           fontWeight: 800,
           fontSize: '0.85rem',
           color: '#2A2723',
-          marginBottom: '2rem',
+          marginBottom: '1.75rem',
           fontFamily: 'var(--font-mono)'
         }}
       >
-        <Sparkles size={16} color="#D45B3E" /> SWAPLYONE BETA PLATFORM
+        <Sparkles size={16} color="#D45B3E" /> SWAPLYONE BETA PLATFORM v2.5.0
       </motion.div>
 
       {/* Main Editorial Headline */}
@@ -52,7 +42,7 @@ export default function PaperHero({ onTriggerVortex, onScrollToDemo }) {
           lineHeight: 1.1,
           letterSpacing: '-0.02em',
           color: '#2A2723',
-          margin: '0 auto 1.5rem auto',
+          margin: '0 auto 1.25rem auto',
           maxWidth: '900px'
         }}
       >
@@ -67,7 +57,7 @@ export default function PaperHero({ onTriggerVortex, onScrollToDemo }) {
           fontSize: 'clamp(1rem, 2vw, 1.2rem)',
           color: '#6B655C',
           maxWidth: '650px',
-          margin: '0 auto 2.5rem auto',
+          margin: '0 auto 2.25rem auto',
           lineHeight: 1.6,
           fontFamily: 'var(--font-body)'
         }}
@@ -80,7 +70,7 @@ export default function PaperHero({ onTriggerVortex, onScrollToDemo }) {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
-        style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '4rem' }}
+        style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '2.5rem' }}
       >
         <button
           onClick={onTriggerVortex}
@@ -127,50 +117,8 @@ export default function PaperHero({ onTriggerVortex, onScrollToDemo }) {
         </button>
       </motion.div>
 
-      {/* Tactile Floating Paper Skill Stickers */}
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '1.25rem', padding: '0 1rem' }}>
-        {PAPER_STICKERS.map((sticker, idx) => {
-          const Icon = sticker.icon;
-          const isActive = activeSticker === sticker.id;
-
-          return (
-            <motion.div
-              key={sticker.id}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{
-                scale: isActive ? 1.15 : 1,
-                opacity: 1,
-                y: [0, -6, 0]
-              }}
-              transition={{
-                y: { duration: 3 + idx * 0.3, repeat: Infinity, ease: 'easeInOut' },
-                scale: { duration: 0.2 }
-              }}
-              onMouseEnter={() => setActiveSticker(sticker.id)}
-              onMouseLeave={() => setActiveSticker(null)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.6rem 1.3rem',
-                borderRadius: '50px',
-                background: sticker.bg,
-                border: `2.5px solid ${sticker.border}`,
-                boxShadow: isActive ? '8px 8px 0px 0px #2A2723' : '5px 5px 0px 0px #2A2723',
-                cursor: 'pointer',
-                fontFamily: 'var(--font-mono)',
-                fontWeight: 700,
-                fontSize: '0.88rem',
-                color: '#2A2723',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <Icon size={16} color={sticker.color} />
-              <span>{sticker.label}</span>
-            </motion.div>
-          );
-        })}
-      </div>
+      {/* Interactive Physics Draggable Floating Sticky Notes */}
+      <FloatingStickyNotes />
     </div>
   );
 }
