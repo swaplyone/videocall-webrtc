@@ -17,6 +17,13 @@ export default function LandingPage({ currentUser }) {
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(false);
 
+  React.useEffect(() => {
+    document.body.classList.add('abyssal-landing-body');
+    return () => {
+      document.body.classList.remove('abyssal-landing-body');
+    };
+  }, []);
+
   // Web Audio Synthesizer helper for ambient interaction chimes
   const playSynthesizedChime = (freq = 440) => {
     if (!audioEnabled) return;

@@ -52,6 +52,11 @@ body {
   flex-direction: column;
 }
 
+body.abyssal-landing-body {
+  background-color: #030712 !important;
+  background-image: none !important;
+}
+
 #root {
   display: flex;
   flex-direction: column;
