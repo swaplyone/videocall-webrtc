@@ -15,8 +15,37 @@ export default function LandingPage({ currentUser }) {
   const [vortexActive, setVortexActive] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState(null);
+  const [audioEnabled, setAudioEnabled] = useState(false);
+
+  // Web Audio Synthesizer helper for ambient interaction chimes
+  const playSynthesizedChime = (freq = 440) => {
+    if (!audioEnabled) return;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(freq * 1.5, ctx.currentTime + 0.3);
+
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } catch (e) {
+      console.warn('Audio play failed:', e);
+    }
+  };
 
   const handleTriggerVortex = () => {
+    playSynthesizedChime(587.33); // D5 chime
     setVortexActive(true);
   };
 
