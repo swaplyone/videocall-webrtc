@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Zap, ShieldCheck, Video, Users, ChevronDown, CheckCircle, ArrowRight, Lock, HelpCircle } from 'lucide-react';
+import { ChevronDown, CheckCircle, ArrowRight } from 'lucide-react';
 
-import OceanCanvas from '../components/landing/OceanCanvas';
-import HeroConstellation from '../components/landing/HeroConstellation';
-import LiveDemoSimulator from '../components/landing/LiveDemoSimulator';
+import AbyssalFluidCanvas from '../components/landing/AbyssalFluidCanvas';
+import AbyssHero from '../components/landing/AbyssHero';
+import KineticFusionEngine from '../components/landing/KineticFusionEngine';
 import FeatureGalaxy from '../components/landing/FeatureGalaxy';
-import PrivacySimulator from '../components/landing/PrivacySimulator';
-import VortexRegistrationModal from '../components/landing/VortexRegistrationModal';
+import RefractionPrivacyShield from '../components/landing/RefractionPrivacyShield';
+import AbyssalPortalModal from '../components/landing/AbyssalPortalModal';
 
 export default function LandingPage({ currentUser }) {
   const navigate = useNavigate();
@@ -32,96 +32,56 @@ export default function LandingPage({ currentUser }) {
   ];
 
   return (
-    <div style={{ position: 'relative', background: '#050816', color: '#FFF', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', overflowX: 'hidden' }}>
-      {/* 60 FPS Fluid Ocean Particle Background */}
-      <OceanCanvas vortexActive={vortexActive} onVortexComplete={handleVortexComplete} />
+    <div style={{ position: 'relative', background: '#030712', color: '#FFF', minHeight: '100vh', fontFamily: 'system-ui, sans-serif', overflowX: 'hidden' }}>
+      {/* 60 FPS Fluid Abyssal Ocean Canvas */}
+      <AbyssalFluidCanvas vortexActive={vortexActive} onVortexComplete={handleVortexComplete} />
 
-      {/* Hero Constellation */}
-      <HeroConstellation
+      {/* Hero Section with Bioluminescent Skill Orbs */}
+      <AbyssHero
         onTriggerVortex={handleTriggerVortex}
-        onOpenDemo={() => {
-          const el = document.getElementById('sandbox-demo');
+        onScrollToDemo={() => {
+          const el = document.getElementById('fusion-engine');
           if (el) el.scrollIntoView({ behavior: 'smooth' });
         }}
       />
 
-      {/* SECTION 2: HOW IT WORKS STORY */}
-      <div style={{ position: 'relative', zIndex: 1, padding: '5rem 1.5rem', maxWidth: '1100px', margin: '0 auto', textAlign: 'center' }}>
-        <span style={{ fontSize: '0.8rem', fontWeight: 900, color: '#38BDF8', letterSpacing: '2px', textTransform: 'uppercase' }}>
-          The Journey
-        </span>
-        <h2 style={{ fontSize: '2.5rem', fontWeight: 900, margin: '0.5rem 0 2.5rem 0', textTransform: 'uppercase' }}>
-          How SwaplyOne Works
-        </h2>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem' }}>
-          {[
-            { step: '01', title: 'Discover Skills', desc: 'Browse peer profiles by expertise' },
-            { step: '02', title: 'Connect', desc: 'Send invitation or scan QR token' },
-            { step: '03', title: 'Become Friends', desc: 'Establish trusted friend status' },
-            { step: '04', title: 'Video Call', desc: 'Launch P2P WebRTC HD stream' },
-            { step: '05', title: 'Grow Together', desc: 'Exchange skills & collaborate' }
-          ].map((item, idx) => (
-            <motion.div
-              key={item.step}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: idx * 0.1 }}
-              style={{
-                background: 'rgba(15, 23, 42, 0.75)',
-                border: '1.5px solid rgba(255, 255, 255, 0.12)',
-                borderRadius: '18px',
-                padding: '1.5rem',
-                backdropFilter: 'blur(12px)',
-                textAlign: 'left'
-              }}
-            >
-              <span style={{ fontSize: '1.5rem', fontWeight: 900, color: '#06B6D4', display: 'block', marginBottom: '0.5rem' }}>{item.step}</span>
-              <h3 style={{ margin: '0 0 0.3rem 0', fontWeight: 900, fontSize: '1.1rem' }}>{item.title}</h3>
-              <p style={{ margin: 0, fontSize: '0.82rem', color: '#94A3B8', lineHeight: 1.5 }}>{item.desc}</p>
-            </motion.div>
-          ))}
-        </div>
+      {/* KINETIC FUSION ENGINE (TWILIGHT ZONE 500m) */}
+      <div id="fusion-engine">
+        <KineticFusionEngine />
       </div>
 
-      {/* SECTION 3: FEATURE GALAXY */}
+      {/* FEATURE GALAXY */}
       <FeatureGalaxy />
 
-      {/* SECTION 4: LIVE DEMO SANDBOX */}
-      <div id="sandbox-demo">
-        <LiveDemoSimulator />
-      </div>
-
-      {/* SECTION 5: PRIVACY SIMULATOR */}
-      <PrivacySimulator />
+      {/* REFRACTION PRIVACY SHIELD (MIDNIGHT ZONE 1000m) */}
+      <RefractionPrivacyShield />
 
       {/* LIVE STATS COUNTER */}
-      <div style={{ position: 'relative', zIndex: 1, padding: '4rem 1.5rem', background: 'rgba(15, 23, 42, 0.6)', borderTop: '1px solid rgba(255,255,255,0.1)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '4rem 1.5rem', background: 'rgba(11, 19, 43, 0.6)', borderTop: '1px solid rgba(255,255,255,0.1)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '2rem', textAlign: 'center' }}>
           <div>
-            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#38BDF8' }}>150+</div>
+            <div style={{ fontSize: '2.6rem', fontWeight: 900, color: '#38BDF8' }}>150+</div>
             <div style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', marginTop: '0.2rem' }}>Registered Beta Users</div>
           </div>
           <div>
-            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#10B981' }}>100%</div>
+            <div style={{ fontSize: '2.6rem', fontWeight: 900, color: '#10B981' }}>100%</div>
             <div style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', marginTop: '0.2rem' }}>P2P Encrypted WebRTC</div>
           </div>
           <div>
-            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#EC4899' }}>99.9%</div>
+            <div style={{ fontSize: '2.6rem', fontWeight: 900, color: '#EC4899' }}>99.9%</div>
             <div style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', marginTop: '0.2rem' }}>Email Deliverability</div>
           </div>
           <div>
-            <div style={{ fontSize: '2.5rem', fontWeight: 900, color: '#F59E0B' }}>0s</div>
+            <div style={{ fontSize: '2.6rem', fontWeight: 900, color: '#F59E0B' }}>0s</div>
             <div style={{ fontSize: '0.85rem', color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', marginTop: '0.2rem' }}>Server Media Storage</div>
           </div>
         </div>
       </div>
 
       {/* INFINITE COMMUNITY MARQUEE */}
-      <div style={{ position: 'relative', zIndex: 1, padding: '1.5rem 0', background: '#0F172A', overflow: 'hidden', whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '1.5rem 0', background: '#0B132B', overflow: 'hidden', whiteSpace: 'nowrap', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <div style={{ display: 'inline-block', animation: 'marquee 25s linear infinite' }}>
-          {['PRIVACY FIRST', 'SKILL SHARING', 'ZERO MEDIA STORAGE', 'FRIENDS ONLY', 'SWAPLYONE BETA', 'NEO-BRUTALIST PAPER BRANDING', 'WEBRTC HD VIDEO'].map((tag, i) => (
+          {['PRIVACY FIRST', 'SKILL SHARING', 'ZERO MEDIA STORAGE', 'FRIENDS ONLY', 'SWAPLYONE BETA', 'WEBRTC HD VIDEO', 'P2P ENCRYPTED'].map((tag, i) => (
             <span key={i} style={{ margin: '0 2rem', fontWeight: 900, fontSize: '0.9rem', color: '#06B6D4', letterSpacing: '2px' }}>
               ✦ {tag}
             </span>
@@ -159,9 +119,9 @@ export default function LandingPage({ currentUser }) {
       </div>
 
       {/* FINAL CTA FOOTER */}
-      <div style={{ position: 'relative', zIndex: 1, padding: '5rem 1.5rem', textAlign: 'center', background: 'linear-gradient(180deg, #050816, #030712)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+      <div style={{ position: 'relative', zIndex: 1, padding: '5rem 1.5rem', textAlign: 'center', background: 'linear-gradient(180deg, #0B132B, #030712)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
         <h2 style={{ fontSize: '2.5rem', fontWeight: 900, textTransform: 'uppercase', marginBottom: '1rem' }}>
-          Ready to Join SwaplyOne?
+          Ready to Enter SwaplyOne?
         </h2>
         <p style={{ color: '#94A3B8', fontSize: '1.1rem', maxWidth: '540px', margin: '0 auto 2.5rem auto' }}>
           Reserve your spot in our daily rollout batch and experience privacy-first skill communication.
@@ -190,8 +150,8 @@ export default function LandingPage({ currentUser }) {
         </div>
       </div>
 
-      {/* Ultimate Wow Moment Vortex Beta Registration Modal */}
-      <VortexRegistrationModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
+      {/* Particle Vortex Portal Modal */}
+      <AbyssalPortalModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </div>
   );
 }
