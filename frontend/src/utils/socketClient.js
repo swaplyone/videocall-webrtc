@@ -38,8 +38,15 @@ export const socketClient = {
     }
     socket = io(BACKEND_URL, {
       autoConnect: false,
-      auth: token ? { token } : {}
+      auth: token ? { token } : {},
+      reconnectionAttempts: 5,
+      timeout: 10000
     });
+
+    socket.on('connect_error', (err) => {
+      console.warn('[SocketClient] Connect error (retrying):', err.message);
+    });
+
     return socket;
   },
 
