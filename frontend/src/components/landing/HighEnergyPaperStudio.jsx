@@ -116,7 +116,7 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
 
         <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3.5rem' }}>
           <button
-            onClick={() => { playSound(500); onOpenWaitlist(); }}
+            onClick={() => { playSound(500); if (typeof onOpenWaitlist === 'function') onOpenWaitlist(); }}
             style={{ padding: '0.95rem 2.4rem', borderRadius: '50px', background: '#D45B3E', border: '2.5px solid #2A2723', boxShadow: '6px 6px 0px 0px #2A2723', color: '#FFF', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
           >
             Become a Beta Tester <ArrowRight size={18} />
@@ -146,11 +146,10 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
             <motion.div
               key={idx}
               drag
-              dragConstraints={{ left: -100, right: 100, top: -50, bottom: 50 }}
-              whileDrag={{ scale: 1.1, rotate: 0, zIndex: 100 }}
-              whileHover={{ scale: 1.05, cursor: 'grab' }}
-              animate={{ rotate: note.rotate, y: [0, -6, 0] }}
-              transition={{ y: { duration: 3 + idx * 0.4, repeat: Infinity, ease: 'easeInOut' } }}
+              dragConstraints={{ left: -120, right: 120, top: -60, bottom: 60 }}
+              whileDrag={{ scale: 1.08, rotate: 0, zIndex: 100 }}
+              whileHover={{ scale: 1.04, cursor: 'grab' }}
+              animate={{ rotate: note.rotate }}
               onDragStart={() => playSound(380)}
               style={{
                 width: '180px',
@@ -417,7 +416,7 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
         <p style={{ color: '#6B655C', fontSize: '1.05rem', maxWidth: '540px', margin: '0 auto 2.25rem auto' }}>
           Reserve your spot in our daily rollout batch and experience privacy-first skill communication.
         </p>
-        <button onClick={() => { playSound(500); onOpenWaitlist(); }} style={{ padding: '0.95rem 2.4rem', borderRadius: '50px', background: '#D45B3E', border: '2.5px solid #2A2723', boxShadow: '5px 5px 0px 0px #2A2723', color: '#FFF', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer' }}>
+        <button onClick={() => { playSound(500); if (typeof onOpenWaitlist === 'function') onOpenWaitlist(); }} style={{ padding: '0.95rem 2.4rem', borderRadius: '50px', background: '#D45B3E', border: '2.5px solid #2A2723', boxShadow: '5px 5px 0px 0px #2A2723', color: '#FFF', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer' }}>
           Become a Beta Tester &rarr;
         </button>
         <div style={{ marginTop: '3.5rem', color: '#6B655C', fontSize: '0.85rem', borderTop: '2px solid #EADFCF', paddingTop: '1.5rem', fontFamily: 'var(--font-mono)' }}>
