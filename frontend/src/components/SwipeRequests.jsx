@@ -118,6 +118,9 @@ export default function SwipeRequests({ requests = [], onAccept, onReject }) {
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
         >
+          {/* Paper Craft Clip Accent */}
+          <div className="paper-clip-badge">📎</div>
+
           {/* Visual indicators */}
           {swipeDirection === 'right' && <div className="swipe-badge accept-badge">ACCEPT</div>}
           {swipeDirection === 'left' && <div className="swipe-badge reject-badge">REJECT</div>}

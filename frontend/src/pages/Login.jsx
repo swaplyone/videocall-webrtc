@@ -30,8 +30,12 @@ export default function Login({ onLogin, onSecureLogin, loginError }) {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-app)', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div className="glass-panel" style={{ width: '100%', maxWidth: '440px', padding: '2rem', border: '4px solid #111827', boxShadow: '8px 8px 0px #111827' }}>
+      <div className="glass-panel" style={{ width: '100%', maxWidth: '440px', padding: '2.25rem 2rem 2rem 2rem', border: '3.5px solid #1B2233', boxShadow: '10px 10px 0px 0px #1B2233', borderRadius: '24px', position: 'relative', background: '#FFFDF8' }}>
         
+        {/* Paper Craft Aesthetics */}
+        <div className="washi-tape-tl"></div>
+        <div className="paper-clip-badge">📎</div>
+
         {/* Centered Logo Header */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', marginBottom: '1.5rem' }}>
           <SwaplyLogo size={64} style={{ margin: '0 auto' }} />

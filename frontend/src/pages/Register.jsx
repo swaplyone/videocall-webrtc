@@ -60,8 +60,12 @@ export default function Register({ onSecureRegister, loginError }) {
   const activeGeneralError = generalError || loginError;
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary, #F8F3EA)', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-      <div className="glass-panel" style={{ width: '100%', maxWidth: '440px', padding: '2rem', background: '#FFFDF8', border: '2.5px solid #1B2233', boxShadow: '8px 8px 0px #1B2233', borderRadius: '20px' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary, #F8F3EA)', alignItems: 'center', justifyContent: 'center', padding: '1.5rem 1rem' }}>
+      <div className="glass-panel" style={{ width: '100%', maxWidth: '440px', padding: '2.25rem 2rem 2rem 2rem', background: '#FFFDF8', border: '3.5px solid #1B2233', boxShadow: '10px 10px 0px #1B2233', borderRadius: '24px', position: 'relative' }}>
+        
+        {/* Paper Craft Aesthetics */}
+        <div className="washi-tape-tr"></div>
+        <div className="paper-clip-badge-left">📎</div>
         
         {/* Centered Logo Header */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', marginBottom: '1.5rem' }}>

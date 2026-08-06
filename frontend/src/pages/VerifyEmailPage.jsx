@@ -108,13 +108,18 @@ export default function VerifyEmailPage({ email: propEmail, verificationToken: p
           width: '100%',
           maxWidth: '460px',
           background: '#FFFDF8',
-          border: '2.5px solid #1B2233',
+          border: '3.5px solid #1B2233',
           boxShadow: '10px 10px 0px 0px #1B2233',
           borderRadius: '24px',
           padding: '2.5rem',
-          color: '#1B2233'
+          color: '#1B2233',
+          position: 'relative'
         }}
       >
+        {/* Paper Craft Aesthetics */}
+        <div className="washi-tape-tl"></div>
+        <div className="paper-clip-badge">📎</div>
+
         {/* Header Logo & Title */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '1.75rem' }}>
           <SwaplyLogo size={64} style={{ margin: '0 auto 0.75rem auto' }} />

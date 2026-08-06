@@ -2202,3 +2202,74 @@ select.select-retro-dark:focus {
   50% { top: 100%; }
   100% { top: 0%; }
 }
+
+/* Authentic Craft Paper Aesthetics (Tape, Paper Clips, Stamps) */
+.washi-tape-tl {
+  position: absolute;
+  top: -14px;
+  left: 20px;
+  width: 90px;
+  height: 28px;
+  background: rgba(243, 225, 185, 0.85);
+  border: 1px dashed rgba(27, 34, 51, 0.3);
+  transform: rotate(-4deg);
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.08);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.washi-tape-tr {
+  position: absolute;
+  top: -14px;
+  right: 20px;
+  width: 90px;
+  height: 28px;
+  background: rgba(216, 91, 62, 0.22);
+  border: 1px dashed rgba(27, 34, 51, 0.3);
+  transform: rotate(5deg);
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.08);
+  z-index: 5;
+  pointer-events: none;
+}
+
+.paper-clip-badge {
+  position: absolute;
+  top: -18px;
+  right: 28px;
+  font-size: 1.6rem;
+  z-index: 10;
+  filter: drop-shadow(2px 3px 2px rgba(0, 0, 0, 0.22));
+  transform: rotate(-12deg);
+  pointer-events: none;
+}
+
+.paper-clip-badge-left {
+  position: absolute;
+  top: -18px;
+  left: 28px;
+  font-size: 1.6rem;
+  z-index: 10;
+  filter: drop-shadow(2px 3px 2px rgba(0, 0, 0, 0.22));
+  transform: rotate(10deg);
+  pointer-events: none;
+}
+
+.paper-stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 2px dashed #D85B3E;
+  color: #D85B3E;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-weight: 800;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+}
+
+.paper-notebook-margin {
+  border-left: 2px dashed #BE4D4D;
+  padding-left: 1.25rem;
+}
