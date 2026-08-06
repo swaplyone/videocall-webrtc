@@ -36,6 +36,8 @@ export default function MorphBar({
   activeCallSession,
   onHangUpCall,
   friendRequestNotice,
+  onAcceptFriendRequest,
+  onRejectFriendRequest,
   securityAlertNotice,
   notificationNotice
 }) {
@@ -421,32 +423,52 @@ export default function MorphBar({
           {mode === 'friend_request' && (
             <motion.div
               key="friend_request"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
               style={{
                 width: 'min(92vw, 420px)',
-                padding: '0.85rem 1.25rem',
+                padding: '0.75rem 1.25rem',
                 display: 'flex',
                 alignItems: 'center',
-                justify: 'space-between',
-                gap: '0.75rem'
+                justifyContent: 'space-between',
+                gap: '0.75rem',
+                background: '#FFF8F0'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <span style={{ fontSize: '1.2rem' }}>👤</span>
-                <span style={{ fontWeight: 800, fontSize: '0.85rem' }}>
-                  {friendRequestNotice?.sender || 'Peer'} wants to connect
-                </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#D85B3E', color: '#FFF', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', border: '1.5px solid #1B2233' }}>
+                  {(friendRequestNotice?.senderName || friendRequestNotice?.sender || 'P').substring(0, 2).toUpperCase()}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#1B2233' }}>
+                    @{friendRequestNotice?.senderName || friendRequestNotice?.sender || 'Peer'}
+                  </span>
+                  <span style={{ fontSize: '0.72rem', color: '#7A7A7A', fontFamily: 'var(--font-mono)' }}>
+                    sent you a friend request
+                  </span>
+                </div>
               </div>
+
               <div style={{ display: 'flex', gap: '0.4rem' }}>
                 <button
-                  onClick={() => setMode('idle')}
-                  style={{ padding: '0.4rem 0.85rem', borderRadius: '50px', background: '#6D7B55', border: '1.5px solid #1B2233', color: '#FFF', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer' }}
+                  onClick={async () => {
+                    if (friendRequestNotice?.id && onAcceptFriendRequest) {
+                      await onAcceptFriendRequest(friendRequestNotice.id);
+                    }
+                    setMode('idle');
+                  }}
+                  style={{ padding: '0.4rem 0.85rem', borderRadius: '50px', background: '#6D7B55', border: '1.5px solid #1B2233', color: '#FFF', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer', boxShadow: '2px 2px 0 #1B2233' }}
                 >
                   Accept
                 </button>
                 <button
-                  onClick={() => setMode('idle')}
+                  onClick={async () => {
+                    if (friendRequestNotice?.id && onRejectFriendRequest) {
+                      await onRejectFriendRequest(friendRequestNotice.id);
+                    }
+                    setMode('idle');
+                  }}
                   style={{ padding: '0.4rem 0.85rem', borderRadius: '50px', background: '#F8F3EA', border: '1.5px solid #1B2233', color: '#1B2233', fontWeight: 800, fontSize: '0.78rem', cursor: 'pointer' }}
                 >
                   Ignore

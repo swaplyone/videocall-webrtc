@@ -61,6 +61,7 @@ export default function App() {
   const [remoteUser, setRemoteUser] = useState(null);
   const [isCaller, setIsCaller] = useState(false);
   const [incomingCall, setIncomingCall] = useState(null);
+  const [friendRequestNotice, setFriendRequestNotice] = useState(null);
   const [isRestoredCall, setIsRestoredCall] = useState(false);
 
   // Moderation state
@@ -273,7 +274,7 @@ export default function App() {
 
     socket.on('friend_request_received', (data) => {
       console.log('[App] Friend request received:', data);
-      showPopup('New Connection Invite! 🤝', `${data.senderName || data.sender} sent you a friend request.`, 'info');
+      setFriendRequestNotice(data);
     });
 
     return () => {
@@ -441,6 +442,26 @@ export default function App() {
     resetCallState();
   };
 
+  const handleAcceptFriendRequest = async (requestId) => {
+    try {
+      await apiClient.request(`/api/friends/request/${requestId}/accept`, { method: 'POST' });
+      showPopup('Connection Accepted! 🎉', 'You are now friends!', 'success');
+      setFriendRequestNotice(null);
+    } catch (err) {
+      showPopup('Action Failed', err.message || 'Could not accept friend request', 'danger');
+    }
+  };
+
+  const handleRejectFriendRequest = async (requestId) => {
+    try {
+      await apiClient.request(`/api/friends/request/${requestId}/reject`, { method: 'POST' });
+      setFriendRequestNotice(null);
+    } catch (err) {
+      console.warn('Could not decline friend request:', err);
+      setFriendRequestNotice(null);
+    }
+  };
+
   const handleOTPVerified = (token, verifiedUser) => {
     console.log('[Auth] OTP verified -> Received full accessToken');
     
@@ -551,6 +572,9 @@ export default function App() {
         onRejectCall={handleRejectCall}
         activeCallSession={callState === 'active' ? activeSessionId : null}
         onHangUpCall={handleHangUp}
+        friendRequestNotice={friendRequestNotice}
+        onAcceptFriendRequest={handleAcceptFriendRequest}
+        onRejectFriendRequest={handleRejectFriendRequest}
       />
 
       {/* Main Routing Stage */}
