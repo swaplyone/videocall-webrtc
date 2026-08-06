@@ -99,14 +99,6 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
 
       {/* HERO SECTION */}
       <section style={{ paddingTop: '110px', paddingBottom: '60px', maxWidth: '1150px', margin: '0 auto', textAlign: 'center', paddingLeft: '1.5rem', paddingRight: '1.5rem' }}>
-        <motion.div
-          initial={{ opacity: 0, y: -15 }}
-          animate={{ opacity: 1, y: 0 }}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: '#FFF', border: '2.5px solid #2A2723', boxShadow: '4px 4px 0px 0px #2A2723', padding: '0.45rem 1.25rem', borderRadius: '50px', fontWeight: 800, fontSize: '0.85rem', fontFamily: 'var(--font-mono)', marginBottom: '2rem' }}
-        >
-          <Sparkles size={16} color="#D45B3E" /> SWAPLYONE PLATFORM v2.5.0
-        </motion.div>
-
         <motion.h1
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
