@@ -34,7 +34,7 @@ export function startScreenshotDetection(onDetect) {
     });
   };
 
-  // 1. Keyboard shortcut monitoring
+  // 1. Keyboard shortcut monitoring for explicit screenshot actions
   const handleKeyDown = (e) => {
     // PrintScreen key is reported as "PrintScreen"
     if (e.key === 'PrintScreen' || e.keyCode === 44) {
@@ -42,7 +42,7 @@ export function startScreenshotDetection(onDetect) {
     }
     
     // Windows Snipping Tool shortcut (Win + Shift + S) or MacOS screenshot shortcuts
-    const isWinSnipping = e.key === 'S' && e.shiftKey && e.metaKey;
+    const isWinSnipping = (e.key === 'S' || e.key === 's') && e.shiftKey && (e.metaKey || e.winKey);
     const isMacScreenshot = (e.key === '3' || e.key === '4' || e.key === '5') && e.shiftKey && (e.metaKey || e.ctrlKey);
 
     if (isWinSnipping || isMacScreenshot) {
@@ -50,27 +50,11 @@ export function startScreenshotDetection(onDetect) {
     }
   };
 
-  // 2. Visibility change monitoring (switching tabs/minimizing)
-  const handleVisibilityChange = () => {
-    if (document.visibilityState === 'hidden') {
-      triggerDetection('VISIBILITY_CHANGE');
-    }
-  };
-
-  // 3. Window blur monitoring (focus lost to OS tool or screenshot overlay)
-  const handleBlur = () => {
-    triggerDetection('FOCUS_LOST');
-  };
-
-  // Attach event listeners
+  // Attach event listener ONLY for explicit screenshot hotkeys (no false alarms on focus/tab switch)
   window.addEventListener('keydown', handleKeyDown, true);
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-  window.addEventListener('blur', handleBlur);
 
   // Return unsubscribe/cleanup method
   return () => {
     window.removeEventListener('keydown', handleKeyDown, true);
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-    window.removeEventListener('blur', handleBlur);
   };
 }
