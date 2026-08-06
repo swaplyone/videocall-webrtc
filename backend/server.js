@@ -491,8 +491,19 @@ io.on('connection', (socket) => {
       return callback({ success: false, error: 'Unauthenticated' });
     }
 
-    if (!onlineUsers.has(to)) {
-      return callback({ success: false, error: 'User is offline' });
+    const targetClean = to.trim().toLowerCase().replace(/^@+/, '');
+
+    // Allow single-device WebRTC test node (@echo / @testbot / SWP-TEST)
+    if (['echo', 'testbot', 'swp-test', 'bot'].includes(targetClean)) {
+      const sessionId = `call_echo_${Math.random().toString(36).substring(2, 12)}_${Date.now()}`;
+      return callback({ success: true, sessionId, isEchoTest: true, message: 'Connected to Swaply WebRTC Test Node' });
+    }
+
+    if (!onlineUsers.has(to) && !onlineUsers.has(targetClean)) {
+      return callback({ 
+        success: false, 
+        error: `User @${targetClean} is currently offline. Open another browser tab at http://localhost:5173/ and log in as @${targetClean} to test live calls, or dial @echo for automated test calling.` 
+      });
     }
 
     // Resolve user IDs and verify privacy blocks
