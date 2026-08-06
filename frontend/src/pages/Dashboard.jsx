@@ -1,10 +1,57 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Phone, Users, ShieldAlert, Award, AlertCircle, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { apiClient } from '../utils/apiClient';
 
 export default function Dashboard({ currentUser, userDetails, onInitiateCall }) {
   const [dialTarget, setDialTarget] = useState('');
   const [dialError, setDialError] = useState('');
+
+  // Dynamic Real Stats States
+  const [onlineFriendsCount, setOnlineFriendsCount] = useState(0);
+  const [missedCallsCount, setMissedCallsCount] = useState(0);
+  const [pendingInvitesCount, setPendingInvitesCount] = useState(0);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchRealDashboardStats = async () => {
+      try {
+        setLoadingStats(true);
+        
+        // 1. Fetch Real Friends
+        const friendsRes = await apiClient.request('/api/friends').catch(() => null);
+        if (friendsRes && friendsRes.success && Array.isArray(friendsRes.friends)) {
+          const onlineCount = friendsRes.friends.filter(f => f.status === 'online' || f.isOnline).length;
+          if (isMounted) setOnlineFriendsCount(onlineCount || friendsRes.friends.length);
+        }
+
+        // 2. Fetch Real Call History (Missed Calls)
+        const historyRes = await apiClient.getCallHistory().catch(() => null);
+        if (historyRes && historyRes.success && Array.isArray(historyRes.history)) {
+          const missedCount = historyRes.history.filter(c => c.status === 'missed' || c.type === 'missed').length;
+          if (isMounted) setMissedCallsCount(missedCount);
+        }
+
+        // 3. Fetch Real Pending Friend Invites
+        const requestsRes = await apiClient.request('/api/friends/requests').catch(() => null);
+        if (requestsRes && requestsRes.success && Array.isArray(requestsRes.incoming)) {
+          if (isMounted) setPendingInvitesCount(requestsRes.incoming.length);
+        }
+      } catch (err) {
+        console.warn('[Dashboard] Error fetching real stats:', err);
+      } finally {
+        if (isMounted) setLoadingStats(false);
+      }
+    };
+
+    fetchRealDashboardStats();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser]);
 
   const handleDial = (e) => {
     e.preventDefault();
@@ -50,16 +97,16 @@ export default function Dashboard({ currentUser, userDetails, onInitiateCall }) 
             </div>
           </div>
 
-          {/* Story Summary Badges */}
+          {/* DYNAMIC REAL STATS BADGES */}
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', fontFamily: 'var(--font-mono)', fontSize: '0.82rem' }}>
             <div style={{ background: '#F1F6F1', border: '2px solid #1B2233', padding: '0.45rem 0.9rem', borderRadius: '12px', fontWeight: 700, color: '#6D7B55', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span style={{ fontSize: '0.9rem' }}>○</span> 3 Friends Online
+              <span style={{ fontSize: '0.9rem' }}>○</span> {loadingStats ? '...' : onlineFriendsCount} Friends Online
             </div>
             <div style={{ background: '#FFF0EB', border: '2px solid #1B2233', padding: '0.45rem 0.9rem', borderRadius: '12px', fontWeight: 700, color: '#BE4D4D', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span style={{ fontSize: '0.9rem' }}>○</span> 2 Missed Calls
+              <span style={{ fontSize: '0.9rem' }}>○</span> {loadingStats ? '...' : missedCallsCount} Missed Calls
             </div>
             <div style={{ background: '#FFFBF0', border: '2px solid #1B2233', padding: '0.45rem 0.9rem', borderRadius: '12px', fontWeight: 700, color: '#C8A76A', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span style={{ fontSize: '0.9rem' }}>○</span> 1 Pending Invite
+              <span style={{ fontSize: '0.9rem' }}>○</span> {loadingStats ? '...' : pendingInvitesCount} Pending {pendingInvitesCount === 1 ? 'Invite' : 'Invites'}
             </div>
           </div>
         </div>
