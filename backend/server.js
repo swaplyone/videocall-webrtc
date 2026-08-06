@@ -309,13 +309,18 @@ async function updateUserPresence(username, status) {
   }
 }
 
-// Helper to get user ID by username
-async function getUserIdByUsername(username) {
+// Helper to get user ID by username, beta_id, or email
+async function getUserIdByUsername(identifier) {
+  if (!identifier || typeof identifier !== 'string') return null;
+  const clean = identifier.trim().replace(/^@+/, '');
   try {
-    const res = await query('SELECT id FROM users WHERE username = $1', [username]);
+    const res = await query(
+      'SELECT id, username FROM users WHERE username = $1 OR beta_id = $1 OR email = $1 OR LOWER(username) = LOWER($1)',
+      [clean]
+    );
     return res.rowCount > 0 ? res.rows[0].id : null;
   } catch (err) {
-    console.error(`Error fetching user ID for ${username}:`, err);
+    console.error(`Error fetching user ID for ${identifier}:`, err);
     return null;
   }
 }
@@ -486,9 +491,14 @@ io.on('connection', (socket) => {
     if (!to || typeof to !== 'string') {
       return callback({ success: false, error: 'Invalid recipient' });
     }
-    const caller = socketToUser.get(socket.id);
+    let caller = socketToUser.get(socket.id);
+    if (!caller && socket.user && socket.user.username) {
+      caller = socket.user.username;
+      socketToUser.set(socket.id, caller);
+      onlineUsers.set(caller, socket.id);
+    }
     if (!caller) {
-      return callback({ success: false, error: 'Unauthenticated' });
+      return callback({ success: false, error: 'Unauthenticated socket session' });
     }
 
     const targetClean = to.trim().toLowerCase().replace(/^@+/, '');
