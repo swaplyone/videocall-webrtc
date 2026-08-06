@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, ArrowRight, Play, Video, ShieldCheck, QrCode, Users, Activity, Lock, ChevronDown, CheckCircle, Camera, Volume2, VolumeX, Search, MessageSquare, Mic, MicOff, PhoneOff, Monitor } from 'lucide-react';
+import { Sparkles, ArrowRight, Play, Video, ShieldCheck, QrCode, Users, Activity, Lock, ChevronDown, CheckCircle, Camera, Volume2, VolumeX, Search, MessageSquare, Mic, MicOff, PhoneOff, Monitor, X } from 'lucide-react';
 import { apiClient } from '../../utils/apiClient';
 
 export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
@@ -53,13 +53,6 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
     ]);
     setTimeout(() => setShieldActive(false), 3800);
   };
-
-  const samplePeers = [
-    { name: 'Alice Smith', handle: '@alice', skill: 'React & WebRTC', color: '#D45B3E', bg: '#FFF0EB' },
-    { name: 'Bob Chen', handle: '@bob', skill: 'AI & Python', color: '#4A6E53', bg: '#F1F6F1' },
-    { name: 'Carol Vance', handle: '@carol', skill: 'UI/UX Design', color: '#4C779F', bg: '#F0F5FA' },
-    { name: 'David Miller', handle: '@david', skill: 'Cybersecurity', color: '#E5A93C', bg: '#FFFBF0' }
-  ];
 
   const faqs = [
     {
@@ -191,97 +184,85 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
         </div>
       </section>
 
-      {/* DYNAMIC PEER SEARCH & DISCOVERY ENGINE */}
+      {/* SKILL MATCH RADAR & P2P CONNECTION SIMULATOR */}
       <section id="peer-search" style={{ padding: '4rem 1.5rem', maxWidth: '1100px', margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
           <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#D45B3E', letterSpacing: '1px', textTransform: 'uppercase', fontFamily: 'var(--font-mono)' }}>
-            Live Discovery Engine
+            Interactive Skill Radar
           </span>
           <h2 style={{ fontSize: '2.2rem', fontWeight: 800, margin: '0.4rem 0 0.6rem 0', fontFamily: 'var(--font-display)' }}>
-            Search & Connect Peers by Skill
+            Real-Time P2P Skill Match Engine
           </h2>
           <p style={{ color: '#6B655C', fontSize: '1rem', maxWidth: '600px', margin: '0 auto' }}>
-            Type any skill name below to filter active community members and launch a video session.
+            Select any skill domain to simulate direct peer-to-peer encrypted discovery and connection handshakes.
           </p>
         </div>
 
-        {/* Search Input Bar */}
-        <div style={{ maxWidth: '600px', margin: '0 auto 2.5rem auto', position: 'relative' }}>
-          <Search size={22} color="#2A2723" style={{ position: 'absolute', left: '1.25rem', top: '50%', transform: 'translateY(-50%)' }} />
-          <input
-            type="text"
-            placeholder="Search skills (e.g. React, Python, UI/UX, Cybersecurity)..."
-            value={searchQuery}
-            onChange={(e) => { setSearchQuery(e.target.value); playSound(340); }}
-            style={{
-              width: '100%',
-              padding: '1rem 1rem 1rem 3.25rem',
-              borderRadius: '50px',
-              background: '#FFF',
-              border: '2.5px solid #2A2723',
-              boxShadow: '6px 6px 0px 0px #2A2723',
-              fontSize: '1rem',
-              fontWeight: 700,
-              color: '#2A2723',
-              outline: 'none',
-              fontFamily: 'var(--font-body)'
-            }}
-          />
-        </div>
-
-        {/* Peer Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.5rem' }}>
-          {filteredPeers.map((peer, idx) => (
+        {/* Skill Category Selector Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
+          {[
+            { id: 'webrtc', title: '⚡ WebRTC & Video', desc: 'Direct P2P Encrypted Mesh & Low Latency Streaming', color: '#D45B3E', bg: '#FFF0EB' },
+            { id: 'ai', title: '🧠 AI & Machine Learning', desc: 'Neural Skill Vectoring & Automated Pairing', color: '#4A6E53', bg: '#F1F6F1' },
+            { id: 'design', title: '🎨 Creative UI/UX', desc: 'Tactile Motion Systems & Visual Design', color: '#4C779F', bg: '#F0F5FA' },
+            { id: 'security', title: '🔒 Zero-Trust Security', desc: 'Anti-Capture Screen Guard & Key Exchange', color: '#E5A93C', bg: '#FFFBF0' }
+          ].map((skill, idx) => (
             <motion.div
               key={idx}
-              whileHover={{ scale: 1.03 }}
+              whileHover={{ scale: 1.04 }}
+              onClick={() => { playSound(440 + idx * 60); setActiveCallDemo(true); }}
               style={{
                 background: '#FFF',
                 border: '2.5px solid #2A2723',
                 borderRadius: '16px',
                 padding: '1.5rem',
                 boxShadow: '6px 6px 0px 0px #2A2723',
+                cursor: 'pointer',
                 display: 'flex',
                 flexDirection: 'column',
+                justifyContent: 'space-between',
                 gap: '1rem'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: peer.bg, border: `2.5px solid ${peer.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.2rem', color: peer.color }}>
-                  {peer.name[0]}
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem', fontFamily: 'var(--font-display)' }}>{peer.name}</h3>
-                  <span style={{ fontSize: '0.8rem', color: '#D45B3E', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>{peer.handle}</span>
-                </div>
+              <div>
+                <span style={{ fontSize: '0.72rem', fontWeight: 800, color: skill.color, fontFamily: 'var(--font-mono)', textTransform: 'uppercase' }}>
+                  FEATURED DOMAIN
+                </span>
+                <h3 style={{ margin: '0.4rem 0 0.5rem 0', fontWeight: 800, fontSize: '1.15rem', fontFamily: 'var(--font-display)' }}>
+                  {skill.title}
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#6B655C', lineHeight: 1.5 }}>
+                  {skill.desc}
+                </p>
               </div>
 
-              <div style={{ background: '#FAF6EE', border: '2px solid #2A2723', padding: '0.5rem 0.8rem', borderRadius: '10px', fontSize: '0.82rem', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                Skill: <strong>{peer.skill}</strong>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '2px solid #EADFCF', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: skill.color, fontFamily: 'var(--font-mono)' }}>
+                  Launch Test Call &rarr;
+                </span>
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: skill.bg, border: `2px solid ${skill.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Video size={14} color={skill.color} />
+                </div>
               </div>
-
-              <button
-                onClick={() => { playSound(480); setActiveCallDemo(true); }}
-                style={{
-                  padding: '0.65rem',
-                  borderRadius: '50px',
-                  background: peer.color,
-                  border: '2px solid #2A2723',
-                  boxShadow: '3px 3px 0px 0px #2A2723',
-                  color: '#FFF',
-                  fontWeight: 800,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.4rem'
-                }}
-              >
-                <Video size={16} /> Launch Video Call
-              </button>
             </motion.div>
           ))}
+        </div>
+
+        {/* Live Metrics Banner */}
+        <div style={{ background: '#FFF', border: '2.5px solid #2A2723', borderRadius: '20px', padding: '1.5rem 2rem', boxShadow: '8px 8px 0px 0px #2A2723', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-around', alignItems: 'center', gap: '1.5rem', textAlign: 'center' }}>
+          <div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#D45B3E', fontFamily: 'var(--font-display)' }}>1,420+</div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#6B655C', fontFamily: 'var(--font-mono)' }}>P2P Peer Matches</div>
+          </div>
+          <div style={{ width: '2px', height: '36px', background: '#EADFCF' }} />
+          <div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#4A6E53', fontFamily: 'var(--font-display)' }}>0 Bytes</div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#6B655C', fontFamily: 'var(--font-mono)' }}>Server Video Storage</div>
+          </div>
+          <div style={{ width: '2px', height: '36px', background: '#EADFCF' }} />
+          <div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 900, color: '#4C779F', fontFamily: 'var(--font-display)' }}>&lt; 25ms</div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#6B655C', fontFamily: 'var(--font-mono)' }}>Average Signaling Latency</div>
+          </div>
         </div>
       </section>
 
