@@ -516,22 +516,32 @@ export default function Dashboard({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
           {/* Header Console & Quick Dial Bar */}
-          <div className="glass-panel" style={{ padding: '1.4rem 1.8rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1rem', borderBottom: '1px dashed var(--border-color)', paddingBottom: '0.8rem' }}>
+          <div className="glass-panel" style={{ padding: '1.6rem 2rem', background: 'var(--bg-card)', border: '2.5px solid var(--border-color)', boxShadow: '6px 6px 0px 0px var(--border-color)', borderRadius: '18px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem', borderBottom: '2px dashed var(--border-color)', paddingBottom: '1rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div className="node-avatar-circle" style={{ width: '44px', height: '44px', fontSize: '1rem' }}>
+                <div className="node-avatar-circle" style={{ width: '48px', height: '48px', fontSize: '1.1rem', background: '#D85B3E', color: '#FFF', border: '2.5px solid #1B2233', fontWeight: 900 }}>
                   {currentUser.substring(0, 2).toUpperCase()}
-                  <span className="node-status-dot"></span>
                 </div>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                    <span style={{ fontWeight: '800', fontSize: '1.1rem', fontFamily: 'var(--font-mono)', color: 'var(--text-primary)' }}>{currentUser}</span>
-                    <span className="user-dot"></span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--color-secondary)', fontWeight: 'bold', fontFamily: 'var(--font-mono)' }}>ACTIVE NODE</span>
+                  <h3 style={{ margin: 0, fontWeight: '800', fontSize: '1.25rem', fontFamily: 'var(--font-display)', color: 'var(--text-primary)' }}>
+                    👋 Welcome Back, @{currentUser}
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', marginTop: '0.25rem' }}>
+                    ID: <strong style={{ color: 'var(--color-primary)' }}>{userDetails?.beta_id || userBetaId || 'SWP-BETA'}</strong> &bull; STATUS: <strong style={{ color: 'var(--color-secondary)' }}>ACTIVE FIELD NODE</strong>
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)', marginTop: '0.1rem' }}>
-                    Beta ID: <strong style={{ color: 'var(--color-primary)', fontWeight: 'bold' }}>{userDetails?.beta_id || userBetaId || 'SWP-BETA'}</strong> &nbsp;|&nbsp; PROTOCOL: P2P WebRTC
-                  </div>
+                </div>
+              </div>
+
+              {/* Story Summary Badges */}
+              <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', fontFamily: 'var(--font-mono)', fontSize: '0.8rem' }}>
+                <div style={{ background: '#F1F6F1', border: '2px solid #1B2233', padding: '0.4rem 0.85rem', borderRadius: '12px', fontWeight: 700, color: '#6D7B55', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span>○</span> {friends.length || 3} Friends Online
+                </div>
+                <div style={{ background: '#FFF0EB', border: '2px solid #1B2233', padding: '0.4rem 0.85rem', borderRadius: '12px', fontWeight: 700, color: '#BE4D4D', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span>○</span> {callHistory.filter(c => c.status === 'missed').length || 2} Missed Calls
+                </div>
+                <div style={{ background: '#FFFBF0', border: '2px solid #1B2233', padding: '0.4rem 0.85rem', borderRadius: '12px', fontWeight 700, color: '#C8A76A', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span>○</span> {incomingRequests.length || 1} Pending Invite
                 </div>
               </div>
             </div>

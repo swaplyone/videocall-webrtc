@@ -1,20 +1,25 @@
 /* Swaply Editorial Retro Workspace Design System */
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@700;800&family=Work+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 :root {
-  --bg-primary: #FAF6EE;       /* Warm Cream / Recycled Paper */
-  --bg-secondary: #EADFCF;     /* Warm Cardboard Beige */
-  --bg-panel: #FFFFFF;         /* Solid White Contrast */
-  --text-primary: #2A2723;     /* Dark Charcoal / Espresso */
-  --text-secondary: #6B655C;   /* Coffee Grey */
-  --border-color: #2A2723;     /* Outline */
+  --bg-primary: #F8F3EA;       /* Warm Cream Field Notebook Paper */
+  --bg-secondary: #F3ECE0;     /* Warm Stacked Cardboard Paper */
+  --bg-card: #FFFDF8;          /* Warm Card Layer */
+  --bg-input: #FCFAF6;         /* Label Paper Input Fill */
+  --bg-panel: #FFFDF8;         /* Solid Warm Paper Contrast */
   
-  /* Retro Print Accents */
-  --color-primary: #D45B3E;    /* Rust Terracotta */
+  --text-primary: #1B2233;     /* Dark Soft Navy (Replaces harsh pure black) */
+  --text-secondary: #7A7A7A;   /* Muted Stamp Grey */
+  --border-color: #1B2233;     /* Soft Dark Navy Border */
+  
+  /* Field Notebook Palette */
+  --color-primary: #D85B3E;    /* Terracotta Rust Orange (CTA, Calls, Alerts, Active Tabs ONLY) */
   --color-primary-hover: #B8472B;
-  --color-secondary: #4A6E53;  /* Moss Forest Green */
-  --color-accent: #E5A93C;     /* Warm Mustard Yellow */
+  --color-secondary: #6D7B55;  /* Muted Field Olive Green */
+  --color-gold: #C8A76A;       /* Vintage Brass / Gold Stamp */
+  --color-olive: #6D7B55;      /* Muted Field Olive Green */
+  --color-gray: #7A7A7A;       /* Neutral Stamp Grey */
   --color-danger: #BE4D4D;     /* Antique Muted Red */
   --color-info: #4C779F;       /* Steel Blue */
   --color-chat-mine: #FFF0EB;  /* Light Terracotta Warmth */
@@ -22,14 +27,14 @@
 
   --border-width: 2.5px;
   --border-solid: var(--border-width) solid var(--border-color);
-  --shadow-flat: 8px 8px 0px 0px var(--border-color);
-  --shadow-flat-hover: 10px 10px 0px 0px var(--border-color);
+  --shadow-flat: 6px 6px 0px 0px var(--border-color);
+  --shadow-flat-hover: 8px 8px 0px 0px var(--border-color);
   --shadow-flat-active: 2px 2px 0px 0px var(--border-color);
   --shadow-flat-small: 4px 4px 0px 0px var(--border-color);
 
-  --font-display: 'Syne', -apple-system, sans-serif;
-  --font-body: 'Work Sans', -apple-system, sans-serif;
-  --font-mono: 'Space Mono', monospace;
+  --font-display: 'Space Grotesk', -apple-system, sans-serif;
+  --font-body: 'IBM Plex Mono', monospace;
+  --font-mono: 'IBM Plex Mono', monospace;
 }
 
 * {

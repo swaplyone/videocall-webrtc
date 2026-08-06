@@ -113,23 +113,27 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
         </p>
 
         <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3.5rem' }}>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.03, boxShadow: '8px 8px 0px 0px #1B2233' }}
+            whileTap={{ scale: 0.96, rotate: -1, boxShadow: '2px 2px 0px 0px #1B2233' }}
             onClick={() => { playSound(500); navigate('/dashboard'); }}
-            style={{ padding: '0.95rem 2.4rem', borderRadius: '50px', background: '#D45B3E', border: '2.5px solid #2A2723', boxShadow: '6px 6px 0px 0px #2A2723', color: '#FFF', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+            style={{ padding: '0.95rem 2.4rem', borderRadius: '50px', background: '#D85B3E', border: '2.5px solid #1B2233', boxShadow: '6px 6px 0px 0px #1B2233', color: '#FFF', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontFamily: 'var(--font-body)' }}
           >
             Go to Dialer <ArrowRight size={18} />
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.03, boxShadow: '8px 8px 0px 0px #1B2233' }}
+            whileTap={{ scale: 0.96, rotate: 1, boxShadow: '2px 2px 0px 0px #1B2233' }}
             onClick={() => {
               playSound(420);
               const el = document.getElementById('peer-search');
               if (el) el.scrollIntoView({ behavior: 'smooth' });
             }}
-            style={{ padding: '0.95rem 2.4rem', borderRadius: '50px', background: '#FFF', border: '2.5px solid #2A2723', boxShadow: '6px 6px 0px 0px #2A2723', color: '#2A2723', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+            style={{ padding: '0.95rem 2.4rem', borderRadius: '50px', background: '#FFFDF8', border: '2.5px solid #1B2233', boxShadow: '6px 6px 0px 0px #1B2233', color: '#1B2233', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', fontFamily: 'var(--font-body)' }}
           >
             <Play size={18} /> Try Peer Search
-          </button>
+          </motion.button>
         </div>
 
         {/* HIGH-ENERGY DRAGGABLE STICKY NOTES BOARD */}
