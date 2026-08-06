@@ -17,6 +17,8 @@ export default function AnimatedInput({
   const [animatedPlaceholder, setAnimatedPlaceholder] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
+  const examplesKey = Array.isArray(placeholderExamples) ? placeholderExamples.join('|') : '';
+
   // Typewriter effect when placeholderExamples are supplied
   useEffect(() => {
     if (!placeholderExamples || placeholderExamples.length === 0) {
@@ -33,6 +35,7 @@ export default function AnimatedInput({
     const typeEffect = () => {
       if (!isSubscribed) return;
       const currentText = placeholderExamples[exampleIndex];
+      if (!currentText) return;
 
       if (isDeleting) {
         setAnimatedPlaceholder(currentText.substring(0, charIndex - 1));
@@ -62,7 +65,7 @@ export default function AnimatedInput({
       isSubscribed = false;
       clearTimeout(timeoutId);
     };
-  }, [placeholderExamples, placeholder]);
+  }, [examplesKey, placeholder]);
 
   return (
     <motion.div

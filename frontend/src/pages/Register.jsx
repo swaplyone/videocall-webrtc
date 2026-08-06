@@ -5,6 +5,11 @@ import SwaplyLogo from '../components/SwaplyLogo';
 import BrandThreadsIcon from '../components/BrandThreadsIcon';
 import AnimatedInput from '../components/AnimatedInput';
 
+const NAME_EXAMPLES = ["e.g. Alice Smith", "e.g. Bob Johnson", "e.g. Charlie Brown"];
+const USERNAME_EXAMPLES = ["e.g. alice", "e.g. tester_bob", "e.g. swaply_node"];
+const EMAIL_EXAMPLES = ["e.g. alice@swaply.app", "e.g. user@gmail.com", "e.g. tester@swaply.app"];
+const PASSWORD_EXAMPLES = ["••••••••", "choose strong password..."];
+
 export default function Register({ onSecureRegister, loginError }) {
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
@@ -87,7 +92,7 @@ export default function Register({ onSecureRegister, loginError }) {
             <AnimatedInput
               id="reg-name"
               type="text"
-              placeholderExamples={["e.g. Alice Smith", "e.g. Bob Johnson", "e.g. Charlie Brown"]}
+              placeholderExamples={NAME_EXAMPLES}
               placeholder="e.g. Alice Smith"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -105,7 +110,7 @@ export default function Register({ onSecureRegister, loginError }) {
             <AnimatedInput
               id="reg-username"
               type="text"
-              placeholderExamples={["e.g. alice", "e.g. tester_bob", "e.g. swaply_node"]}
+              placeholderExamples={USERNAME_EXAMPLES}
               placeholder="e.g. alice"
               value={username}
               onChange={(e) => {
@@ -132,7 +137,7 @@ export default function Register({ onSecureRegister, loginError }) {
             <AnimatedInput
               id="reg-email"
               type="email"
-              placeholderExamples={["e.g. alice@swaply.app", "e.g. user@gmail.com", "e.g. tester@swaply.app"]}
+              placeholderExamples={EMAIL_EXAMPLES}
               placeholder="e.g. alice@swaply.app"
               value={email}
               onChange={(e) => {
@@ -158,7 +163,7 @@ export default function Register({ onSecureRegister, loginError }) {
             <AnimatedInput
               id="reg-pass"
               type={showPassword ? 'text' : 'password'}
-              placeholderExamples={["••••••••", "choose strong password..."]}
+              placeholderExamples={PASSWORD_EXAMPLES}
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
