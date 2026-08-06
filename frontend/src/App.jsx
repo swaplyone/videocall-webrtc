@@ -191,11 +191,22 @@ export default function App() {
   };
 
   const handleSecureRegister = async ({ name, username, email, password }) => {
-    try {
-      await apiClient.register({ name, username, email, password });
-      await handleSecureLogin({ identifier: username, password });
-    } catch (err) {
-      setLoginError(err.message);
+    const data = await apiClient.register({ name, username, email, password });
+
+    if (data && data.success) {
+      const tempToken = data.tempToken || (data.data && data.data.tempToken);
+      const user = (data.data && data.data.user) || data.user || { name, username, email, email_verified: false };
+
+      setLoginError('');
+      setUserDetails({ ...user, email_verified: false });
+      setAuthToken(tempToken);
+      setCurrentUser(email);
+      apiClient.setAuthToken(tempToken);
+
+      localStorage.setItem('swaply_auth_token', tempToken);
+      localStorage.setItem('swaply_current_user', email);
+    } else {
+      throw new Error(data?.message || 'Registration failed');
     }
   };
 

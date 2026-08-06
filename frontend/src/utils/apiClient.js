@@ -70,7 +70,12 @@ const request = async (path, options = {}, isRetry = false) => {
   }
 
   if (!res.ok) {
-    throw new Error(data.error || `HTTP error! status: ${res.status}`);
+    const errorMsg = data.message || data.error || `HTTP error! status: ${res.status}`;
+    const err = new Error(errorMsg);
+    err.code = data.code || (res.status === 409 ? 'CONFLICT' : 'HTTP_ERROR');
+    err.status = res.status;
+    err.data = data;
+    throw err;
   }
   return data;
 };

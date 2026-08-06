@@ -16,31 +16,67 @@ router.post('/register', async (req, res) => {
   const { name, username, email, password } = req.body;
 
   if (!name || !username || !email || !password) {
-    return res.status(400).json({ error: 'All fields (name, username, email, password) are required' });
+    return res.status(400).json({
+      success: false,
+      code: 'MISSING_FIELDS',
+      message: 'All fields (name, username, email, password) are required'
+    });
   }
+
+  const normalizedUsername = username.trim().toLowerCase();
+  const normalizedEmail = email.trim().toLowerCase();
 
   // Basic email syntax validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).json({ error: 'Invalid email format' });
+  if (!emailRegex.test(normalizedEmail)) {
+    return res.status(400).json({
+      success: false,
+      code: 'INVALID_EMAIL',
+      message: 'Invalid email format'
+    });
   }
 
-  if (username.trim().length < 3) {
-    return res.status(400).json({ error: 'Username must be at least 3 characters long' });
+  if (normalizedUsername.length < 3) {
+    return res.status(400).json({
+      success: false,
+      code: 'INVALID_USERNAME',
+      message: 'Username must be at least 3 characters long'
+    });
   }
 
   if (password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    return res.status(400).json({
+      success: false,
+      code: 'INVALID_PASSWORD',
+      message: 'Password must be at least 6 characters long'
+    });
   }
 
   try {
-    // Check if username or email already exists
-    const checkUser = await query(
-      'SELECT 1 FROM users WHERE username = $1 OR email = $2',
-      [username.trim(), email.trim()]
+    // 1. Check if username already exists
+    const checkUsername = await query(
+      'SELECT 1 FROM users WHERE LOWER(username) = $1',
+      [normalizedUsername]
     );
-    if (checkUser.rowCount > 0) {
-      return res.status(409).json({ error: 'Username or email already registered' });
+    if (checkUsername.rowCount > 0) {
+      return res.status(409).json({
+        success: false,
+        code: 'USERNAME_EXISTS',
+        message: 'Username already exists.'
+      });
+    }
+
+    // 2. Check if email already exists
+    const checkEmail = await query(
+      'SELECT 1 FROM users WHERE LOWER(email) = $1',
+      [normalizedEmail]
+    );
+    if (checkEmail.rowCount > 0) {
+      return res.status(409).json({
+        success: false,
+        code: 'EMAIL_EXISTS',
+        message: 'Email already exists.'
+      });
     }
 
     // Encrypt password
@@ -49,15 +85,26 @@ router.post('/register', async (req, res) => {
     const betaId = 'SWP-' + Math.random().toString(36).substring(2, 7).toUpperCase();
     const qrToken = `qr_tok_${randomUUID()}`;
 
-    // Insert user
+    // Insert user in Pending Verification state
     const insertRes = await query(
-      `INSERT INTO users (security_id, name, username, email, password_hash, beta_id, qr_token)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING id, name, username, email, security_id, beta_id, qr_token`,
-      [securityId, name.trim(), username.trim().toLowerCase(), email.trim().toLowerCase(), hashed, betaId, qrToken]
+      `INSERT INTO users (security_id, name, username, email, password_hash, beta_id, qr_token, email_verified)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, FALSE)
+       RETURNING id, name, username, email, security_id, beta_id, qr_token, email_verified`,
+      [securityId, name.trim(), normalizedUsername, normalizedEmail, hashed, betaId, qrToken]
     );
 
     const newUser = insertRes.rows[0];
+
+    // Generate & send verification OTP
+    await createAndSendOTP(newUser.id, newUser.email, 'FIRST_LOGIN');
+
+    // Create temporary unverified JWT token
+    const tempToken = jwt.sign(
+      { id: newUser.id, username: newUser.username, securityId: newUser.security_id, email_verified: false },
+      JWT_ACCESS_SECRET,
+      { expiresIn: '15m' }
+    );
+
     const io = req.app.get('socketio');
     if (io) {
       io.to('admins').emit('admin_user_registered', { username: newUser.username });
@@ -65,21 +112,31 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Registration successful',
-      user: {
-        id: newUser.id,
-        name: newUser.name,
-        username: newUser.username,
+      message: 'Account created successfully. Verification code sent to email.',
+      tempToken,
+      email: newUser.email,
+      data: {
+        tempToken,
         email: newUser.email,
-        security_id: newUser.security_id,
-        beta_id: newUser.beta_id,
-        qr_token: newUser.qr_token
+        user: {
+          id: newUser.id,
+          name: newUser.name,
+          username: newUser.username,
+          email: newUser.email,
+          security_id: newUser.security_id,
+          beta_id: newUser.beta_id,
+          email_verified: false
+        }
       }
     });
 
   } catch (err) {
     console.error('Registration error:', err);
-    res.status(500).json({ error: 'Server error during registration' });
+    res.status(500).json({
+      success: false,
+      code: 'SERVER_ERROR',
+      message: 'Server error during registration'
+    });
   }
 });
 
@@ -398,7 +455,21 @@ router.post('/verify-otp', authenticateToken, async (req, res) => {
 
     const result = await verifyOTP(user.email, code, purpose);
     if (!result.success) {
-      return res.status(400).json({ error: result.error });
+      let codeStr = 'INVALID_OTP';
+      let messageStr = 'Invalid verification code.';
+      if (result.error === 'Code expired') {
+        codeStr = 'OTP_EXPIRED';
+        messageStr = 'Verification code has expired.';
+      } else if (result.error === 'Too many attempts') {
+        codeStr = 'TOO_MANY_ATTEMPTS';
+        messageStr = 'Too many verification attempts.';
+      }
+      return res.status(400).json({
+        success: false,
+        code: codeStr,
+        message: messageStr,
+        error: result.error
+      });
     }
 
     if (purpose === 'FIRST_LOGIN' || purpose === 'EMAIL_VERIFICATION') {
