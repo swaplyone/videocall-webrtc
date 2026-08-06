@@ -1234,6 +1234,16 @@ async function ensureAdminAccount() {
   }
 }
 
+httpServer.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.warn(`\n⚠️ [EADDRINUSE] Port ${PORT} is currently occupied by another running instance.`);
+    console.log(`💡 Swaply Signaling Server is already running on port ${PORT}. Continuing active session...\n`);
+    process.exit(0);
+  } else {
+    console.error('Server error:', err);
+  }
+});
+
 httpServer.listen(PORT, '0.0.0.0', async () => {
   try {
     // Reset any stale presence records from past crashes/restarts
