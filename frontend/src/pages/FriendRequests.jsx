@@ -12,7 +12,7 @@ export default function FriendRequests() {
     try {
       const data = await apiClient.request('/api/friends/requests');
       if (data.success) {
-        setRequests(data.requests || []);
+        setRequests(data.requests || data.incoming || []);
       }
     } catch (err) {
       console.error('Error fetching friend requests:', err);
@@ -21,6 +21,8 @@ export default function FriendRequests() {
 
   useEffect(() => {
     fetchRequests();
+    const interval = setInterval(fetchRequests, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleAccept = async (requestId) => {

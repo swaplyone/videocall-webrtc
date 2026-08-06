@@ -271,6 +271,11 @@ export default function App() {
       setModerationConfig(newConfig);
     });
 
+    socket.on('friend_request_received', (data) => {
+      console.log('[App] Friend request received:', data);
+      showPopup('New Connection Invite! 🤝', `${data.senderName || data.sender} sent you a friend request.`, 'info');
+    });
+
     return () => {
       socket.off('users_list');
       socket.off('incoming_call');
@@ -279,6 +284,7 @@ export default function App() {
       socket.off('call_terminated');
       socket.off('call_restored');
       socket.off('moderation_config_changed');
+      socket.off('friend_request_received');
     };
   }, [callState, incomingCall]);
 

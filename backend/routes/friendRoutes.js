@@ -192,7 +192,7 @@ router.get('/requests', authenticateToken, async (req, res) => {
       [req.user.id]
     );
 
-    res.json({ success: true, incoming: incoming.rows, outgoing: outgoing.rows });
+    res.json({ success: true, incoming: incoming.rows, outgoing: outgoing.rows, requests: incoming.rows });
   } catch (err) {
     console.error('Get requests error:', err);
     res.status(500).json({ error: 'Server error retrieving requests' });
