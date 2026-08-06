@@ -62,6 +62,7 @@ export default function App() {
   const [isCaller, setIsCaller] = useState(false);
   const [incomingCall, setIncomingCall] = useState(null);
   const [friendRequestNotice, setFriendRequestNotice] = useState(null);
+  const [notificationNotice, setNotificationNotice] = useState(null);
   const [isRestoredCall, setIsRestoredCall] = useState(false);
 
   // Moderation state
@@ -445,8 +446,9 @@ export default function App() {
   const handleAcceptFriendRequest = async (requestId) => {
     try {
       await apiClient.request(`/api/friends/request/${requestId}/accept`, { method: 'POST' });
-      showPopup('Connection Accepted! 🎉', 'You are now friends!', 'success');
       setFriendRequestNotice(null);
+      setNotificationNotice('🎉 Connection Established! You are now connected.');
+      setTimeout(() => setNotificationNotice(null), 4000);
     } catch (err) {
       showPopup('Action Failed', err.message || 'Could not accept friend request', 'danger');
     }
@@ -456,6 +458,8 @@ export default function App() {
     try {
       await apiClient.request(`/api/friends/request/${requestId}/reject`, { method: 'POST' });
       setFriendRequestNotice(null);
+      setNotificationNotice('Declined friend request');
+      setTimeout(() => setNotificationNotice(null), 3000);
     } catch (err) {
       console.warn('Could not decline friend request:', err);
       setFriendRequestNotice(null);
@@ -575,6 +579,7 @@ export default function App() {
         friendRequestNotice={friendRequestNotice}
         onAcceptFriendRequest={handleAcceptFriendRequest}
         onRejectFriendRequest={handleRejectFriendRequest}
+        notificationNotice={notificationNotice}
       />
 
       {/* Main Routing Stage */}

@@ -487,22 +487,31 @@ export default function MorphBar({
           {mode === 'notification' && (
             <motion.div
               key="notification"
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
+              initial={{ opacity: 0, scale: 0.85, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.85, y: -10 }}
               style={{
-                padding: '0.65rem 1.25rem',
+                padding: '0.75rem 1.4rem',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.6rem',
-                background: '#F1F6F1'
+                gap: '0.75rem',
+                background: '#F1F6F1',
+                borderRadius: '50px',
+                border: '2.5px solid #1B2233',
+                boxShadow: '4px 4px 0px 0px #1B2233'
               }}
             >
-              <CheckCircle size={18} color="#6D7B55" />
-              <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#6D7B55' }}>
-                {notificationNotice || 'Action Completed Successfully'}
-              </span>
-              <button onClick={() => setMode('idle')} style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '0.5rem' }}>
-                <X size={14} color="#6D7B55" />
+              <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#6D7B55', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <CheckCircle size={18} color="#FFF" />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Sparkles size={16} color="#6D7B55" />
+                <span style={{ fontWeight: 800, fontSize: '0.88rem', color: '#1B2233', fontFamily: 'var(--font-mono)' }}>
+                  {notificationNotice || 'Action Completed Successfully'}
+                </span>
+              </div>
+              <button onClick={() => setMode('idle')} style={{ background: '#FFFDF8', border: '1.5px solid #1B2233', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft: '0.5rem' }}>
+                <X size={12} color="#1B2233" />
               </button>
             </motion.div>
           )}
