@@ -402,10 +402,12 @@ export default function App() {
       setRemoteUser(targetUser);
       setIsCaller(true);
       socket.emit('initiate_call', { to: targetUser }, (response) => {
-        if (response.success) {
+        if (response && response.success) {
+          console.log(`[App] Call initiated successfully. Session ID: ${response.sessionId}`);
           setActiveSessionId(response.sessionId);
+          setCallState('active');
         } else {
-          showPopup('Call Error', `Could not call: ${response.error}`, 'error');
+          showPopup('Call Error', `Could not call: ${response?.error || 'Target user unavailable'}`, 'error');
           resetCallState();
         }
       });
