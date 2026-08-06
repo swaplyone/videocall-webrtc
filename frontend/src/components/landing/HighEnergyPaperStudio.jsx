@@ -69,11 +69,6 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
     }
   ];
 
-  const filteredPeers = samplePeers.filter(p => 
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.skill.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <div style={{ background: '#FAF6EE', color: '#2A2723', minHeight: '100vh', fontFamily: "var(--font-body), 'Work Sans', sans-serif" }}>
       
