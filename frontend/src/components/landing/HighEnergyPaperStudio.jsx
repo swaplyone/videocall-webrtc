@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, Play, Video, ShieldCheck, QrCode, Users, Activity, Lock, ChevronDown, CheckCircle, Camera, Volume2, VolumeX, Search, MessageSquare, Mic, MicOff, PhoneOff, Monitor } from 'lucide-react';
 import { apiClient } from '../../utils/apiClient';
 
 export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
+  const navigate = useNavigate();
   const [soundOn, setSoundOn] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCallDemo, setActiveCallDemo] = useState(false);
@@ -132,10 +134,10 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
 
         <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '3.5rem' }}>
           <button
-            onClick={() => { playSound(500); if (typeof onOpenWaitlist === 'function') onOpenWaitlist(); }}
+            onClick={() => { playSound(500); navigate('/dashboard'); }}
             style={{ padding: '0.95rem 2.4rem', borderRadius: '50px', background: '#D45B3E', border: '2.5px solid #2A2723', boxShadow: '6px 6px 0px 0px #2A2723', color: '#FFF', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
           >
-            Become a Beta Tester <ArrowRight size={18} />
+            Go to Dialer <ArrowRight size={18} />
           </button>
 
           <button
@@ -432,8 +434,8 @@ export default function HighEnergyPaperStudio({ onOpenWaitlist }) {
         <p style={{ color: '#6B655C', fontSize: '1.05rem', maxWidth: '540px', margin: '0 auto 2.25rem auto' }}>
           Reserve your spot in our daily rollout batch and experience privacy-first skill communication.
         </p>
-        <button onClick={() => { playSound(500); if (typeof onOpenWaitlist === 'function') onOpenWaitlist(); }} style={{ padding: '0.95rem 2.4rem', borderRadius: '50px', background: '#D45B3E', border: '2.5px solid #2A2723', boxShadow: '5px 5px 0px 0px #2A2723', color: '#FFF', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer' }}>
-          Become a Beta Tester &rarr;
+        <button onClick={() => { playSound(500); navigate('/dashboard'); }} style={{ padding: '0.95rem 2.4rem', borderRadius: '50px', background: '#D45B3E', border: '2.5px solid #2A2723', boxShadow: '5px 5px 0px 0px #2A2723', color: '#FFF', fontWeight: 800, fontSize: '0.95rem', cursor: 'pointer' }}>
+          Go to Dialer &rarr;
         </button>
         <div style={{ marginTop: '3.5rem', color: '#6B655C', fontSize: '0.85rem', borderTop: '2px solid #EADFCF', paddingTop: '1.5rem', fontFamily: 'var(--font-mono)' }}>
           &copy; 2026 SwaplyOne Inc. "In a Deep Ocean of Skills." &bull; All Rights Reserved.

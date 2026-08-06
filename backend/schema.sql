@@ -367,4 +367,158 @@ CREATE TABLE IF NOT EXISTS changelog_entries (
 
 CREATE INDEX IF NOT EXISTS idx_ce_category ON changelog_entries(category);
 
+-- Phase 14: Enterprise Compliance, Governance & Platform Hardening Tables
+
+CREATE TABLE IF NOT EXISTS user_consents (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    policy_type VARCHAR(50) NOT NULL, -- PRIVACY, TERMS, COMMUNITY, COOKIES
+    version VARCHAR(50) NOT NULL,
+    consented_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ip_address VARCHAR(100)
+);
+
+CREATE INDEX IF NOT EXISTS idx_uc_user ON user_consents(user_id);
+CREATE INDEX IF NOT EXISTS idx_uc_type ON user_consents(policy_type);
+
+CREATE TABLE IF NOT EXISTS legal_policy_versions (
+    id SERIAL PRIMARY KEY,
+    policy_type VARCHAR(50) UNIQUE NOT NULL,
+    version VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    effective_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    event_type VARCHAR(100) NOT NULL,
+    details JSONB DEFAULT '{}'::jsonb,
+    ip_address VARCHAR(100),
+    user_agent TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_al_user ON activity_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_al_event ON activity_logs(event_type);
+CREATE INDEX IF NOT EXISTS idx_al_created ON activity_logs(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS admin_logs (
+    id SERIAL PRIMARY KEY,
+    admin_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    action VARCHAR(255) NOT NULL,
+    target_id INTEGER,
+    details JSONB DEFAULT '{}'::jsonb,
+    ip_address VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_logs_admin ON admin_logs(admin_id);
+CREATE INDEX IF NOT EXISTS idx_admin_logs_action ON admin_logs(action);
+
+CREATE TABLE IF NOT EXISTS api_logs (
+    id SERIAL PRIMARY KEY,
+    method VARCHAR(10) NOT NULL,
+    endpoint VARCHAR(255) NOT NULL,
+    status_code INTEGER NOT NULL,
+    response_time INTEGER, -- ms
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    ip_address VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_api_logs_endpoint ON api_logs(endpoint);
+CREATE INDEX IF NOT EXISTS idx_api_logs_status ON api_logs(status_code);
+
+CREATE TABLE IF NOT EXISTS security_logs (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    event_type VARCHAR(100) NOT NULL,
+    severity VARCHAR(50) DEFAULT 'warning',
+    details JSONB DEFAULT '{}'::jsonb,
+    ip_address VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_sec_logs_user ON security_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_sec_logs_severity ON security_logs(severity);
+
+CREATE TABLE IF NOT EXISTS feature_flags (
+    key VARCHAR(100) PRIMARY KEY,
+    enabled BOOLEAN DEFAULT TRUE,
+    description TEXT,
+    category VARCHAR(50) DEFAULT 'core',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by INTEGER REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS maintenance_state (
+    id INTEGER PRIMARY KEY DEFAULT 1,
+    active BOOLEAN DEFAULT FALSE,
+    mode VARCHAR(50) DEFAULT 'scheduled', -- scheduled, emergency, read_only
+    message TEXT DEFAULT 'System undergoes scheduled maintenance.',
+    scheduled_start TIMESTAMP,
+    scheduled_end TIMESTAMP,
+    countdown_seconds INTEGER DEFAULT 0,
+    whitelisted_ips JSONB DEFAULT '[]'::jsonb,
+    whitelisted_admin_ids JSONB DEFAULT '[]'::jsonb,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO maintenance_state (id, active, mode, message)
+VALUES (1, FALSE, 'scheduled', 'System is operational.')
+ON CONFLICT (id) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS roles (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT
+);
+
+CREATE TABLE IF NOT EXISTS permissions (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT
+);
+
+CREATE TABLE IF NOT EXISTS role_permissions (
+    role_id INTEGER REFERENCES roles(id) ON DELETE CASCADE,
+    permission_code VARCHAR(100) REFERENCES permissions(code) ON DELETE CASCADE,
+    PRIMARY KEY(role_id, permission_code)
+);
+
+CREATE TABLE IF NOT EXISTS user_roles (
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    role_id INTEGER REFERENCES roles(id) ON DELETE CASCADE,
+    PRIMARY KEY(user_id, role_id)
+);
+
+CREATE TABLE IF NOT EXISTS media_files (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    category VARCHAR(50) NOT NULL,
+    file_path TEXT NOT NULL,
+    file_size INTEGER NOT NULL,
+    mime_type VARCHAR(100),
+    virus_scanned BOOLEAN DEFAULT TRUE,
+    is_temp BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_mf_category ON media_files(category);
+CREATE INDEX IF NOT EXISTS idx_mf_user ON media_files(user_id);
+
+CREATE TABLE IF NOT EXISTS recent_searches (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    query TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_rs_user ON recent_searches(user_id, created_at DESC);
+
+
 

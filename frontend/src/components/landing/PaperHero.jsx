@@ -90,7 +90,7 @@ export default function PaperHero({ onTriggerVortex, onScrollToDemo }) {
             fontFamily: 'var(--font-body)'
           }}
         >
-          Become a Beta Tester <ArrowRight size={18} />
+          Go to Dialer <ArrowRight size={18} />
         </button>
 
         <button

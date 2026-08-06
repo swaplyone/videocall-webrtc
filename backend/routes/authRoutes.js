@@ -678,4 +678,5 @@ router.put('/email-preferences', authenticateToken, async (req, res) => {
   }
 });
 
+export { authenticateToken, requireAdmin } from '../middleware/authMiddleware.js';
 export default router;

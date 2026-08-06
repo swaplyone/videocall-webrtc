@@ -63,7 +63,7 @@ async function runSchedulerTests() {
   }
 
   console.log(`\n📊 Scheduler Test Summary: ${testsPassed} Passed, ${testsFailed} Failed.`);
-  if (testsFailed > 0) process.exit(1);
+  process.exit(testsFailed > 0 ? 1 : 0);
 }
 
 runSchedulerTests();

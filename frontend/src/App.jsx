@@ -27,6 +27,14 @@ import Diagnostics from './pages/Diagnostics';
 import LandingPage from './pages/LandingPage';
 import SecurityCenter from './pages/SecurityCenter';
 import Changelog from './pages/Changelog';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import CommunityGuidelines from './pages/CommunityGuidelines';
+import CookiePolicy from './pages/CookiePolicy';
+import Maintenance from './pages/Maintenance';
+import DevDashboard from './pages/DevDashboard';
+import BetaCommandCenter from './pages/BetaCommandCenter';
+import { AccessibilityProvider } from './context/AccessibilityContext';
 
 import { checkBrowserCompatibility } from './utils/browserSupport';
 import { apiClient } from './utils/apiClient';
@@ -441,6 +449,7 @@ export default function App() {
   const isUnverified = userDetails && userDetails.email_verified === false;
 
   return (
+    <AccessibilityProvider>
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       
       {/* Disclaimer Acknowledgment Modal */}
@@ -514,11 +523,16 @@ export default function App() {
           <Register onSecureRegister={handleSecureRegister} loginError={loginError} />
         } />
         <Route path="/verify-phone" element={<VerifyPhone />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
+        <Route path="/community-guidelines" element={<CommunityGuidelines />} />
+        <Route path="/cookie-policy" element={<CookiePolicy />} />
+        <Route path="/maintenance" element={<Maintenance />} />
 
         {/* Protected Dashboard Routes */}
         <Route path="/*" element={
           !currentUser ? <Navigate to="/login" replace /> : (
-            <div className="dashboard-layout" style={{ paddingTop: '70px' }}>
+            <div className="dashboard-layout" id="main-content" style={{ paddingTop: '70px' }}>
               <main className="main-stage">
                 
                 {/* Global Incoming Call notification bar */}
@@ -545,6 +559,8 @@ export default function App() {
                   <Route path="/privacy" element={<PrivacyCenter userDetails={userDetails} />} />
                   <Route path="/settings" element={<Settings userDetails={userDetails} onUpdateUserDetails={setUserDetails} />} />
                   <Route path="/admin" element={<AdminDashboard userDetails={userDetails} />} />
+                  <Route path="/command-center" element={<BetaCommandCenter />} />
+                  <Route path="/dev" element={<DevDashboard />} />
                   <Route path="/health" element={<SystemHealth />} />
                   <Route path="/feedback" element={<Feedback />} />
                   <Route path="/diagnostics" element={<Diagnostics />} />
@@ -558,5 +574,6 @@ export default function App() {
         } />
       </Routes>
     </div>
+    </AccessibilityProvider>
   );
 }

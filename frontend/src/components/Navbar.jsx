@@ -4,14 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
   Users,
-  Inbox,
   Clock,
   Bell,
-  Shield,
   Settings,
-  Activity,
-  Sparkles,
-  Server,
   ShieldCheck,
   Power,
   X,
@@ -74,35 +69,30 @@ export default function Navbar({ currentUser, userDetails, onLogout }) {
   };
 
   const navItems = [
-    { path: '/dashboard', label: 'Dial Console', desc: 'Call node & WebRTC', icon: <Home size={18} />, color: '#2563EB' },
-    { path: '/friends', label: 'Peer Friends', desc: 'Active connections', icon: <Users size={18} />, color: '#10B981' },
-    { path: '/friend-requests', label: 'Invites', desc: 'Pending requests', icon: <Inbox size={18} />, color: '#F59E0B' },
-    { path: '/call-history', label: 'Recent Calls', desc: 'Call logs & telemetry', icon: <Clock size={18} />, color: '#6366F1' },
-    { path: '/notifications', label: 'Alert Center', desc: 'Notifications', icon: <Bell size={18} />, color: '#EC4899' },
-    { path: '/privacy', label: 'Privacy Center', desc: 'Security & shield', icon: <Shield size={18} />, color: '#8B5CF6' },
-    { path: '/settings', label: 'App Settings', desc: 'Hardware & config', icon: <Settings size={18} />, color: '#64748B' },
-    { path: '/diagnostics', label: 'Diagnostics', desc: 'RTCStats inspector', icon: <Activity size={18} />, color: '#06B6D4' },
-    { path: '/changelog', label: 'Updates', desc: 'Changelog & fixes', icon: <Sparkles size={18} />, color: '#F43F5E' }
+    { path: '/dashboard', label: 'Dashboard', desc: 'Call console & WebRTC', icon: <Home size={18} />, color: '#D45B3E' },
+    { path: '/friends', label: 'Friends & Invites', desc: 'Peers & connections', icon: <Users size={18} />, color: '#4A6E53' },
+    { path: '/call-history', label: 'Recent Calls', desc: 'Call logs & history', icon: <Clock size={18} />, color: '#4C779F' },
+    { path: '/notifications', label: 'Notifications', desc: 'Alerts & activity', icon: <Bell size={18} />, color: '#E5A93C' },
+    { path: '/settings', label: 'Settings & Privacy', desc: 'Security, audio & video', icon: <Settings size={18} />, color: '#64748B' }
   ];
 
   if (userDetails?.is_admin) {
     navItems.push(
-      { path: '/admin', label: 'Admin Hub', desc: 'Rollout & metrics', icon: <ShieldCheck size={18} />, color: '#E11D48' },
-      { path: '/health', label: 'System Health', desc: 'Live server metrics', icon: <Server size={18} />, color: '#059669' }
+      { path: '/admin', label: 'Admin Hub', desc: 'Platform & beta metrics', icon: <ShieldCheck size={18} />, color: '#BE4D4D' }
     );
   }
 
-  // Dynamic Island Variants
+  // Streamlined Dynamic Island Variants
   const islandVariants = {
     compact: {
-      width: '210px',
-      height: '56px',
-      borderRadius: '28px'
+      width: '190px',
+      height: '52px',
+      borderRadius: '26px'
     },
     expanded: {
-      width: 'min(94vw, 650px)',
-      height: 'min(540px, 78vh)',
-      borderRadius: '30px'
+      width: 'min(92vw, 440px)',
+      height: 'min(410px, 68vh)',
+      borderRadius: '26px'
     }
   };
 
@@ -122,7 +112,7 @@ export default function Navbar({ currentUser, userDetails, onLogout }) {
               variants={islandVariants}
               animate={isExpanded ? 'expanded' : 'compact'}
               transition={{
-                duration: 0.3,
+                duration: 0.28,
                 ease: [0.23, 1, 0.32, 1]
               }}
             >
@@ -130,7 +120,7 @@ export default function Navbar({ currentUser, userDetails, onLogout }) {
                 {/* Header Row */}
                 <div className={`island-header-row ${isExpanded ? 'is-expanded' : ''}`}>
                   <Link to="/dashboard" className="island-logo-link" onClick={() => setIsExpanded(false)}>
-                    <SwaplyLogo size={26} />
+                    <SwaplyLogo size={24} />
                     <span className="island-brand-text">Swaply</span>
                   </Link>
 
@@ -145,20 +135,21 @@ export default function Navbar({ currentUser, userDetails, onLogout }) {
                           onClick={onLogout}
                           title="Disconnect Session"
                         >
-                          <Power size={18} />
+                          <Power size={16} />
                         </motion.button>
                       )}
                     </AnimatePresence>
                     <button
                       className="island-toggle-btn"
                       onClick={() => setIsExpanded(!isExpanded)}
+                      aria-label="Toggle navigation menu"
                     >
                       <motion.div
                         animate={{ rotate: isExpanded ? 90 : 0 }}
                         transition={{ duration: 0.25, ease: 'easeInOut' }}
                         style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
-                        {isExpanded ? <X size={20} /> : <Menu size={20} />}
+                        {isExpanded ? <X size={18} /> : <Menu size={18} />}
                       </motion.div>
                     </button>
                   </div>
@@ -170,12 +161,11 @@ export default function Navbar({ currentUser, userDetails, onLogout }) {
                     <motion.div
                       key="menu"
                       className="island-menu-area"
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
+                      exit={{ opacity: 0, y: 8 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <div className="menu-label">Swaply Navigation</div>
                       <div className="island-quick-access">
                         {navItems.map((item) => (
                           <Link
@@ -210,8 +200,8 @@ export default function Navbar({ currentUser, userDetails, onLogout }) {
                   <div className="island-sticky-footer">
                     <Link to="/profile" className="premium-login-btn" onClick={() => setIsExpanded(false)}>
                       <div className="pl-content">
-                        <User size={18} />
-                        <span>@{currentUser || 'founder'} &bull; View Profile</span>
+                        <User size={16} />
+                        <span>@{currentUser || 'founder'} &bull; Profile</span>
                       </div>
                     </Link>
                   </div>

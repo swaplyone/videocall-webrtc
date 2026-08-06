@@ -96,7 +96,7 @@ async function testBetaApi() {
   }
 
   console.log(`\n📊 API Integration Test Summary: ${passed} Passed, ${failed} Failed.`);
-  if (failed > 0) process.exit(1);
+  process.exit(failed > 0 ? 1 : 0);
 }
 
 testBetaApi();

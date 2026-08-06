@@ -34,7 +34,20 @@ const testSuites = [
   'test-beta-api.js',
   'test-beta-rollout-scheduler.js',
   // Phase 12 Test Suites
-  'test-phase12-production.js'
+  'test-phase12-production.js',
+  // Phase 14 Test Suites
+  'test-phase14-compliance.js',
+  'test-phase14-backup.js',
+  'test-phase14-audit-logs.js',
+  'test-phase14-feature-flags.js',
+  'test-phase14-maintenance.js',
+  'test-phase14-rbac.js',
+  'test-phase14-file-storage.js',
+  'test-phase14-search.js',
+  'test-phase14-accessibility.js',
+  'test-phase14-dev-tools.js',
+  'test-phase14-command-center.js',
+  'test-phase14-production-hardening.js'
 ];
 
 console.log('==================================================');
