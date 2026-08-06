@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 import Navbar from './components/Navbar';
+import MorphBar from './components/MorphBar';
 import OTPVerification from './components/OTPVerification';
 import CallInterface from './components/CallInterface';
 import NoticeModal from './components/NoticeModal';
@@ -517,8 +518,17 @@ export default function App() {
         onKeepScheduled={() => setPendingDeletionData(null)}
       />
 
-      {/* Global Dynamic Island Navbar */}
-      <Navbar currentUser={currentUser} userDetails={userDetails} onLogout={handleLogout} />
+      {/* Signature Morph Bar Command Center */}
+      <MorphBar
+        currentUser={currentUser}
+        userDetails={userDetails}
+        onLogout={handleLogout}
+        incomingCall={incomingCall}
+        onAcceptCall={handleAcceptCall}
+        onRejectCall={handleRejectCall}
+        activeCallSession={callState === 'active' ? activeSessionId : null}
+        onHangUpCall={handleHangUp}
+      />
 
       {/* Main Routing Stage */}
       <Routes>
