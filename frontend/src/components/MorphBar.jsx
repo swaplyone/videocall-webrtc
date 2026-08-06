@@ -137,6 +137,12 @@ export default function MorphBar({
     mass: 0.8
   };
 
+  const isAuthRoute = ['/login', '/register', '/verify-email', '/verify-phone', '/verify-otp'].includes(location.pathname);
+
+  if (isAuthRoute && !currentUser) {
+    return null;
+  }
+
   return (
     <div
       style={{
