@@ -61,10 +61,11 @@ export default function Friends({ onInitiateCall }) {
         cleanQuery = cleanQuery.substring(1);
       }
 
-      const data = await apiClient.request(`/api/friends/search?query=${encodeURIComponent(cleanQuery)}`);
+      const data = await apiClient.request(`/api/friends/search?q=${encodeURIComponent(cleanQuery)}&query=${encodeURIComponent(cleanQuery)}`);
       if (data.success) {
-        setSearchResults(data.users || []);
-        if (data.users.length === 0) {
+        const foundUsers = data.users || data.results || [];
+        setSearchResults(foundUsers);
+        if (foundUsers.length === 0) {
           setError('No users found matching your query.');
         }
       }

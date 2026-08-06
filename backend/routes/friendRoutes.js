@@ -42,35 +42,59 @@ function notifyUser(req, targetUsername, event, data) {
 }
 
 // 1. Search Users (Module 3)
-router.get('/search', authenticateToken, async (req, res) => {
-  const { q } = req.query;
-  if (!q) {
-    return res.status(400).json({ error: 'Search query required' });
+router.post('/search', authenticateToken, async (req, res) => {
+  const searchQuery = req.body.query || req.body.q || req.query.query || req.query.q;
+  if (!searchQuery || !searchQuery.trim()) {
+    return res.status(400).json({ success: false, error: 'Search query required' });
   }
 
   try {
-    let cleanQ = q.trim();
-    if (cleanQ.startsWith('@')) {
-      cleanQ = cleanQ.substring(1);
-    }
+    const cleanQ = searchQuery.trim().replace(/^@+/, '');
 
-    // Allow searching for exact username/beta_id or partial if searchable
     const searchRes = await query(
-      `SELECT name, username, beta_id, profile_image, online_status
+      `SELECT id, name, username, beta_id, profile_image, online_status
        FROM users
        WHERE (
-         username = $1 OR beta_id = $2 OR 
-         (searchable = true AND (username ILIKE $3 OR name ILIKE $3))
+         LOWER(username) = LOWER($1) OR UPPER(beta_id) = UPPER($1) OR 
+         (searchable = true AND (username ILIKE $2 OR name ILIKE $2 OR beta_id ILIKE $2))
        ) 
        AND (deletion_status IS NULL OR deletion_status != 'PENDING_DELETION')
-       AND id <> $4`,
-      [cleanQ.toLowerCase(), cleanQ.toUpperCase(), `%${cleanQ}%`, req.user.id]
+       AND id <> $3`,
+      [cleanQ, `%${cleanQ}%`, req.user.id]
     );
 
-    res.json({ success: true, results: searchRes.rows });
+    res.json({ success: true, users: searchRes.rows, results: searchRes.rows });
   } catch (err) {
     console.error('Search error:', err);
-    res.status(500).json({ error: 'Server error during search' });
+    res.status(500).json({ success: false, error: 'Server error during search' });
+  }
+});
+
+router.get('/search', authenticateToken, async (req, res) => {
+  const searchQuery = req.query.query || req.query.q || req.body?.query || req.body?.q;
+  if (!searchQuery || !searchQuery.trim()) {
+    return res.status(400).json({ success: false, error: 'Search query required' });
+  }
+
+  try {
+    const cleanQ = searchQuery.trim().replace(/^@+/, '');
+
+    const searchRes = await query(
+      `SELECT id, name, username, beta_id, profile_image, online_status
+       FROM users
+       WHERE (
+         LOWER(username) = LOWER($1) OR UPPER(beta_id) = UPPER($1) OR 
+         (searchable = true AND (username ILIKE $2 OR name ILIKE $2 OR beta_id ILIKE $2))
+       ) 
+       AND (deletion_status IS NULL OR deletion_status != 'PENDING_DELETION')
+       AND id <> $3`,
+      [cleanQ, `%${cleanQ}%`, req.user.id]
+    );
+
+    res.json({ success: true, users: searchRes.rows, results: searchRes.rows });
+  } catch (err) {
+    console.error('Search error:', err);
+    res.status(500).json({ success: false, error: 'Server error during search' });
   }
 });
 
