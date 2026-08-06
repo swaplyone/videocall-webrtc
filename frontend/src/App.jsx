@@ -35,6 +35,7 @@ import CookiePolicy from './pages/CookiePolicy';
 import Maintenance from './pages/Maintenance';
 import DevDashboard from './pages/DevDashboard';
 import BetaCommandCenter from './pages/BetaCommandCenter';
+import WaitingForBeta from './pages/WaitingForBeta';
 import { AccessibilityProvider } from './context/AccessibilityContext';
 
 import { checkBrowserCompatibility } from './utils/browserSupport';
@@ -549,10 +550,17 @@ export default function App() {
         <Route path="/community-guidelines" element={<CommunityGuidelines />} />
         <Route path="/cookie-policy" element={<CookiePolicy />} />
         <Route path="/maintenance" element={<Maintenance />} />
+        <Route path="/waiting" element={
+          !currentUser ? <Navigate to="/login" replace /> :
+          <WaitingForBeta currentUser={currentUser} onStatusApproved={() => {
+            if (userDetails) setUserDetails({ ...userDetails, beta_status: 'APPROVED' });
+          }} />
+        } />
 
         {/* Protected Dashboard Routes */}
         <Route path="/*" element={
-          !currentUser ? <Navigate to="/login" replace /> : (
+          !currentUser ? <Navigate to="/login" replace /> :
+          (userDetails?.beta_status === 'WAITING_FOR_BETA' && !userDetails?.is_admin) ? <Navigate to="/waiting" replace /> : (
             <div className="dashboard-layout" id="main-content" style={{ paddingTop: '70px' }}>
               <main className="main-stage">
                 

@@ -1,98 +1,464 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
-  Activity, Users, Video, Clock, UserCheck, Mail, ShieldAlert,
-  Server, Database, ToggleRight, AlertTriangle, QrCode, UserPlus, Eye
+  Users, UserCheck, Clock, Mail, ShieldAlert, CheckCircle, XCircle,
+  Play, Pause, Plus, Minus, Download, Search, RefreshCw, AlertTriangle, Sparkles, Filter
 } from 'lucide-react';
-import { socketClient } from '../utils/socketClient';
+import { apiClient } from '../utils/apiClient';
 
 export default function BetaCommandCenter() {
-  const [telemetry, setTelemetry] = useState({
-    platformHealth: 'OPERATIONAL',
-    activeUsers: 0,
-    activeCalls: 0,
-    waitingQueue: 0,
-    todaysRollout: 10,
-    acceptedUsers: 0,
-    pendingInvitations: 0,
-    emailQueue: 0,
-    smtpStatus: 'CONNECTED',
-    privacyAlerts: 0,
-    securityIncidents: 0,
-    screenshotWarnings: 0,
-    friendRequests: 0,
-    qrScans: 0,
-    serverResources: { memoryUsageMb: 45, uptimeSeconds: 300 },
-    databaseStatus: 'HEALTHY',
-    maintenanceStatus: 'INACTIVE'
-  });
+  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [stats, setStats] = useState(null);
+
+  // Filters & Search
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+
+  // Batch rollout inputs
+  const [batchSizeInput, setBatchSizeInput] = useState(10);
+  const [isSubmittingBatch, setIsSubmittingBatch] = useState(false);
+
+  const fetchAdminData = async () => {
+    setLoading(true);
+    try {
+      const data = await apiClient.request(`/api/beta/admin-list?filter=${filter}&search=${encodeURIComponent(search)}`);
+      setUsers(data.users || []);
+      setTotalCount(data.total || 0);
+      setStats(data.stats || null);
+    } catch (err) {
+      console.error('Error loading beta admin queue:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const socket = socketClient.initialize();
-    if (socket) {
-      socket.on('command_center_telemetry', (data) => {
-        setTelemetry(prev => ({ ...prev, ...data }));
-      });
+    fetchAdminData();
+  }, [filter, search]);
+
+  // Bulk Selection Handlers
+  const handleSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedUserIds(users.map(u => u.id));
+    } else {
+      setSelectedUserIds([]);
     }
+  };
 
-    return () => {
-      if (socket) socket.off('command_center_telemetry');
-    };
-  }, []);
+  const handleToggleSelect = (id) => {
+    setSelectedUserIds(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
 
-  const widgets = [
-    { title: 'Platform Health', value: telemetry.platformHealth, icon: Activity, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { title: 'Active Users', value: telemetry.activeUsers, icon: Users, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
-    { title: 'Active Calls', value: telemetry.activeCalls, icon: Video, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
-    { title: 'Waiting Queue', value: telemetry.waitingQueue, icon: Clock, color: 'text-amber-400', bg: 'bg-amber-500/10' },
-    { title: "Today's Rollout", value: telemetry.todaysRollout, icon: UserCheck, color: 'text-purple-400', bg: 'bg-purple-500/10' },
-    { title: 'Accepted Users', value: telemetry.acceptedUsers, icon: UserCheck, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { title: 'Pending Invitations', value: telemetry.pendingInvitations, icon: Mail, color: 'text-sky-400', bg: 'bg-sky-500/10' },
-    { title: 'Email Queue', value: telemetry.emailQueue, icon: Mail, color: 'text-teal-400', bg: 'bg-teal-500/10' },
-    { title: 'SMTP Status', value: telemetry.smtpStatus, icon: Mail, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { title: 'Privacy Alerts', value: telemetry.privacyAlerts, icon: ShieldAlert, color: 'text-rose-400', bg: 'bg-rose-500/10' },
-    { title: 'Security Incidents', value: telemetry.securityIncidents, icon: ShieldAlert, color: 'text-red-400', bg: 'bg-red-500/10' },
-    { title: 'Screenshot Warnings', value: telemetry.screenshotWarnings, icon: Eye, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-    { title: 'Friend Requests', value: telemetry.friendRequests, icon: UserPlus, color: 'text-blue-400', bg: 'bg-blue-500/10' },
-    { title: 'QR Scans', value: telemetry.qrScans, icon: QrCode, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
-    { title: 'Server Resources', value: `${telemetry.serverResources?.memoryUsageMb || 45} MB`, icon: Server, color: 'text-violet-400', bg: 'bg-violet-500/10' },
-    { title: 'Database Status', value: telemetry.databaseStatus, icon: Database, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { title: 'Recent Logs', value: 'Streaming', icon: Activity, color: 'text-cyan-400', bg: 'bg-cyan-500/10' },
-    { title: 'Feature Flags', value: 'Active', icon: ToggleRight, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { title: 'Maintenance Status', value: telemetry.maintenanceStatus, icon: AlertTriangle, color: 'text-amber-400', bg: 'bg-amber-500/10' }
-  ];
+  // 1. Roll Out Next Batch
+  const handleExecuteRolloutBatch = async () => {
+    setIsSubmittingBatch(true);
+    try {
+      await apiClient.request('/api/beta/rollout-batch', {
+        method: 'POST',
+        body: JSON.stringify({ batchSize: batchSizeInput })
+      });
+      await fetchAdminData();
+    } catch (err) {
+      alert(err.message || 'Failed to execute rollout batch');
+    } finally {
+      setIsSubmittingBatch(false);
+    }
+  };
+
+  // 2. Bulk Approve
+  const handleBulkApprove = async () => {
+    if (selectedUserIds.length === 0) return;
+    try {
+      await apiClient.request('/api/beta/bulk-approve', {
+        method: 'POST',
+        body: JSON.stringify({ waitlistIds: selectedUserIds, notes: 'Approved via Beta Management Hub' })
+      });
+      setSelectedUserIds([]);
+      await fetchAdminData();
+    } catch (err) {
+      alert('Failed to approve selected users');
+    }
+  };
+
+  // 3. Bulk Reject
+  const handleBulkReject = async () => {
+    if (selectedUserIds.length === 0) return;
+    try {
+      await apiClient.request('/api/beta/bulk-reject', {
+        method: 'POST',
+        body: JSON.stringify({ waitlistIds: selectedUserIds, reason: 'Rejected by admin' })
+      });
+      setSelectedUserIds([]);
+      await fetchAdminData();
+    } catch (err) {
+      alert('Failed to reject selected users');
+    }
+  };
+
+  // 4. Update Capacity
+  const handleUpdateCapacity = async (delta) => {
+    const currentMax = stats?.maxCapacity || 150;
+    const newMax = Math.max(10, currentMax + delta);
+    try {
+      await apiClient.request('/api/beta/config', {
+        method: 'POST',
+        body: JSON.stringify({ maxCapacity: newMax })
+      });
+      await fetchAdminData();
+    } catch (err) {
+      alert('Failed to update capacity');
+    }
+  };
+
+  // 5. Pause / Resume Rollout
+  const handleToggleRolloutActive = async () => {
+    try {
+      await apiClient.request('/api/beta/config', {
+        method: 'POST',
+        body: JSON.stringify({ rolloutActive: Boolean(stats?.rolloutPaused) })
+      });
+      await fetchAdminData();
+    } catch (err) {
+      alert('Failed to toggle rollout state');
+    }
+  };
+
+  // 6. Export CSV
+  const handleExportCsv = () => {
+    window.open('/api/beta/export-csv', '_blank');
+  };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 md:p-10 space-y-8">
-      <div className="flex items-center justify-between border-b border-slate-800 pb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-white flex items-center space-x-3">
-            <Activity className="w-8 h-8 text-cyan-400" />
-            <span>Beta Command Center</span>
-          </h1>
-          <p className="text-sm text-slate-400">Real-time Socket.io platform telemetry & operations dashboard</p>
-        </div>
-        <div className="px-3.5 py-1.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-xs font-semibold flex items-center space-x-2">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>SOCKET.IO LIVE TELEMETRY</span>
-        </div>
-      </div>
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary, #F8F3EA)', padding: '2rem 1.5rem', color: '#1B2233', fontFamily: 'var(--font-mono)' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        
+        {/* Header Title */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#D85B3E', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
+              ADMINISTRATION COMMAND HUB
+            </span>
+            <h1 style={{ margin: '0.2rem 0 0 0', fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 900 }}>
+              Smart Beta Rollout Manager
+            </h1>
+          </div>
 
-      {/* 19 Live Telemetry Widgets Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {widgets.map((w, idx) => {
-          const IconComp = w.icon;
-          return (
-            <div key={idx} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-3 shadow-lg hover:border-slate-700 transition">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-400 font-medium truncate">{w.title}</span>
-                <div className={`p-2 rounded-xl ${w.bg}`}>
-                  <IconComp className={`w-4 h-4 ${w.color}`} />
-                </div>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button
+              onClick={handleToggleRolloutActive}
+              style={{
+                padding: '0.6rem 1.1rem',
+                borderRadius: '50px',
+                background: stats?.rolloutPaused ? '#BE4D4D' : '#6D7B55',
+                border: '2px solid #1B2233',
+                color: '#FFF',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}
+            >
+              {stats?.rolloutPaused ? <Play size={16} /> : <Pause size={16} />}
+              {stats?.rolloutPaused ? 'Resume Rollout' : 'Pause Rollout'}
+            </button>
+
+            <button
+              onClick={handleExportCsv}
+              style={{
+                padding: '0.6rem 1.1rem',
+                borderRadius: '50px',
+                background: '#FFFDF8',
+                border: '2px solid #1B2233',
+                color: '#1B2233',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}
+            >
+              <Download size={16} /> Export Queue CSV
+            </button>
+          </div>
+        </div>
+
+        {/* Live Metrics Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '1rem' }}>
+          
+          {/* Capacity Card */}
+          <div style={{ background: '#FFFDF8', border: '2.5px solid #1B2233', boxShadow: '4px 4px 0px 0px #1B2233', borderRadius: '18px', padding: '1.25rem' }}>
+            <span style={{ fontSize: '0.7rem', color: '#7A7A7A', fontWeight: 800, textTransform: 'uppercase' }}>
+              Beta Capacity
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.35rem' }}>
+              <h2 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 900, color: '#D85B3E' }}>
+                {stats?.activeCapacity || 0} / {stats?.maxCapacity || 150}
+              </h2>
+              <div style={{ display: 'flex', gap: '0.25rem' }}>
+                <button onClick={() => handleUpdateCapacity(10)} style={{ background: '#F8F3EA', border: '1.5px solid #1B2233', borderRadius: '50%', width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <Plus size={14} />
+                </button>
+                <button onClick={() => handleUpdateCapacity(-10)} style={{ background: '#F8F3EA', border: '1.5px solid #1B2233', borderRadius: '50%', width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                  <Minus size={14} />
+                </button>
               </div>
-              <div className={`text-xl font-bold ${w.color}`}>{w.value}</div>
             </div>
-          );
-        })}
+          </div>
+
+          {/* Waiting Queue */}
+          <div style={{ background: '#FFFDF8', border: '2.5px solid #1B2233', boxShadow: '4px 4px 0px 0px #1B2233', borderRadius: '18px', padding: '1.25rem' }}>
+            <span style={{ fontSize: '0.7rem', color: '#7A7A7A', fontWeight: 800, textTransform: 'uppercase' }}>
+              Waiting Queue
+            </span>
+            <h2 style={{ margin: '0.35rem 0 0 0', fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 900, color: '#1B2233' }}>
+              {stats?.waitingQueueCount || 0}
+            </h2>
+          </div>
+
+          {/* Today's Invitations */}
+          <div style={{ background: '#FFFDF8', border: '2.5px solid #1B2233', boxShadow: '4px 4px 0px 0px #1B2233', borderRadius: '18px', padding: '1.25rem' }}>
+            <span style={{ fontSize: '0.7rem', color: '#7A7A7A', fontWeight: 800, textTransform: 'uppercase' }}>
+              Today's Invitations
+            </span>
+            <h2 style={{ margin: '0.35rem 0 0 0', fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 900, color: '#6D7B55' }}>
+              {stats?.todayInvitations || 0}
+            </h2>
+          </div>
+
+          {/* Emails Sent */}
+          <div style={{ background: '#FFFDF8', border: '2.5px solid #1B2233', boxShadow: '4px 4px 0px 0px #1B2233', borderRadius: '18px', padding: '1.25rem' }}>
+            <span style={{ fontSize: '0.7rem', color: '#7A7A7A', fontWeight: 800, textTransform: 'uppercase' }}>
+              Emails Sent
+            </span>
+            <h2 style={{ margin: '0.35rem 0 0 0', fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 900, color: '#4C779F' }}>
+              {stats?.emailsSentCount || 0}
+            </h2>
+          </div>
+
+          {/* Acceptance Rate */}
+          <div style={{ background: '#FFFDF8', border: '2.5px solid #1B2233', boxShadow: '4px 4px 0px 0px #1B2233', borderRadius: '18px', padding: '1.25rem' }}>
+            <span style={{ fontSize: '0.7rem', color: '#7A7A7A', fontWeight: 800, textTransform: 'uppercase' }}>
+              Acceptance Rate
+            </span>
+            <h2 style={{ margin: '0.35rem 0 0 0', fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 900, color: '#C8A76A' }}>
+              {stats?.acceptanceRate || '82%'}
+            </h2>
+          </div>
+
+          {/* Avg Wait Time */}
+          <div style={{ background: '#FFFDF8', border: '2.5px solid #1B2233', boxShadow: '4px 4px 0px 0px #1B2233', borderRadius: '18px', padding: '1.25rem' }}>
+            <span style={{ fontSize: '0.7rem', color: '#7A7A7A', fontWeight: 800, textTransform: 'uppercase' }}>
+              Avg Wait Time
+            </span>
+            <h2 style={{ margin: '0.35rem 0 0 0', fontFamily: 'var(--font-display)', fontSize: '1.4rem', fontWeight: 900, color: '#1B2233' }}>
+              {stats?.avgWaitTimeDays || '3.2 days'}
+            </h2>
+          </div>
+
+        </div>
+
+        {/* Smart Rollout Batch Controls Panel */}
+        <div style={{ background: '#FFFDF8', border: '2.5px solid #1B2233', boxShadow: '6px 6px 0px 0px #1B2233', borderRadius: '20px', padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 800 }}>
+              ⚡ Smart Rollout Batch Trigger
+            </h3>
+            <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.85rem', color: '#7A7A7A' }}>
+              Automatically selects the next top eligible users and dispatches official invitation passes.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#F8F3EA', border: '2px solid #1B2233', borderRadius: '50px', padding: '0.3rem 0.85rem' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 800 }}>Rollout Size:</span>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={batchSizeInput}
+                onChange={(e) => setBatchSizeInput(e.target.value)}
+                style={{ width: '50px', background: 'transparent', border: 'none', fontWeight: 900, fontSize: '0.95rem', fontFamily: 'var(--font-mono)', outline: 'none', textAlign: 'center' }}
+              />
+            </div>
+
+            <button
+              onClick={handleExecuteRolloutBatch}
+              disabled={isSubmittingBatch}
+              style={{
+                padding: '0.75rem 1.4rem',
+                borderRadius: '50px',
+                background: '#D85B3E',
+                border: '2.5px solid #1B2233',
+                boxShadow: '4px 4px 0px 0px #1B2233',
+                color: '#FFF',
+                fontWeight: 800,
+                fontSize: '0.9rem',
+                cursor: isSubmittingBatch ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              {isSubmittingBatch ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
+              Roll Out {batchSizeInput} Users Today
+            </button>
+          </div>
+        </div>
+
+        {/* Filter Tabs & Search Bar */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+          
+          {/* Status Tabs */}
+          <div style={{ display: 'flex', gap: '0.4rem', background: '#F8F3EA', padding: '0.3rem', borderRadius: '50px', border: '2px solid #1B2233' }}>
+            {['all', 'waiting_for_beta', 'approved', 'invited', 'rejected', 'expired'].map(t => (
+              <button
+                key={t}
+                onClick={() => setFilter(t)}
+                style={{
+                  padding: '0.45rem 0.95rem',
+                  borderRadius: '50px',
+                  border: filter === t ? '2px solid #1B2233' : 'none',
+                  background: filter === t ? '#D85B3E' : 'transparent',
+                  color: filter === t ? '#FFF' : '#1B2233',
+                  fontWeight: 800,
+                  fontSize: '0.78rem',
+                  cursor: 'pointer',
+                  textTransform: 'capitalize'
+                }}
+              >
+                {t.replace(/_/g, ' ')}
+              </button>
+            ))}
+          </div>
+
+          {/* Search Bar */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#FFFDF8', border: '2px solid #1B2233', borderRadius: '50px', padding: '0.4rem 0.85rem', width: '280px' }}>
+            <Search size={16} color="#7A7A7A" />
+            <input
+              type="text"
+              placeholder="Search user, email, Beta ID..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={{ background: 'transparent', border: 'none', outline: 'none', fontSize: '0.85rem', fontFamily: 'var(--font-mono)', width: '100%' }}
+            />
+          </div>
+
+        </div>
+
+        {/* Bulk Action Controls */}
+        {selectedUserIds.length > 0 && (
+          <div style={{ background: '#F8F3EA', border: '2px solid #1B2233', borderRadius: '16px', padding: '0.85rem 1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontWeight: 800, fontSize: '0.85rem' }}>
+              {selectedUserIds.length} users selected
+            </span>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button onClick={handleBulkApprove} style={{ padding: '0.45rem 1rem', borderRadius: '50px', background: '#6D7B55', border: '1.5px solid #1B2233', color: '#FFF', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer' }}>
+                Approve Selected ({selectedUserIds.length})
+              </button>
+              <button onClick={handleBulkReject} style={{ padding: '0.45rem 1rem', borderRadius: '50px', background: '#BE4D4D', border: '1.5px solid #1B2233', color: '#FFF', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer' }}>
+                Reject Selected ({selectedUserIds.length})
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Main Sortable Data Table */}
+        <div style={{ background: '#FFFDF8', border: '2.5px solid #1B2233', boxShadow: '6px 6px 0px 0px #1B2233', borderRadius: '20px', overflow: 'hidden' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+            <thead>
+              <tr style={{ background: '#F8F3EA', borderBottom: '2.5px solid #1B2233' }}>
+                <th style={{ padding: '0.85rem', width: '40px' }}>
+                  <input type="checkbox" onChange={handleSelectAll} checked={selectedUserIds.length > 0 && selectedUserIds.length === users.length} />
+                </th>
+                <th style={{ padding: '0.85rem', fontWeight: 800 }}>Queue Pos</th>
+                <th style={{ padding: '0.85rem', fontWeight: 800 }}>User / Email</th>
+                <th style={{ padding: '0.85rem', fontWeight: 800 }}>Beta ID</th>
+                <th style={{ padding: '0.85rem', fontWeight: 800 }}>Batch</th>
+                <th style={{ padding: '0.85rem', fontWeight: 800 }}>Priority</th>
+                <th style={{ padding: '0.85rem', fontWeight: 800 }}>Status</th>
+                <th style={{ padding: '0.85rem', fontWeight: 800, textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan="8" style={{ padding: '2rem', textAlign: 'center', color: '#7A7A7A' }}>
+                    <RefreshCw size={20} className="animate-spin" style={{ margin: '0 auto 0.5rem auto' }} />
+                    Loading Beta Queue Data...
+                  </td>
+                </tr>
+              ) : users.length === 0 ? (
+                <tr>
+                  <td colSpan="8" style={{ padding: '2rem', textAlign: 'center', color: '#7A7A7A' }}>
+                    No waitlist records found.
+                  </td>
+                </tr>
+              ) : (
+                users.map(u => (
+                  <tr key={u.id} style={{ borderBottom: '1px solid #F3ECE0' }}>
+                    <td style={{ padding: '0.85rem' }}>
+                      <input type="checkbox" checked={selectedUserIds.includes(u.id)} onChange={() => handleToggleSelect(u.id)} />
+                    </td>
+                    <td style={{ padding: '0.85rem', fontWeight: 900, color: '#D85B3E' }}>
+                      #{u.queue_position || u.waitlist_position || '-'}
+                    </td>
+                    <td style={{ padding: '0.85rem' }}>
+                      <div style={{ fontWeight: 800, color: '#1B2233' }}>@{u.username}</div>
+                      <div style={{ fontSize: '0.75rem', color: '#7A7A7A' }}>{u.email}</div>
+                    </td>
+                    <td style={{ padding: '0.85rem', fontWeight: 800, color: '#4C779F' }}>
+                      {u.beta_id}
+                    </td>
+                    <td style={{ padding: '0.85rem', fontWeight: 700 }}>
+                      {u.beta_batch || 'Batch 1'}
+                    </td>
+                    <td style={{ padding: '0.85rem', fontWeight: 800 }}>
+                      {u.priority_score || 0}
+                    </td>
+                    <td style={{ padding: '0.85rem' }}>
+                      <span style={{
+                        padding: '0.25rem 0.65rem',
+                        borderRadius: '20px',
+                        fontSize: '0.72rem',
+                        fontWeight: 800,
+                        border: '1.5px solid #1B2233',
+                        background: u.rollout_status === 'APPROVED' || u.rollout_status === 'ACTIVE' ? '#F1F6F1' : (u.rollout_status === 'REJECTED' ? '#FFF0EB' : '#F8F3EA'),
+                        color: u.rollout_status === 'APPROVED' || u.rollout_status === 'ACTIVE' ? '#6D7B55' : (u.rollout_status === 'REJECTED' ? '#BE4D4D' : '#1B2233')
+                      }}>
+                        {u.rollout_status}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.85rem', textAlign: 'right' }}>
+                      <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end' }}>
+                        <button
+                          onClick={() => apiClient.request('/api/beta/bulk-approve', { method: 'POST', body: JSON.stringify({ waitlistIds: [u.id] }) }).then(fetchAdminData)}
+                          style={{ padding: '0.3rem 0.65rem', borderRadius: '50px', background: '#6D7B55', border: '1.5px solid #1B2233', color: '#FFF', fontWeight: 800, fontSize: '0.72rem', cursor: 'pointer' }}
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => apiClient.request('/api/beta/bulk-reject', { method: 'POST', body: JSON.stringify({ waitlistIds: [u.id] }) }).then(fetchAdminData)}
+                          style={{ padding: '0.3rem 0.65rem', borderRadius: '50px', background: '#BE4D4D', border: '1.5px solid #1B2233', color: '#FFF', fontWeight: 800, fontSize: '0.72rem', cursor: 'pointer' }}
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
       </div>
     </div>
   );

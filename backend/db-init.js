@@ -44,7 +44,19 @@ export async function runDbMigrations() {
       CREATE INDEX IF NOT EXISTS idx_adr_status ON account_deletion_requests(deletion_status);
       CREATE INDEX IF NOT EXISTS idx_adr_scheduled ON account_deletion_requests(scheduled_deletion_at);
 
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS beta_status VARCHAR(50) DEFAULT 'WAITING_FOR_BETA';
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS priority_score INTEGER DEFAULT 0;
+
       -- Phase 11: Beta Waitlist & Config Tables
+      CREATE TABLE IF NOT EXISTS beta_config (
+        id INTEGER PRIMARY KEY DEFAULT 1,
+        max_capacity INTEGER DEFAULT 150,
+        daily_batch_size INTEGER DEFAULT 10,
+        rollout_active BOOLEAN DEFAULT TRUE,
+        expiry_hours INTEGER DEFAULT 72,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
       CREATE TABLE IF NOT EXISTS beta_waitlist (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
@@ -52,13 +64,50 @@ export async function runDbMigrations() {
         beta_id VARCHAR(50) NOT NULL,
         email VARCHAR(255) NOT NULL,
         registration_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         waitlist_position INTEGER,
+        queue_position INTEGER,
         rollout_batch INTEGER DEFAULT 1,
-        rollout_status VARCHAR(50) DEFAULT 'WAITING_QUEUE',
+        beta_batch VARCHAR(50) DEFAULT 'Batch 1',
+        rollout_status VARCHAR(50) DEFAULT 'WAITING_FOR_BETA',
+        approval_status VARCHAR(50) DEFAULT 'WAITING_FOR_BETA',
+        priority_score INTEGER DEFAULT 0,
+        approved_by VARCHAR(100),
+        approved_at TIMESTAMP,
+        invited_at TIMESTAMP,
         invite_sent_time TIMESTAMP,
         invitation_expiry_time TIMESTAMP,
+        invitation_email_sent BOOLEAN DEFAULT FALSE,
         activation_code VARCHAR(100),
         admin_notes TEXT
+      );
+
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS queue_position INTEGER;
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS waitlist_position INTEGER;
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'WAITING_FOR_BETA';
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS priority_score INTEGER DEFAULT 0;
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS approved_by VARCHAR(100);
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS invited_at TIMESTAMP;
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS invitation_email_sent BOOLEAN DEFAULT FALSE;
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS beta_batch VARCHAR(50) DEFAULT 'Batch 1';
+
+      CREATE TABLE IF NOT EXISTS beta_batches (
+        id SERIAL PRIMARY KEY,
+        batch_name VARCHAR(100) NOT NULL,
+        batch_number INTEGER NOT NULL,
+        size INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS beta_approval_logs (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        action VARCHAR(50) NOT NULL,
+        admin_id VARCHAR(100),
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
 
       CREATE INDEX IF NOT EXISTS idx_bw_user_id ON beta_waitlist(user_id);
@@ -265,6 +314,15 @@ export async function runDbMigrations() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    
+    await query(`
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS priority_score INTEGER DEFAULT 0;
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS waitlist_position INTEGER;
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS queue_position INTEGER;
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+      ALTER TABLE beta_waitlist ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'WAITING_FOR_BETA';
+    `).catch(() => {});
+
     console.log('✅ Phase 10, Phase 11, Phase 12 & Phase 14 database migrations applied successfully!');
     return true;
   } catch (err) {
