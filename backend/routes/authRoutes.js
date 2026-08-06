@@ -112,12 +112,18 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Account created successfully. Verification code sent to email.',
+      pendingVerification: true,
+      verificationToken: tempToken,
       tempToken,
       email: newUser.email,
+      expiresIn: 300,
+      message: 'Account created successfully. Verification code sent to email.',
       data: {
+        pendingVerification: true,
+        verificationToken: tempToken,
         tempToken,
         email: newUser.email,
+        expiresIn: 300,
         user: {
           id: newUser.id,
           name: newUser.name,

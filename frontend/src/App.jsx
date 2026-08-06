@@ -36,6 +36,7 @@ import Maintenance from './pages/Maintenance';
 import DevDashboard from './pages/DevDashboard';
 import BetaCommandCenter from './pages/BetaCommandCenter';
 import WaitingForBeta from './pages/WaitingForBeta';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import { AccessibilityProvider } from './context/AccessibilityContext';
 
 import { checkBrowserCompatibility } from './utils/browserSupport';
@@ -51,6 +52,8 @@ export default function App() {
   const [userDetails, setUserDetails] = useState(null);
   const [usersList, setUsersList] = useState([]);
   const [loginError, setLoginError] = useState('');
+  const [pendingVerificationToken, setPendingVerificationToken] = useState(() => sessionStorage.getItem('swaply_pending_token') || null);
+  const [pendingVerificationEmail, setPendingVerificationEmail] = useState(() => sessionStorage.getItem('swaply_pending_email') || null);
 
   // Call management state
   const [callState, setCallState] = useState('idle'); // idle, active
@@ -196,17 +199,17 @@ export default function App() {
     const data = await apiClient.register({ name, username, email, password });
 
     if (data && data.success) {
-      const tempToken = data.tempToken || (data.data && data.data.tempToken);
-      const user = (data.data && data.data.user) || data.user || { name, username, email, email_verified: false };
+      console.log('[Auth] Registration success -> Navigating to /verify-email');
+      const verificationToken = data.verificationToken || data.tempToken || (data.data && (data.data.verificationToken || data.data.tempToken));
+
+      setPendingVerificationToken(verificationToken);
+      setPendingVerificationEmail(email);
+
+      sessionStorage.setItem('swaply_pending_token', verificationToken);
+      sessionStorage.setItem('swaply_pending_email', email);
 
       setLoginError('');
-      setUserDetails({ ...user, email_verified: false });
-      setAuthToken(tempToken);
-      setCurrentUser(email);
-      apiClient.setAuthToken(tempToken);
-
-      localStorage.setItem('swaply_auth_token', tempToken);
-      localStorage.setItem('swaply_current_user', email);
+      navigate('/verify-email');
     } else {
       throw new Error(data?.message || 'Registration failed');
     }
@@ -433,7 +436,15 @@ export default function App() {
   };
 
   const handleOTPVerified = (token, verifiedUser) => {
+    console.log('[Auth] OTP verified -> Received full accessToken');
+    
+    sessionStorage.removeItem('swaply_pending_token');
+    sessionStorage.removeItem('swaply_pending_email');
+    setPendingVerificationToken(null);
+    setPendingVerificationEmail(null);
+
     const userObj = verifiedUser ? { ...verifiedUser, email_verified: true } : (userDetails ? { ...userDetails, email_verified: true } : { email_verified: true });
+    
     setAuthToken(token);
     setUserDetails(userObj);
     if (userObj.username) setCurrentUser(userObj.username);
@@ -455,7 +466,12 @@ export default function App() {
       });
     }
 
-    navigate('/dashboard');
+    console.log('[Auth] Navigating to /dashboard');
+    if (userObj.beta_status === 'WAITING_FOR_BETA' && !userObj.is_admin) {
+      navigate('/waiting');
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   // If user details show unverified email, intercept with OTP verification overlay
@@ -544,7 +560,22 @@ export default function App() {
           currentUser ? <Navigate to="/dashboard" replace /> :
           <Register onSecureRegister={handleSecureRegister} loginError={loginError} />
         } />
-        <Route path="/verify-phone" element={<VerifyPhone />} />
+        <Route path="/verify-email" element={
+          <VerifyEmailPage
+            email={pendingVerificationEmail || sessionStorage.getItem('swaply_pending_email')}
+            verificationToken={pendingVerificationToken || sessionStorage.getItem('swaply_pending_token')}
+            onVerified={handleOTPVerified}
+            onCancel={() => {
+              sessionStorage.removeItem('swaply_pending_token');
+              sessionStorage.removeItem('swaply_pending_email');
+              setPendingVerificationToken(null);
+              setPendingVerificationEmail(null);
+              navigate('/register');
+            }}
+          />
+        } />
+        <Route path="/verify-phone" element={<Navigate to="/verify-email" replace />} />
+        <Route path="/verify-otp" element={<Navigate to="/verify-email" replace />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/community-guidelines" element={<CommunityGuidelines />} />
