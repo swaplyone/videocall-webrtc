@@ -392,6 +392,8 @@ export default function App() {
     }
   };
 
+  const [isOfflineTargetCall, setIsOfflineTargetCall] = useState(false);
+
   const handleInitiateCall = (targetUser) => {
     const compat = checkBrowserCompatibility();
     if (compat.status === 'Unsupported') {
@@ -401,10 +403,14 @@ export default function App() {
     checkNoticeAcknowledgment(() => {
       setRemoteUser(targetUser);
       setIsCaller(true);
+      setIsOfflineTargetCall(false);
       socket.emit('initiate_call', { to: targetUser }, (response) => {
         if (response && response.success) {
           console.log(`[App] Call initiated successfully. Session ID: ${response.sessionId}`);
           setActiveSessionId(response.sessionId);
+          if (response.isOfflineTarget) {
+            setIsOfflineTargetCall(true);
+          }
           setCallState('active');
         } else {
           showPopup('Call Error', `Could not call: ${response?.error || 'Target user unavailable'}`, 'error');
@@ -546,6 +552,7 @@ export default function App() {
           onHangUp={handleHangUp}
           authToken={authToken}
           isRestored={isRestoredCall}
+          isOfflineTarget={isOfflineTargetCall}
         />
       )}
 

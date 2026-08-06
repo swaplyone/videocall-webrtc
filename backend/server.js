@@ -499,19 +499,12 @@ io.on('connection', (socket) => {
       return callback({ success: true, sessionId, isEchoTest: true, message: 'Connected to Swaply WebRTC Test Node' });
     }
 
-    if (!onlineUsers.has(to) && !onlineUsers.has(targetClean)) {
-      return callback({ 
-        success: false, 
-        error: `User @${targetClean} is currently offline. Open another browser tab at http://localhost:5173/ and log in as @${targetClean} to test live calls, or dial @echo for automated test calling.` 
-      });
-    }
-
     // Resolve user IDs and verify privacy blocks
     let callerId = null;
     let receiverId = null;
     try {
       callerId = await getUserIdByUsername(caller);
-      receiverId = await getUserIdByUsername(to);
+      receiverId = await getUserIdByUsername(to) || await getUserIdByUsername(targetClean);
       if (callerId && receiverId) {
         const blockCheck = await query(
           `SELECT 1 FROM blocks 
@@ -539,7 +532,8 @@ io.on('connection', (socket) => {
       console.error('Error verifying privacy blocks on call setup:', err);
     }
 
-    const receiverSocketId = onlineUsers.get(to);
+    const receiverSocketId = onlineUsers.get(to) || onlineUsers.get(targetClean);
+    const isOfflineTarget = !receiverSocketId;
     
     // Generate secure unique call ID
     const sessionId = `call_${Math.random().toString(36).substring(2, 15)}_${Date.now()}`;
@@ -548,16 +542,27 @@ io.on('connection', (socket) => {
     let dbCallId = null;
     try {
       if (callerId && receiverId) {
+        const callStatus = isOfflineTarget ? 'missed' : 'ringing';
         const insRes = await query(
-          `INSERT INTO calls (caller_id, receiver_id, status, session_id, started_at)
-           VALUES ($1, $2, 'ringing', $3, NOW())
+          `INSERT INTO calls (caller_id, receiver_id, status, session_id, started_at, ended_at, duration)
+           VALUES ($1, $2, $3, $4, NOW(), NOW(), 0)
            RETURNING id`,
-          [callerId, receiverId, sessionId]
+          [callerId, receiverId, callStatus, sessionId]
         );
         dbCallId = insRes.rows[0].id;
       }
     } catch (err) {
       console.error('Error logging call initiation in DB:', err);
+    }
+
+    if (isOfflineTarget) {
+      console.log(`[CallEngine] Receiver ${to} is offline. Logging missed call ${sessionId} in database.`);
+      return callback({ 
+        success: true, 
+        sessionId, 
+        isOfflineTarget: true, 
+        message: `Call ringing... @${targetClean} is currently offline. A missed call has been saved to their log.` 
+      });
     }
 
     // State Machine Transition: IDLE -> CALLING

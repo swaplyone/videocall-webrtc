@@ -33,7 +33,8 @@ export default function CallInterface({
   isCaller,
   onHangUp,
   authToken,
-  isRestored = false
+  isRestored = false,
+  isOfflineTarget = false
 }) {
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
@@ -148,6 +149,17 @@ export default function CallInterface({
   const [feedbackIssues, setFeedbackIssues] = useState([]);
   const [feedbackComments, setFeedbackComments] = useState('');
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+
+  // Offline target call sequence (simulates ringing then saves missed call notice)
+  useEffect(() => {
+    if (isOfflineTarget) {
+      setConnectionStatus(`Ringing @${remoteUser || 'peer'}...`);
+      const timer = setTimeout(() => {
+        setConnectionStatus(`No Answer • Missed Call Saved to Log`);
+      }, 5500);
+      return () => clearTimeout(timer);
+    }
+  }, [isOfflineTarget, remoteUser]);
 
   // Helper: Apply WebRTC video sender parameters (bitrate and resolution scaling)
   const applyVideoParameters = async (mode, currentQuality) => {
