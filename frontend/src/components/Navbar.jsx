@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Home,
   Users,
+  Clock,
   Bell,
   Settings,
+  Shield,
   ShieldCheck,
   Power,
   X,
@@ -66,29 +68,34 @@ export default function Navbar({ currentUser, userDetails, onLogout }) {
     return location.pathname.startsWith(path);
   };
 
-  // Ultra-Clean, Non-Congested Nav Items
-  const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: <Home size={18} />, color: '#D45B3E' },
-    { path: '/friends', label: 'Friends', icon: <Users size={18} />, color: '#4A6E53' },
-    { path: '/notifications', label: 'Alerts', icon: <Bell size={18} />, color: '#E5A93C' },
-    { path: '/settings', label: 'Settings', icon: <Settings size={18} />, color: '#4C779F' }
+  // Two Clean Grid Sections
+  const section1 = [
+    { path: '/dashboard', label: 'Dashboard', icon: <Home size={17} />, color: '#D45B3E' },
+    { path: '/friends', label: 'Friends', icon: <Users size={17} />, color: '#4A6E53' },
+    { path: '/notifications', label: 'Alerts', icon: <Bell size={17} />, color: '#E5A93C' }
+  ];
+
+  const section2 = [
+    { path: '/call-history', label: 'Recent Calls', icon: <Clock size={17} />, color: '#4C779F' },
+    { path: '/settings', label: 'Settings', icon: <Settings size={17} />, color: '#8B5CF6' },
+    { path: '/privacy', label: 'Privacy', icon: <Shield size={17} />, color: '#64748B' }
   ];
 
   if (userDetails?.is_admin) {
-    navItems.push(
-      { path: '/admin', label: 'Admin Hub', icon: <ShieldCheck size={18} />, color: '#BE4D4D' }
+    section2.push(
+      { path: '/admin', label: 'Admin Hub', icon: <ShieldCheck size={17} />, color: '#BE4D4D' }
     );
   }
 
-  // De-congested Dynamic Island Dimensions
+  // Clean 2-Section Dynamic Island Dimensions
   const islandVariants = {
     compact: {
-      width: '180px',
+      width: '185px',
       height: '48px',
       borderRadius: '24px'
     },
     expanded: {
-      width: 'min(90vw, 340px)',
+      width: 'min(92vw, 440px)',
       height: 'auto',
       borderRadius: '24px'
     }
@@ -110,10 +117,10 @@ export default function Navbar({ currentUser, userDetails, onLogout }) {
               variants={islandVariants}
               animate={isExpanded ? 'expanded' : 'compact'}
               transition={{
-                duration: 0.25,
+                duration: 0.26,
                 ease: [0.23, 1, 0.32, 1]
               }}
-              style={{ paddingBottom: isExpanded ? '12px' : '0px' }}
+              style={{ paddingBottom: isExpanded ? '14px' : '0px' }}
             >
               <div className="island-content-layer">
                 {/* Header Row */}
@@ -154,77 +161,129 @@ export default function Navbar({ currentUser, userDetails, onLogout }) {
                   </div>
                 </div>
 
-                {/* Expanded Clean Menu List */}
+                {/* Expanded Clean 2-Section Grid Layout */}
                 <AnimatePresence>
                   {isExpanded && (
                     <motion.div
                       key="menu"
-                      className="island-menu-area-clean"
+                      className="island-menu-clean-grid"
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 6 }}
                       transition={{ duration: 0.2 }}
-                      style={{ padding: '12px 14px 4px 14px', display: 'flex', flexDirection: 'column', gap: '8px' }}
+                      style={{ padding: '12px 14px 4px 14px', display: 'flex', flexDirection: 'column', gap: '12px' }}
                     >
-                      {navItems.map((item) => (
-                        <Link
-                          key={item.path}
-                          to={item.path}
-                          className={`quick-access-item-clean ${isActive(item.path) ? 'active' : ''}`}
-                          onClick={() => setIsExpanded(false)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '12px',
-                            padding: '10px 14px',
-                            borderRadius: '14px',
-                            background: isActive(item.path) ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.05)',
-                            border: '1.5px solid rgba(255, 255, 255, 0.1)',
-                            color: '#FFF',
-                            textDecoration: 'none',
-                            fontWeight: 700,
-                            fontSize: '0.9rem'
-                          }}
-                        >
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '32px',
-                              height: '32px',
-                              borderRadius: '10px',
-                              background: item.color,
-                              color: '#FFF'
-                            }}
-                          >
-                            {item.icon}
-                          </div>
-                          <span>{item.label}</span>
-                          <ChevronRight size={14} style={{ marginLeft: 'auto', opacity: 0.4 }} />
-                        </Link>
-                      ))}
+                      {/* 2-Section Grid */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        {/* Section 1 */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px', paddingLeft: '4px' }}>
+                            Main Stage
+                          </span>
+                          {section1.map((item) => (
+                            <Link
+                              key={item.path}
+                              to={item.path}
+                              onClick={() => setIsExpanded(false)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                padding: '9px 12px',
+                                borderRadius: '14px',
+                                background: isActive(item.path) ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.05)',
+                                border: '1.5px solid rgba(255, 255, 255, 0.1)',
+                                color: '#FFF',
+                                textDecoration: 'none',
+                                fontWeight: 700,
+                                fontSize: '0.85rem'
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '28px',
+                                  height: '28px',
+                                  borderRadius: '8px',
+                                  background: item.color,
+                                  color: '#FFF'
+                                }}
+                              >
+                                {item.icon}
+                              </div>
+                              <span>{item.label}</span>
+                            </Link>
+                          ))}
+                        </div>
 
+                        {/* Section 2 */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <span style={{ fontSize: '0.65rem', fontWeight: 800, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '1px', paddingLeft: '4px' }}>
+                            Control Node
+                          </span>
+                          {section2.map((item) => (
+                            <Link
+                              key={item.path}
+                              to={item.path}
+                              onClick={() => setIsExpanded(false)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                padding: '9px 12px',
+                                borderRadius: '14px',
+                                background: isActive(item.path) ? 'rgba(255, 255, 255, 0.16)' : 'rgba(255, 255, 255, 0.05)',
+                                border: '1.5px solid rgba(255, 255, 255, 0.1)',
+                                color: '#FFF',
+                                textDecoration: 'none',
+                                fontWeight: 700,
+                                fontSize: '0.85rem'
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  width: '28px',
+                                  height: '28px',
+                                  borderRadius: '8px',
+                                  background: item.color,
+                                  color: '#FFF'
+                                }}
+                              >
+                                {item.icon}
+                              </div>
+                              <span>{item.label}</span>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Footer Profile Button */}
                       <Link
                         to="/profile"
                         onClick={() => setIsExpanded(false)}
                         style={{
-                          marginTop: '4px',
+                          marginTop: '2px',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '10px',
-                          padding: '10px 14px',
+                          padding: '9px 12px',
                           borderRadius: '14px',
-                          background: 'rgba(212, 91, 62, 0.2)',
+                          background: 'rgba(212, 91, 62, 0.18)',
                           border: '1.5px solid rgba(212, 91, 62, 0.4)',
                           color: '#FFF',
                           textDecoration: 'none',
                           fontWeight: 800,
-                          fontSize: '0.85rem'
+                          fontSize: '0.84rem'
                         }}
                       >
                         <User size={16} color="#D45B3E" />
                         <span>@{currentUser || 'founder'} &bull; View Profile</span>
+                        <ChevronRight size={14} style={{ marginLeft: 'auto', opacity: 0.5 }} />
                       </Link>
                     </motion.div>
                   )}
