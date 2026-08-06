@@ -258,6 +258,9 @@ export default function App() {
 
     socket.on('call_terminated', () => {
       console.log('[App] Call terminated by peer.');
+      setNotificationNotice('Peer ended the call');
+      setTimeout(() => setNotificationNotice(null), 3000);
+      resetCallState();
     });
 
     socket.on('call_restored', ({ sessionId, remoteUser, isCaller }) => {
@@ -448,6 +451,10 @@ export default function App() {
   };
 
   const handleHangUp = () => {
+    if (activeSessionId && socket) {
+      console.log(`[App] Emitting terminate_call for session ${activeSessionId}`);
+      socket.emit('terminate_call', { sessionId: activeSessionId });
+    }
     resetCallState();
   };
 

@@ -661,12 +661,16 @@ io.on('connection', (socket) => {
     const username = socketToUser.get(socket.id);
     const call = activeCalls.get(sessionId);
 
-    if (call && (call.caller === username || call.receiver === username)) {
-      // Notify peer before clearing state
-      const peer = call.caller === username ? call.receiver : call.caller;
-      const peerSocketId = onlineUsers.get(peer);
-      
-      io.to(peerSocketId).emit('call_terminated', { sessionId });
+    console.log(`[Socket] Terminate call received for session ${sessionId} by ${username}`);
+
+    // Broadcast call_terminated to room participants & direct sockets
+    io.to(sessionId).emit('call_terminated', { sessionId });
+
+    if (call) {
+      const callerSocketId = onlineUsers.get(call.caller);
+      const receiverSocketId = onlineUsers.get(call.receiver);
+      if (callerSocketId) io.to(callerSocketId).emit('call_terminated', { sessionId });
+      if (receiverSocketId) io.to(receiverSocketId).emit('call_terminated', { sessionId });
 
       // State Machine Transition: CURRENT -> ENDED
       await transitionCall(sessionId, CallStates.ENDED);
