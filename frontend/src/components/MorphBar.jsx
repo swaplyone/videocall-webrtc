@@ -496,15 +496,15 @@ export default function MorphBar({
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '2px dashed #1B2233', paddingBottom: '0.75rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#D85B3E', color: '#FFF', border: '2px solid #1B2233', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>
-                    {(currentUser || 'U').substring(0, 2).toUpperCase()}
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: currentUser ? '#D85B3E' : '#7A7A7A', color: '#FFF', border: '2px solid #1B2233', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>
+                    {(currentUser || 'Guest').substring(0, 2).toUpperCase()}
                   </div>
                   <div>
                     <h3 style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem', fontFamily: 'var(--font-display)' }}>
-                      @{currentUser || 'founder'}
+                      {currentUser ? `@${currentUser}` : 'Guest User'}
                     </h3>
-                    <span style={{ fontSize: '0.75rem', color: '#D85B3E', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
-                      Beta ID: {userDetails?.beta_id || 'SWP-ACTIVE'}
+                    <span style={{ fontSize: '0.75rem', color: currentUser ? '#D85B3E' : '#7A7A7A', fontWeight: 800, fontFamily: 'var(--font-mono)' }}>
+                      {currentUser ? `Beta ID: ${userDetails?.beta_id || 'N/A'}` : 'Session: Not Signed In'}
                     </span>
                   </div>
                 </div>
@@ -513,31 +513,49 @@ export default function MorphBar({
                 </button>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                <button
-                  onClick={() => { navigate('/profile'); setMode('idle'); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.85rem', borderRadius: '12px', background: '#F8F3EA', border: '1.5px solid #1B2233', color: '#1B2233', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
-                >
-                  <User size={16} color="#D85B3E" /> View Full Profile
-                </button>
+              {currentUser ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <button
+                    onClick={() => { navigate('/profile'); setMode('idle'); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.85rem', borderRadius: '12px', background: '#F8F3EA', border: '1.5px solid #1B2233', color: '#1B2233', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
+                  >
+                    <User size={16} color="#D85B3E" /> View Full Profile
+                  </button>
 
-                <button
-                  onClick={() => { navigate('/settings'); setMode('idle'); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.85rem', borderRadius: '12px', background: '#F8F3EA', border: '1.5px solid #1B2233', color: '#1B2233', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
-                >
-                  <Settings size={16} color="#4C779F" /> Preferences & Hardware
-                </button>
+                  <button
+                    onClick={() => { navigate('/settings'); setMode('idle'); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.85rem', borderRadius: '12px', background: '#F8F3EA', border: '1.5px solid #1B2233', color: '#1B2233', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
+                  >
+                    <Settings size={16} color="#4C779F" /> Preferences & Hardware
+                  </button>
 
-                <button
-                  onClick={() => {
-                    if (onLogout) onLogout();
-                    setMode('idle');
-                  }}
-                  style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.85rem', borderRadius: '12px', background: '#FFF0EB', border: '1.5px solid #BE4D4D', color: '#BE4D4D', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', marginTop: '0.25rem' }}
-                >
-                  <Power size={16} /> Disconnect Session
-                </button>
-              </div>
+                  <button
+                    onClick={() => {
+                      if (onLogout) onLogout();
+                      setMode('idle');
+                    }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.85rem', borderRadius: '12px', background: '#FFF0EB', border: '1.5px solid #BE4D4D', color: '#BE4D4D', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', marginTop: '0.25rem' }}
+                  >
+                    <Power size={16} /> Disconnect Session
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <button
+                    onClick={() => { navigate('/login'); setMode('idle'); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.66rem 0.85rem', borderRadius: '12px', background: '#D85B3E', border: '1.5px solid #1B2233', color: '#FFF', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer' }}
+                  >
+                    <Power size={16} /> Sign In to Console
+                  </button>
+
+                  <button
+                    onClick={() => { navigate('/register'); setMode('idle'); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 0.85rem', borderRadius: '12px', background: '#F8F3EA', border: '1.5px solid #1B2233', color: '#1B2233', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
+                  >
+                    <User size={16} color="#D85B3E" /> Create New Account
+                  </button>
+                </div>
+              )}
             </motion.div>
           )}
 

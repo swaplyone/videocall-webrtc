@@ -89,10 +89,10 @@ export default function Dashboard({ currentUser, userDetails, onInitiateCall }) 
             </div>
             <div>
               <h2 style={{ margin: 0, fontWeight: 800, fontSize: '1.4rem', fontFamily: 'var(--font-display)', color: '#1B2233' }}>
-                👋 Welcome Back, @{currentUser || 'founder'}
+                👋 Welcome Back, @{currentUser || userDetails?.username || 'User'}
               </h2>
               <div style={{ fontSize: '0.8rem', color: '#7A7A7A', fontFamily: 'var(--font-mono)', marginTop: '0.25rem' }}>
-                Beta ID: <strong style={{ color: '#D85B3E' }}>{userDetails?.beta_id || 'SWP-ACTIVE'}</strong> &bull; STATUS: <strong style={{ color: '#6D7B55' }}>ACTIVE FIELD NODE</strong>
+                Beta ID: <strong style={{ color: '#D85B3E' }}>{userDetails?.beta_id || 'N/A'}</strong> &bull; STATUS: <strong style={{ color: '#6D7B55' }}>ACTIVE FIELD NODE</strong>
               </div>
             </div>
           </div>
