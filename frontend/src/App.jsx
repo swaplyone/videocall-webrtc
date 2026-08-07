@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { PhoneOff } from 'lucide-react';
 
 import Navbar from './components/Navbar';
 import MorphBar from './components/MorphBar';
@@ -413,8 +414,11 @@ export default function App() {
           setActiveSessionId(response.sessionId);
           if (response.isOfflineTarget) {
             setIsOfflineTargetCall(true);
+            setCallState('active');
+          } else {
+            setIsOfflineTargetCall(false);
+            setCallState('ringing');
           }
-          setCallState('active');
         } else {
           showPopup('Call Error', `Could not call: ${response?.error || 'Target user unavailable'}`, 'error');
           resetCallState();
@@ -546,6 +550,106 @@ export default function App() {
           onVerified={handleOTPVerified}
           onCancel={handleLogout}
         />
+      )}
+
+      {/* Real-time Continuous Ringing Call Overlay */}
+      {callState === 'ringing' && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            background: 'rgba(27, 34, 51, 0.88)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.5rem'
+          }}
+        >
+          <div
+            className="glass-panel"
+            style={{
+              width: '100%',
+              maxWidth: '420px',
+              padding: '2.5rem 2rem',
+              background: '#FFFDF8',
+              border: '3.5px solid #1B2233',
+              boxShadow: '10px 10px 0px 0px #1B2233',
+              borderRadius: '24px',
+              textAlign: 'center',
+              position: 'relative'
+            }}
+          >
+            <div className="washi-tape-tr"></div>
+            <div className="paper-clip-badge">📎</div>
+
+            {/* Pulsing Avatar Ring */}
+            <div style={{ position: 'relative', width: '88px', height: '88px', margin: '0 auto 1.5rem auto' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  inset: '-14px',
+                  borderRadius: '50%',
+                  border: '3.5px solid #D85B3E',
+                  animation: 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                }}
+              />
+              <div
+                style={{
+                  width: '88px',
+                  height: '88px',
+                  borderRadius: '50%',
+                  background: '#D85B3E',
+                  border: '3.5px solid #1B2233',
+                  color: '#FFF',
+                  fontSize: '2rem',
+                  fontWeight: 900,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '4px 4px 0 #1B2233',
+                  position: 'relative',
+                  zIndex: 2
+                }}
+              >
+                {(remoteUser || 'Peer').substring(0, 2).toUpperCase()}
+              </div>
+            </div>
+
+            <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '1.5rem', fontWeight: 900, color: '#1B2233' }}>
+              🔔 Calling @{remoteUser}...
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: '#7A7A7A', fontFamily: 'var(--font-mono)', margin: '0.5rem 0 1.75rem 0' }}>
+              Ringing peer node. Waiting for @{remoteUser} to pick up...
+            </p>
+
+            {/* Cancel Call Button */}
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleHangUp}
+              style={{
+                width: '100%',
+                padding: '0.85rem',
+                borderRadius: '50px',
+                background: '#BE4D4D',
+                color: '#FFF',
+                border: '2.5px solid #1B2233',
+                boxShadow: '4px 4px 0px 0px #1B2233',
+                fontWeight: 900,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <PhoneOff size={18} /> Cancel Call
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Active Call Interface Overlay */}

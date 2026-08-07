@@ -265,6 +265,19 @@ async function transitionCall(sessionId, toState, extraData = {}) {
     io.to(receiverSocketId).emit('call_state_changed', { sessionId, state: toState, dbCallId: updatedCall.dbCallId });
   }
 
+  // 45-Second Cellular/FaceTime Ringing Timeout
+  if (toState === CallStates.RINGING) {
+    setTimeout(async () => {
+      const active = activeCalls.get(sessionId);
+      if (active && active.status === CallStates.RINGING) {
+        console.log(`[RingingEngine] 45s Ringing timeout expired for session ${sessionId}`);
+        await transitionCall(sessionId, CallStates.TIMEOUT);
+        if (callerSocketId) io.to(callerSocketId).emit('call_rejected', { sessionId, reason: 'No answer' });
+        if (receiverSocketId) io.to(receiverSocketId).emit('call_terminated', { sessionId });
+      }
+    }, 45000);
+  }
+
   // Emit operational alerts to admins room (Module 21)
   if (toState === CallStates.CONNECTED) {
     io.to('admins').emit('admin_call_started', {
@@ -309,20 +322,25 @@ async function updateUserPresence(username, status) {
   }
 }
 
-// Helper to get user ID by username, beta_id, or email
-async function getUserIdByUsername(identifier) {
+// Helper to get full user profile by username, beta_id, or email
+async function getUserProfileByIdentifier(identifier) {
   if (!identifier || typeof identifier !== 'string') return null;
   const clean = identifier.trim().replace(/^@+/, '');
   try {
     const res = await query(
-      'SELECT id, username FROM users WHERE username = $1 OR beta_id = $1 OR email = $1 OR LOWER(username) = LOWER($1)',
+      'SELECT id, username, email, beta_id FROM users WHERE username = $1 OR beta_id = $1 OR email = $1 OR LOWER(username) = LOWER($1) OR LOWER(beta_id) = LOWER($1)',
       [clean]
     );
-    return res.rowCount > 0 ? res.rows[0].id : null;
+    return res.rowCount > 0 ? res.rows[0] : null;
   } catch (err) {
-    console.error(`Error fetching user ID for ${identifier}:`, err);
+    console.error(`Error fetching user profile for ${identifier}:`, err);
     return null;
   }
+}
+
+async function getUserIdByUsername(identifier) {
+  const profile = await getUserProfileByIdentifier(identifier);
+  return profile ? profile.id : null;
 }
 
 // Helper to find or create conversation between two users
@@ -450,6 +468,8 @@ io.on('connection', (socket) => {
 
     onlineUsers.set(cleanUsername, socket.id);
     socketToUser.set(socket.id, cleanUsername);
+    socket.join(cleanUsername);
+    socket.join(cleanUsername.toLowerCase());
     console.log(`User registered: ${cleanUsername} (${socket.id}) ${socket.user ? '[JWT Auth]' : '[Anon]'}`);
 
     // Reconnection Recovery: Cancel call termination timeout if the user reconnected during the grace period
@@ -547,7 +567,11 @@ io.on('connection', (socket) => {
       console.error('Error verifying privacy blocks on call setup:', err);
     }
 
-    const receiverSocketId = onlineUsers.get(to) || onlineUsers.get(targetClean);
+    // Resolve receiver profile by username, beta_id, or email
+    const receiverProfile = await getUserProfileByIdentifier(to) || await getUserProfileByIdentifier(targetClean);
+    const resolvedReceiverUsername = receiverProfile ? receiverProfile.username : targetClean;
+
+    const receiverSocketId = onlineUsers.get(resolvedReceiverUsername) || onlineUsers.get(to) || onlineUsers.get(targetClean);
     const isOfflineTarget = !receiverSocketId;
     
     // Generate secure unique call ID
@@ -571,12 +595,12 @@ io.on('connection', (socket) => {
     }
 
     if (isOfflineTarget) {
-      console.log(`[CallEngine] Receiver ${to} is offline. Logging missed call ${sessionId} in database.`);
+      console.log(`[CallEngine] Receiver ${to} (@${resolvedReceiverUsername}) is offline. Logging missed call ${sessionId} in database.`);
       return callback({ 
         success: true, 
         sessionId, 
         isOfflineTarget: true, 
-        message: `Call ringing... @${targetClean} is currently offline. A missed call has been saved to their log.` 
+        message: `Call ringing... @${resolvedReceiverUsername} is currently offline. A missed call has been saved to their log.` 
       });
     }
 
@@ -584,7 +608,7 @@ io.on('connection', (socket) => {
     const transitionRes1 = await transitionCall(sessionId, CallStates.CALLING, {
       dbCallId,
       caller,
-      receiver: to
+      receiver: resolvedReceiverUsername
     });
 
     if (!transitionRes1.success) {
@@ -597,8 +621,18 @@ io.on('connection', (socket) => {
       return callback({ success: false, error: transitionRes2.error });
     }
 
-    // Notify receiver
-    io.to(receiverSocketId).emit('incoming_call', {
+    // Notify receiver across direct socket ID and user room channels
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit('incoming_call', {
+        from: caller,
+        sessionId
+      });
+    }
+    io.to(resolvedReceiverUsername).emit('incoming_call', {
+      from: caller,
+      sessionId
+    });
+    io.to(resolvedReceiverUsername.toLowerCase()).emit('incoming_call', {
       from: caller,
       sessionId
     });
